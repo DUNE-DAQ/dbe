@@ -210,7 +210,7 @@ void dbe::MainWindow::attach()
   connect ( UserGuide, SIGNAL ( triggered() ), this, SLOT ( slot_show_userguide() ) );
   connect ( UserChanges, SIGNAL ( triggered() ), this, SLOT ( slot_show_userchanges() ) );
 
-  connect ( TreeView, SIGNAL ( doubleClicked ( QModelIndex ) ), this,
+  connect ( TreeView, SIGNAL ( activated ( QModelIndex ) ), this,
             SLOT ( slot_edit_object_from_class_view ( QModelIndex ) ) );
 
   connect( &confaccessor::ref(), SIGNAL(db_committed(const std::list<std::string>&, const std::string&)), this,
@@ -352,7 +352,6 @@ void dbe::MainWindow::edit_object_at ( const QModelIndex & Index )
 
   if ( dynamic_cast<ObjectNode *> ( tree_node ) )
   {
-
     ObjectNode * NodeObject = dynamic_cast<ObjectNode *> ( tree_node );
     tref ObjectToBeEdited = NodeObject->GetObject();
     slot_launch_object_editor ( ObjectToBeEdited );
@@ -415,9 +414,11 @@ void dbe::MainWindow::build_file_model()
 
     this_filesort.setSourceModel ( this_files );
     FileView->setModel ( &this_filesort );
+
     FileView->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
     FileView->horizontalHeader()->setSectionResizeMode(1, QHeaderView::ResizeToContents);
     FileView->horizontalHeader()->setSectionResizeMode(2, QHeaderView::ResizeToContents);
+    FileView->horizontalHeader()->setSectionResizeMode(3, QHeaderView::ResizeToContents);
   }
 }
 
@@ -826,7 +827,7 @@ void dbe::MainWindow::load_settings ( bool LoadSettings )
   move ( Settings->value ( "pos" ).toPoint() );
   DisplayTableView->setChecked ( Settings->value ( "TableView" ).toBool() );
   DisplayClassView->setChecked ( Settings->value ( "ClassView" ).toBool() );
-  DisplaySegmentsView->setChecked ( Settings->value ( "SRView" ).toBool() );
+
   DisplayMessages->setChecked ( Settings->value ( "Messages" ).toBool() );
   restoreGeometry ( Settings->value ( "geometry" ).toByteArray() );
   restoreState ( Settings->value ( "state" ).toByteArray() );
@@ -848,7 +849,7 @@ void dbe::MainWindow::WriteSettings()
   Settings.setValue ( "pos", pos() );
   Settings.setValue ( "TableView", DisplayTableView->isChecked() );
   Settings.setValue ( "ClassView", DisplayClassView->isChecked() );
-  Settings.setValue ( "SRView", DisplaySegmentsView->isChecked() );
+
   Settings.setValue ( "Messages", DisplayMessages->isChecked() );
   Settings.setValue ( "geometry", saveGeometry() );
   Settings.setValue ( "state", saveState() );
