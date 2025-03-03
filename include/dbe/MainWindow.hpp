@@ -50,11 +50,11 @@ public:
 
   static MainWindow * findthis();
 
-  bool check_ready() const;
+  [[nodiscard]] bool check_ready() const;
 
-  cptr<dbe::CustomTreeView> get_view() const;
+  [[nodiscard]] cptr<dbe::CustomTreeView> get_view() const;
 
-  QString find_db_repository_dir();
+  [[nodiscard]] QString find_db_repository_dir();
 
 private:
   //typedef QMap<QString, bool> RDBMap;
@@ -105,7 +105,7 @@ private:
   //void lookForRDBServers ( const IPCPartition & p );
   void init_tabs();
 
-  void edit_object_at ( const QModelIndex Index );
+  void edit_object_at ( const QModelIndex & Index );
 
   void update_total_objects();
 

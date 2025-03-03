@@ -139,7 +139,6 @@ void dbe::MainWindow::init()
   tableholder->removeTab ( 1 );
 
   /// Menus Settings
-  ToolsMenu->setEnabled ( false );
   HelpMenu->setEnabled ( true );
 
   /// Commands Settings
@@ -342,7 +341,7 @@ void dbe::MainWindow::build_table_model()
   CaseSensitiveCheckBoxTable->show();
 }
 
-void dbe::MainWindow::edit_object_at ( const QModelIndex Index )
+void dbe::MainWindow::edit_object_at ( const QModelIndex & Index )
 {
   treenode * tree_node = this_classes->getnode ( Index );
 

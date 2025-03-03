@@ -148,10 +148,10 @@ QVariant dbe::models::table::headerData ( int section, Qt::Orientation orientati
     {
       return this_headers.at ( section );
     }
-    // if ( orientation == Qt::Vertical )
-    // {
-    //   return section + 1;
-    // }
+    if ( orientation == Qt::Vertical )
+    {
+      return section + 1;
+    }
   }
 
   if ( role == Qt::FontRole )

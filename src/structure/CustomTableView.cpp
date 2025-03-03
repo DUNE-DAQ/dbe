@@ -2,6 +2,7 @@
 #include "dbe/tableselection.hpp"
 
 #include "dbe/confaccessor.hpp"
+#include <QAbstractItemView>
 #include <QScrollBar>
 #include <QMenu>
 #include <QLabel>
@@ -23,70 +24,84 @@
 //-----------------------------------------------------------------------------------------------------
 dbe::CustomTableView::CustomTableView ( QWidget * parent )
   : QTableView ( parent ),
-    ContextMenu ( nullptr ),
+    m_context_menu ( nullptr ),
     FindObject ( nullptr ),
     editObject ( nullptr ),
     deleteObjectAc ( nullptr ),
     refByAc ( nullptr ),
     refByAcOnlyComp ( nullptr ),
     copyObjectAc ( nullptr ),
-    FindFileDialog ( nullptr ),
+    m_find_object_dialog ( nullptr ),
     LineEdit ( nullptr ),
     NextButton ( nullptr ),
     GoButton ( nullptr ),
     ListIndex ( 0 )
 {
+  verticalHeader()->setVisible(true);
+  verticalHeader()->setSectionResizeMode ( QHeaderView::Interactive );
+
   horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
   horizontalHeader()->setMaximumSectionSize(750);
   setSortingEnabled ( true );
   setAlternatingRowColors ( true );
   setSelectionMode ( SelectionMode::SingleSelection );
+  setSelectionBehavior ( QAbstractItemView::SelectionBehavior::SelectRows );
   setHorizontalScrollMode(ScrollMode::ScrollPerPixel);
   setVerticalScrollMode(ScrollMode::ScrollPerPixel);
   setWordWrap(true);
   setTextElideMode(Qt::ElideRight);
+
+  connect ( this, SIGNAL ( activated(const QModelIndex&) ), this, SLOT ( slot_edit_object() ) );
+
 }
 //-----------------------------------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------------------------------
 void dbe::CustomTableView::contextMenuEvent ( QContextMenuEvent * Event )
 {
-  if ( ContextMenu == nullptr )
+  if ( m_context_menu == nullptr )
   {
-    ContextMenu = new QMenu ( this );
+    m_context_menu = new QMenu ( this );
     CreateActions();
   }
 
   QModelIndex Index = indexAt ( Event->pos() );
 
-  if ( Index.isValid() )
-  {
-    ContextMenu->exec ( Event->globalPos() );
+  if ( Index.isValid() ) {
+    for (int item=0; item<m_last_object_item; ++item) {
+      m_context_menu->actions().at ( item )->setVisible ( true );
+    }
   }
+  else {
+    for (int item=0; item<m_last_object_item; ++item) {
+      m_context_menu->actions().at ( item )->setVisible ( false );
+    }
+  }
+  m_context_menu->exec ( Event->globalPos() );
 }
 //-----------------------------------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------------------------------
 void dbe::CustomTableView::FindObjectSlot()
 {
-  if ( FindFileDialog != nullptr )
+  if ( m_find_object_dialog != nullptr )
   {
-    delete FindFileDialog;
-    FindFileDialog = nullptr;
+    delete m_find_object_dialog;
+    m_find_object_dialog = nullptr;
   }
 
-  FindFileDialog = new QDialog ( this );
-  FindFileDialog->setSizePolicy ( QSizePolicy::Preferred, QSizePolicy::Preferred );
-  FindFileDialog->setToolTip ( "Type string to edit line and press Enter." );
-  FindFileDialog->setWindowTitle ( "Search for an object in the table" );
+  m_find_object_dialog = new QDialog ( this );
+  m_find_object_dialog->setSizePolicy ( QSizePolicy::Preferred, QSizePolicy::Preferred );
+  m_find_object_dialog->setToolTip ( "Type string to edit line and press Enter." );
+  m_find_object_dialog->setWindowTitle ( "Search for an object in the table" );
 
-  QHBoxLayout * Layout = new QHBoxLayout ( FindFileDialog );
-  QLabel * Label = new QLabel ( QString ( "Find Object:" ), FindFileDialog );
+  QHBoxLayout * Layout = new QHBoxLayout ( m_find_object_dialog );
+  QLabel * Label = new QLabel ( QString ( "Find Object:" ), m_find_object_dialog );
 
   NextButton = new QPushButton ( "Next" );
   GoButton = new QPushButton ( "Go !" );
 
-  LineEdit = new QLineEdit ( FindFileDialog );
+  LineEdit = new QLineEdit ( m_find_object_dialog );
   LineEdit->setToolTip ( "Type string and press Enter" );
 
   Layout->addWidget ( Label );
@@ -94,20 +109,20 @@ void dbe::CustomTableView::FindObjectSlot()
   Layout->addWidget ( GoButton );
   Layout->addWidget ( NextButton );
 
-  FindFileDialog->setLayout ( Layout );
-  FindFileDialog->show();
+  m_find_object_dialog->setLayout ( Layout );
+  m_find_object_dialog->show();
   NextButton->setDisabled ( true );
 
   connect ( LineEdit, SIGNAL ( textEdited ( QString ) ), this,
             SLOT ( EditedSearchString ( QString ) ) );
-  connect ( LineEdit, SIGNAL ( returnPressed() ), this, SLOT ( GoToFile() ) );
-  connect ( GoButton, SIGNAL ( clicked() ), this, SLOT ( GoToFile() ) );
+  connect ( LineEdit, SIGNAL ( returnPressed() ), this, SLOT ( slot_go_to_object() ) );
+  connect ( GoButton, SIGNAL ( clicked() ), this, SLOT ( slot_go_to_object() ) );
   connect ( NextButton, SIGNAL ( clicked() ), this, SLOT ( GoToNext() ) );
 }
 //-----------------------------------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------------------------------
-void dbe::CustomTableView::GoToFile()
+void dbe::CustomTableView::slot_go_to_object()
 {
   ListIndex = 0;
   ListOfMatch.clear();
@@ -131,14 +146,15 @@ void dbe::CustomTableView::GoToFile()
     if ( ListOfMatch.size() > 0 )
     {
       ListIndex = 0;
-      scrollTo ( ListOfMatch.value ( ListIndex ), QAbstractItemView::EnsureVisible );
-      selectRow ( ListOfMatch.value ( ListIndex ).row() );
-      resizeColumnToContents ( ListIndex );
+      auto val=ListOfMatch.value ( ListIndex );
+      selectRow ( val.row() );
+//      resizeColumnToContents ( val.row() );
+      scrollTo (val , QAbstractItemView::PositionAtCenter );
 
       GoButton->setDisabled ( true );
       NextButton->setEnabled ( true );
 
-      disconnect ( LineEdit, SIGNAL ( returnPressed() ), this, SLOT ( GoToFile() ) );
+      disconnect ( LineEdit, SIGNAL ( returnPressed() ), this, SLOT ( slot_go_to_object() ) );
       connect ( LineEdit, SIGNAL ( returnPressed() ), this, SLOT ( GoToNext() ) );
     }
   }
@@ -179,7 +195,7 @@ void dbe::CustomTableView::EditedSearchString ( QString Text )
 {
   Q_UNUSED ( Text )
 
-  connect ( LineEdit, SIGNAL ( returnPressed() ), this, SLOT ( GoToFile() ) );
+  connect ( LineEdit, SIGNAL ( returnPressed() ), this, SLOT ( slot_go_to_object() ) );
   disconnect ( LineEdit, SIGNAL ( returnPressed() ), this, SLOT ( GoToNext() ) );
 
   GoButton->setEnabled ( true );
@@ -324,46 +340,40 @@ void dbe::CustomTableView::slot_delete_objects()
 //-----------------------------------------------------------------------------------------------------
 void dbe::CustomTableView::CreateActions()
 {
-  FindObject = new QAction ( tr ( "Find Object" ), this );
-  FindObject->setShortcutContext ( Qt::WidgetShortcut );
-  connect ( FindObject, SIGNAL ( triggered() ), this, SLOT ( FindObjectSlot() ) );
-  ContextMenu->addAction ( FindObject );
-
   editObject = new QAction ( tr ( "&Edit Object" ), this );
-  editObject->setShortcut ( tr ( "Ctrl+E" ) );
-  editObject->setShortcutContext ( Qt::WidgetShortcut );
   connect ( editObject, SIGNAL ( triggered() ), this, SLOT ( slot_edit_object() ) );
-  ContextMenu->addAction ( editObject );
+  m_context_menu->addAction ( editObject );
 
   deleteObjectAc = new QAction ( tr ( "&Delete Object" ), this );
-  deleteObjectAc->setShortcut ( tr ( "Ctrl+D" ) );
-  deleteObjectAc->setShortcutContext ( Qt::WidgetShortcut );
   connect ( deleteObjectAc, SIGNAL ( triggered() ), this, SLOT ( slot_delete_objects() ) );
-  ContextMenu->addAction ( deleteObjectAc );
+  m_context_menu->addAction ( deleteObjectAc );
 
   refByAc = new QAction ( tr ( "Referenced B&y (All objects)" ), this );
-  refByAc->setShortcut ( tr ( "Ctrl+Y" ) );
-  refByAc->setShortcutContext ( Qt::WidgetShortcut );
   refByAc->setToolTip ( "Find all objects which reference the selected object" );
   refByAc->setStatusTip ( refByAc->toolTip() );
   connect ( refByAc, SIGNAL ( triggered() ), this, SLOT ( referencedBy_All() ) );
-  ContextMenu->addAction ( refByAc );
+  m_context_menu->addAction ( refByAc );
 
   refByAcOnlyComp = new QAction ( tr ( "Referenced B&y (Only Composite)" ), this );
-  refByAcOnlyComp->setShortcut ( tr ( "Ctrl+Shift+Y" ) );
-  refByAcOnlyComp->setShortcutContext ( Qt::WidgetShortcut );
   refByAcOnlyComp->setToolTip (
     "Find objects (ONLY Composite ones) which reference the selected object" );
   refByAcOnlyComp->setStatusTip ( refByAcOnlyComp->toolTip() );
   connect ( refByAcOnlyComp, SIGNAL ( triggered() ), this,
             SLOT ( referencedBy_OnlyComposite() ) );
-  ContextMenu->addAction ( refByAcOnlyComp );
+  m_context_menu->addAction ( refByAcOnlyComp );
 
   copyObjectAc = new QAction ( tr ( "Copy This Object Into A &New One" ), this );
-  copyObjectAc->setShortcut ( tr ( "Ctrl+Shift+N" ) );
-  copyObjectAc->setShortcutContext ( Qt::WidgetShortcut );
   connect ( copyObjectAc, SIGNAL ( triggered() ), this, SLOT ( slot_copy_object() ) );
-  ContextMenu->addAction ( copyObjectAc );
+  m_context_menu->addAction ( copyObjectAc );
+
+  m_context_menu->addSeparator();
+  m_last_object_item = m_context_menu->actions().size();
+
+  FindObject = new QAction ( tr ( "Find &Object" ), this );
+
+  connect ( FindObject, SIGNAL ( triggered() ), this, SLOT ( FindObjectSlot() ) );
+  m_context_menu->addAction ( FindObject );
+
 }
 //-----------------------------------------------------------------------------------------------------
 

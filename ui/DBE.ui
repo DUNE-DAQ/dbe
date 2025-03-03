@@ -53,7 +53,7 @@
             <string/>
            </property>
            <property name="toolTipDuration">
-            <number>1</number>
+            <number>-1</number>
            </property>
            <property name="currentIndex">
             <number>0</number>
@@ -161,11 +161,6 @@
     <addaction name="separator"/>
     <addaction name="LaunchGraphicalView"/>
    </widget>
-   <widget class="QMenu" name="ToolsMenu">
-    <property name="title">
-     <string>Tools</string>
-    </property>
-   </widget>
    <widget class="QMenu" name="HelpMenu">
     <property name="title">
      <string>Help</string>
@@ -176,7 +171,6 @@
    <addaction name="FileMenu"/>
    <addaction name="EditMenu"/>
    <addaction name="ViewMenu"/>
-   <addaction name="ToolsMenu"/>
    <addaction name="HelpMenu"/>
   </widget>
   <widget class="QToolBar" name="MainToolBar">
@@ -435,7 +429,7 @@ Sensitive</string>
             <bool>true</bool>
            </property>
            <property name="toolTip">
-            <string> </string>
+            <string/>
            </property>
            <property name="toolTipDuration">
             <number>1</number>
