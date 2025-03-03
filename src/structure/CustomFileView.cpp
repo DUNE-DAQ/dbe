@@ -270,7 +270,10 @@ void dbe::CustomFileView::EditedSearchString()
 
 void dbe::CustomFileView::ChangeSelection ( QModelIndex index )
 {
-  QString Data = model()->data ( model()->index ( index.row(), 1,
+  QString file = model()->data ( model()->index ( index.row(), 0,
                                                   index.parent() ) ).toString();
-  emit stateChanged ( Data );
+  QString path = model()->data ( model()->index ( index.row(), 1,
+                                                  index.parent() ) ).toString();
+  auto full_name = path + "/" + file;
+  emit stateChanged ( full_name );
 }

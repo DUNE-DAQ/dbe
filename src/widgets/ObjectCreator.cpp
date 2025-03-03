@@ -242,6 +242,11 @@ void dbe::ObjectCreator::BuildFileModel()
     this_sort.setSourceModel ( this_files );
     ui->FileView->setModel ( &this_sort );
     ui->FileView->sortByColumn ( 2, Qt::DescendingOrder );
+
+    // ui->FileView->HideReadOnlyFilesSlot(true);
+    ui->FileView->setColumnHidden(2, true);
+    ui->FileView->setColumnHidden(3, true);
+    ui->FileView->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
   }
 }
 
