@@ -93,6 +93,21 @@ QVariant dbe::models::table::data ( const QModelIndex & index, int role ) const
         return QVariant();
       }
     }
+
+    if ( role == Qt::BackgroundRole )
+    {
+      auto attr_node = dynamic_cast<TableAttributeNode *> ( TableItem );
+      if ( attr_node != nullptr ) {
+        auto val = attr_node->GetData();
+        if (val.size() == 1 &&
+            val[0].toStdString() == attr_node->GetAttribute().p_default_value) {
+          return QBrush (
+            StyleUtility::TableAttributeHighlightBackground );
+        }
+      }
+      return QBrush (
+        StyleUtility::TableAttributeBackground );
+    }
   }
 
   return QVariant();
@@ -331,14 +346,14 @@ QList<dbe::models::table::type_datum *> dbe::models::table::createrow (
     // Loop over object values and add them to the row
     // Values are represent as nodes ( attributes or relations ) and these contain
     // the structured data associated either with a attribute / multi-attribute or a relation
-    std::size_t c = 0;
+    std::size_t column = 0;
 
     for ( treenode * valuenode : rownode->GetChildren() )
     {
       QStringList values;
       // Every valuenode has its attributes and relations defined as its childs
 
-      if ( hindex[c++] )
+      if ( hindex[column++] )
       {
 
         for ( treenode * nodevalues : valuenode->GetChildren() )
@@ -601,11 +616,11 @@ MODEL_COMMON_INTERFACE_UPDATE_THAT_OBJ_IMPL ( dbe::models::table )
       // Recreate the row
       *sit = createrow ( handlernode );
 
-      int r = index.row() == 0 ? 0 : index.row() - 1;
+      int row = index.row() == 0 ? 0 : index.row() - 1;
 
-      int c = index.column() == 0 ? 0 : index.column() - 1;
+      int column = index.column() == 0 ? 0 : index.column() - 1;
 
-      emit dataChanged ( createIndex ( r, c ), createIndex ( r + 1, c + 1 ) );
+      emit dataChanged ( createIndex ( row, column ), createIndex ( row + 1, column + 1 ) );
     }
   }
 }

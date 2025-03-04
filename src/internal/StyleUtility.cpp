@@ -2,6 +2,9 @@
 #include "dbe/StyleUtility.hpp"
 
 QColor dbe::StyleUtility::TableColorAttribute;
+QColor dbe::StyleUtility::TableAttributeBackground;
+QColor dbe::StyleUtility::TableAttributeHighlightBackground;
+
 QColor dbe::StyleUtility::TableColorRelationship;
 QPalette dbe::StyleUtility::AlertStatusBarPallete;
 QPalette dbe::StyleUtility::AlertStatusBarPalleteWindow;
@@ -14,6 +17,8 @@ QPalette dbe::StyleUtility::LoadedDefault;
 void dbe::StyleUtility::InitColorManagement()
 {
   TableColorAttribute = QColor ( "#1B676B" );
+  TableAttributeBackground = QColor ( "#ffffff" );
+  TableAttributeHighlightBackground = QColor ( "#f0f0ff" );
   TableColorRelationship = QColor ( "#AD4713" );
   AlertStatusBarPallete.setColor ( QPalette::Active, QPalette::Base, QColor ( "red" ) );
   AlertStatusBarPallete.setColor ( QPalette::Inactive, QPalette::Base, QColor ( "red" ) );
