@@ -92,3 +92,4 @@ New objects can be created by from the `Class View` panel by using the
 context menu or the shortcut `Ctrl-N` (also from the context menu in
 an active `Table View` tab). This brings up the `Object Editor` for
 the selected class.
+![Object editor](dbe-object-editor.png)
