@@ -345,7 +345,7 @@ QList<dbe::models::table::type_datum *> dbe::models::table::createrow (
   // Create the row for this object
   QList<TableNode *> Row;
   Row.append ( new TableNode (
-                 QStringList { QString::fromStdString(obj.class_name())},
+                 QStringList {rownode->GetData ( 0 ).toString()},
                  QVariant(QString::fromStdString(cdef.p_description))));
   {
     // Loop over object values and add them to the row
