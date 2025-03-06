@@ -66,6 +66,10 @@ QVariant dbe::models::table::data ( const QModelIndex & index, int role ) const
       return QVariant ( Data );
     }
 
+    if ( role == Qt::ToolTipRole )
+    {
+      return TableItem->get_tooltip();
+    }
     if ( role == Qt::FontRole )
     {
       if ( dynamic_cast<TableAttributeNode *> ( TableItem ) )
@@ -340,8 +344,9 @@ QList<dbe::models::table::type_datum *> dbe::models::table::createrow (
 
   // Create the row for this object
   QList<TableNode *> Row;
-  Row.append ( new TableNode ( QStringList ( rownode->GetData ( 0 ).toString() ) ) );
-
+  Row.append ( new TableNode (
+                 QStringList { QString::fromStdString(obj.class_name())},
+                 QVariant(QString::fromStdString(cdef.p_description))));
   {
     // Loop over object values and add them to the row
     // Values are represent as nodes ( attributes or relations ) and these contain
