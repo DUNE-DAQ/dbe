@@ -216,7 +216,7 @@
        <item>
         <widget class="CustomTreeView" name="TreeView">
          <property name="toolTip">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Select class name to show objects of class in Table View (double click)&lt;/p&gt;&lt;p&gt;Select object name to edit object (double click)&lt;/p&gt;&lt;p&gt;or right click for context menu&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          <string/>
          </property>
         </widget>
        </item>
