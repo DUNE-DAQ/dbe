@@ -97,6 +97,15 @@ dbe::IncludeFileWidget::IncludeFileWidget ( QString FilePath, QWidget * parent )
   SetController();
 }
 
+
+void dbe::IncludeFileWidget::keyPressEvent(QKeyEvent* event) {
+  if (event->key() == Qt::Key_Escape) {
+    close();
+  }
+  QWidget::keyPressEvent(event);
+}
+
+
 void dbe::IncludeFileWidget::SetRemoveComboBox()
 {
   QStringList IncludeList ( dbe::config::api::get::file::inclusions_singlefile (

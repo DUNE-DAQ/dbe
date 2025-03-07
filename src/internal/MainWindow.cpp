@@ -139,7 +139,7 @@ void dbe::MainWindow::init()
   tableholder->removeTab ( 1 );
 
   /// Menus Settings
-  HelpMenu->setEnabled ( true );
+  HelpMenu->setEnabled ( false );  // Until help is updated to be useful!!!
 
   /// Commands Settings
   Commit->setEnabled ( false );
@@ -1877,11 +1877,14 @@ void dbe::MainWindow::slot_toggle_commit_button()
 
             std::string l;
             for(const std::string& f : uncommittedFiles) {
-                l += f + "\n";
+                l += "  " + f + "\n";
             }
 
-            Commit->setToolTip(QString::fromStdString("Commit changes.\nHere are the uncommitted files: " + l));
+            Commit->setToolTip(QString::fromStdString("Commit changes.\nHere are the uncommitted files:\n" + l));
         }
+
+        build_file_model();
+
     } else {
         Commit->setEnabled(false);
     }

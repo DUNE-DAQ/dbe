@@ -25,6 +25,7 @@ public:
 private:
   void SetRemoveComboBox();
   void SetController();
+  void keyPressEvent(QKeyEvent* event) override;
 
   std::unique_ptr<dbe::Ui::IncludeFileWidget> ui;
 
