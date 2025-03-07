@@ -33,10 +33,13 @@ function dbe_main ()
  The main window below the toolbar is initially split into 3 main
 parts, the `Class View` (1), the `Table View` (2) and the `Info Tabs`
 (3). The `Class View` and the `Info Tabs` can be undocked and moved
-out of the main window.
+out of the main window. Each of the views can also be enabled or
+disabled from the `View` menu.
 
 The `Info Tabs` cosists of 3 tabs, the `File View`, the `Undo` control
 and the `Commits log`.
+
+## The `Info Tabs`
 
 ### The `File View` tab
 
@@ -126,3 +129,8 @@ the object in.  ![Object editor](dbe-object-editor.png)
 
 New objects can also be created from the context menu in the `Table
 View`, either an empty one or a copy of an existing object.
+
+## Renaming objects or moving to a different file
+
+To rename or move an object, brng up the object editor for that object
+and use the buttons in the top righthand corner.
