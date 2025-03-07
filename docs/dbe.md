@@ -26,6 +26,34 @@ function dbe_main ()
  first the current directory, then each member of the list in
  `DUNEDAQ_DB_PATH` until a match is found.
 
+## Structure of the editor
+
+ ![dbe main window](dbe-main-window.png)
+
+ The main window below the toolbar is initially split into 3 main
+parts, the `Class View` (1), the `Table View` (2) and the `Info Tabs`
+(3). The `Class View` and the `Info Tabs` can be undocked and moved
+out of the main window.
+
+The `Info Tabs` cosists of 3 tabs, the `File View`, the `Undo` control
+and the `Commits log`.
+
+### The `File View` tab
+
+  The `File View` lists all the loaded data files along with their
+read/write access and modified status. The list of files included by
+the currently selected file can be updated by pulling up the include
+file editor from the context menu. 
+
+### The `Undo` tab
+
+The `Undo` tab lists all the modifications that have been made since
+the last commit to the database. You can go back to any point in the
+history by selecting the line above the change you want to
+revert. Apart from navigating the Undo list with the mouse or
+keyboard, there are also buttons on the toolbar to undo/redo changes.
+
+
 ## Navigating with the `Class view`
 
 The `Class View` is a dockable widget originally on the left of the
@@ -91,5 +119,10 @@ to limit the display to only matching objects.
 New objects can be created by from the `Class View` panel by using the
 context menu or the shortcut `Ctrl-N` (also from the context menu in
 an active `Table View` tab). This brings up the `Object Editor` for
-the selected class.
-![Object editor](dbe-object-editor.png)
+the selected class. Before you can set the values of the attributes an
+relationships, you have to set the UID and select the file to store
+the object in.  ![Object editor](dbe-object-editor.png)
+
+
+New objects can also be created from the context menu in the `Table
+View`, either an empty one or a copy of an existing object.
