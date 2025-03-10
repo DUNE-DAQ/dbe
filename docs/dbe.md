@@ -1,10 +1,11 @@
 # The OKS database editor: `dbe_main`
 
 ## Prerequisite
- Before running either schemaeditor or dbe you must load the dbe spack
-package with `spack load dbe`. This can have unwanted side effects
-like running the wrong version of Python due to spack messing with
-your PATH and LD_LIBRARY_PATH. To avoid this, keep your editing
+
+ Before running either `dbe` or `schemaeditor` you must load the dbe
+spack package with `spack load dbe`. This can have unwanted side
+effects like running the wrong version of Python due to spack messing
+with your PATH and LD_LIBRARY_PATH. To avoid this, keep your editing
 sessions in a different window to your normal development or create an
 alias /shell fucntion like:
 
@@ -36,41 +37,30 @@ parts, the `Class View` (1), the `Table View` (2) and the `Info Tabs`
 out of the main window. Each of the views can also be enabled or
 disabled from the `View` menu.
 
-The `Info Tabs` cosists of 3 tabs, the `File View`, the `Undo` control
-and the `Commits log`.
-
-## The `Info Tabs`
-
-### The `File View` tab
-
-  The `File View` lists all the loaded data files along with their
-read/write access and modified status. The list of files included by
-the currently selected file can be updated by pulling up the include
-file editor from the context menu. 
-
-### The `Undo` tab
-
-The `Undo` tab lists all the modifications that have been made since
-the last commit to the database. You can go back to any point in the
-history by selecting the line above the change you want to
-revert. Apart from navigating the Undo list with the mouse or
-keyboard, there are also buttons on the toolbar to undo/redo changes.
-
-
 ## Navigating with the `Class view`
+![Class View widget](class-view.png)
 
 The `Class View` is a dockable widget originally on the left of the
-main window. The`Class View` displays a list of class names and the
-number of objects of that class that exist in the database. The items
-in the `Class View` can be selected in the normal way with either the
-mouse or the keyboard (arrow keys move up and down and open/close
-lists of objects, alphabetic keys move to the first/next item starting
-with that character). Activating a class name will display all
-instances of the class in the current `Table View`. Opening the class
-name by selecting the triangle to the left or with the right arrow
-will expand the list of instances in the `Tree view`. Activating an
-instance in the `Tree view` will open the `Object Editor` to edit that
-instance.
+main window. The`Class View` is a tree which displays a list of class
+names and the number of objects of that class that exist in the
+database. Where the number of objects of a class is non-zero, the item
+can be expanded to display the list of objects. Further, if an object
+has relationships to other objects, the object can be expanded to show
+the list of relationships which in turn can be expanded to list the
+objects they are referencing.
+
+The items in the `Class View` can be selected in the normal way with
+either the mouse or the keyboard (arrow keys move up and down and
+open/close lists of objects, alphabetic keys move to the first/next
+item starting with that character).
+
+* Activating a class name will display all instances of the class in
+the current `Table View`.
+
+* Activating an instance in the `Tree view` will open the `Object
+Editor` to edit that instance.
+
+### Abstract classes
 
 Abstract classes are usually shown in grey on the `Class View` and are
 not selectable. If you want to see objects of all the subclasses of an
@@ -81,8 +71,11 @@ activating them will show all instances of of all subclasses in the
 class and derived classes may have more attributes/resources or a
 different ordering.
 
-![Class View widget](class-view.png)
+### Tooltips
+
 Tooltips show the descriptions of the classes (assuming they have one).
+
+### Filtering the view
 
 To filter the list of classes to see just a subset that you are
 interested in, there is a text entry field at the bottom of the `Class
@@ -104,18 +97,48 @@ tab. Activating individual instances will add only those selected to
 the tab. Instances can also be dragged from the `Class View` and
 dropped onto the `Table View`.
 
-Activating a row in the `Table View` will open the `Object Editor` on
-that instance. Double clicking on an attribute will allow editing of
-the attribute directly in the cell and on a relationship it will pop
+* Activating a row in the `Table View` will open the `Object Editor` on
+that instance.
+* Double clicking on an attribute will allow editing of
+the attribute directly in the cell
+* Double clicking on a relationship it will pop
 up a dialog box allowing selection of objects of the correct type.
+
+### Filtering the view
 
 Like the `Class View`, there is an edit box for an object name filter
 to limit the display to only matching objects.
 
-![Table view context menu](dbe-table-view-context-menu.png)The `Table
- view` context menu gives you several options, allowing you to find
- all objects that refer to the current object, find an object within
- the current view by name, copy edit or delete the current object.
+### Context menu
+![Table view context menu](dbe-table-view-context-menu.png)
+
+The `Table view` context menu gives you several options, allowing you
+to find all objects that refer to the current object, find an object
+within the current view by name, copy edit or delete the current
+object.
+
+
+## The `Info Tabs`
+
+The `Info Tabs` section consists of 3 tabs, the `File View`, the
+`Undo` control and the `Commits log`.
+
+### The `File View` tab
+
+  The `File View` lists all the loaded data files along with their
+read/write access and modified status. The list of files included by
+the currently selected file can be updated by pulling up the include
+file editor from the context menu. 
+
+### The `Undo` tab
+
+The `Undo` tab lists all the modifications that have been made since
+the last commit to the database. You can go back to any point in the
+history by selecting the line above the change you want to
+revert. Apart from navigating the Undo list with the mouse or
+keyboard, there are also buttons on the toolbar to undo/redo changes.
+
+
 
 ## Creating new objects
 
@@ -126,7 +149,6 @@ the selected class. Before you can set the values of the attributes an
 relationships, you have to set the UID and select the file to store
 the object in.  ![Object editor](dbe-object-editor.png)
 
-
 New objects can also be created from the context menu in the `Table
 View`, either an empty one or a copy of an existing object.
 
@@ -134,3 +156,12 @@ View`, either an empty one or a copy of an existing object.
 
 To rename or move an object, brng up the object editor for that object
 and use the buttons in the top righthand corner.
+
+## Finding what uses a specific object
+
+To find all objects that refer to an object, first select the object
+in the table view. Then use one of the `Referenced By` items on the
+context menu. This will pop up a new window showing a class tree of
+all the objects that refer to it.
+
+![dbe referenced by tree](dbe-referenced-by.png)
