@@ -50,7 +50,7 @@ public:
   void SetUsedForCopy ( bool Used );
 
 private:
-  void keyPressEvent(QKeyEvent* event);
+  void keyPressEvent(QKeyEvent* event) override;
   void init();
   void SetStatusBar();
   void SetController();

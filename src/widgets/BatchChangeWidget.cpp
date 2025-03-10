@@ -112,6 +112,13 @@ void dbe::BatchChangeWidget::SetController()
   }
 }
 
+void dbe::BatchChangeWidget::keyPressEvent(QKeyEvent* event) {
+  if (event->key() == Qt::Key_Escape) {
+    close();
+  }
+  QWidget::keyPressEvent(event);
+}
+
 void dbe::BatchChangeWidget::filter ( std::vector<dref> & objs, const QString & cname )
 {
 
