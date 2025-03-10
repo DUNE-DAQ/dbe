@@ -120,10 +120,12 @@ void dbe::ObjectEditor::init() {
   WidgetTable->setVerticalHeaderLabels ( HorizontalHeaders );
   WidgetTable->setSelectionMode ( QAbstractItemView::NoSelection );
 
-  bool rw = confaccessor::check_file_rw (
-    QString::fromStdString ( Object().contained_in() ));
-  if (!rw) {
-    WidgetTable->setDisabled(true);
+  if (!this_is_in_creation_mode) {
+    bool rw = confaccessor::check_file_rw (
+      QString::fromStdString ( Object().contained_in() ));
+    if (!rw) {
+      WidgetTable->setDisabled(true);
+    }
   }
   ui->TableLayout->addWidget ( WidgetTable );
 
