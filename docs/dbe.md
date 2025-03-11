@@ -2,12 +2,12 @@
 
 ## Prerequisite
 
- Before running either `dbe` or `schemaeditor` you must load the dbe
-spack package with `spack load dbe`. This can have unwanted side
-effects like running the wrong version of Python due to spack messing
-with your PATH and LD_LIBRARY_PATH. To avoid this, keep your editing
-sessions in a different window to your normal development or create an
-alias /shell function like:
+ Before running either `dbe` or [`schemaeditor`[(schemaeditor.md) you
+must load the dbe spack package with `spack load dbe`. This can have
+unwanted side effects like running the wrong version of Python due to
+spack messing with your PATH and LD_LIBRARY_PATH. To avoid this, keep
+your editing sessions in a different window to your normal development
+or create an alias /shell function like:
 
 ```
 function dbe_main () 
@@ -192,6 +192,6 @@ in the table.
 
 `Batch Change` is more flexible in that it allows you to filter on the
 current values of attributes/relationships and apply new values for
-only matching objects. In the example shown above, we changed the
-`request_handler` relationship for all `DataHandlerConf` objects whose
-`template_for` attribute started with 'FD'.
+only matching objects. In the example screen-shot shown above, we
+changed the `request_handler` relationship for all `DataHandlerConf`
+objects whose `template_for` attribute started with 'FD'.
