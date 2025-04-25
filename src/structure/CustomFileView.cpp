@@ -4,6 +4,7 @@
 
 #include <QAction>
 #include <QMenu>
+#include <QMessageBox>
 #include <QContextMenuEvent>
 #include <QHBoxLayout>
 #include <QHeaderView>
@@ -29,17 +30,20 @@ dbe::CustomFileView::CustomFileView ( QWidget * parent )
   setSelectionBehavior ( SelectionBehavior::SelectRows );
   horizontalHeader()->setSectionResizeMode ( QHeaderView::ResizeMode::Stretch );
   setSortingEnabled ( true );
+
+  connect ( this, SIGNAL(activated(QModelIndex)),
+            this, SLOT(file_info_slot(QModelIndex)) );
 }
 
 void dbe::CustomFileView::CreateActions()
 {
-  QShortcut * Shortcut = new QShortcut ( QKeySequence ( tr ( "Ctrl+F" ) ), this );
+
 
   FindFile = new QAction ( tr ( "Find File" ), this );
   FindFile->setShortcut ( QKeySequence ( tr ( "Ctrl+F" ) ) );
   FindFile->setShortcutContext ( Qt::WidgetShortcut );
   connect ( FindFile, SIGNAL ( triggered() ), this, SLOT ( FindFileSlot() ) );
-  connect ( Shortcut, SIGNAL ( activated() ), this, SLOT ( FindFileSlot() ) );
+//  connect ( Shortcut, SIGNAL ( activated() ), this, SLOT ( FindFileSlot() ) );
   ContextMenu->addAction ( FindFile );
 
   LaunchIncludeEditor = new QAction ( tr ( "Add/Remove Files" ), this );
@@ -55,6 +59,11 @@ void dbe::CustomFileView::CreateActions()
   connect ( HideReadOnlyFiles, SIGNAL ( triggered ( bool ) ), this,
             SLOT ( HideReadOnlyFilesSlot ( bool ) ) );
   ContextMenu->addAction ( HideReadOnlyFiles );
+
+  m_file_info_action = new QAction (tr ("File &information"));
+  connect ( m_file_info_action, SIGNAL(triggered()),
+            this, SLOT(file_info_slot()) );
+  ContextMenu->addAction ( m_file_info_action );
 }
 
 void dbe::CustomFileView::ConnectActions()
@@ -74,12 +83,19 @@ void dbe::CustomFileView::CreateContextMenu()
 
 void dbe::CustomFileView::contextMenuEvent ( QContextMenuEvent * Event )
 {
-  QModelIndex Index = indexAt ( Event->pos() );
+  QModelIndex index = indexAt ( Event->pos() );
 
-  if ( Index.isValid() )
+  if ( index.isValid() )
   {
-    setCurrentIndex ( Index );
-    selectionModel()->setCurrentIndex ( Index, QItemSelectionModel::NoUpdate );
+    if ( model()->data ( model()->index ( index.row(), 2 ) ).toString() == "RO" ) {
+      ContextMenu->actions().at ( 1 )->setVisible ( false );
+    }
+    else {
+      ContextMenu->actions().at ( 1 )->setVisible ( true );
+    }
+
+    setCurrentIndex ( index );
+    selectionModel()->setCurrentIndex ( index, QItemSelectionModel::NoUpdate );
     ContextMenu->exec ( Event->globalPos() );
   }
 }
@@ -218,6 +234,42 @@ void dbe::CustomFileView::FindFileSlot()
   connect ( LineEdit, SIGNAL ( returnPressed() ), this, SLOT ( GoToFile() ) );
   connect ( GoButton, SIGNAL ( clicked() ), this, SLOT ( GoToFile() ) );
   connect ( NextButton, SIGNAL ( clicked() ), this, SLOT ( GoToNext() ) );
+}
+
+void dbe::CustomFileView::file_info_slot() {
+  file_info_slot(currentIndex());
+}
+
+void dbe::CustomFileView::file_info_slot(QModelIndex index) {
+  QString file = model()->data ( model()->index ( index.row(), 0,
+                                                  index.parent() ) ).toString();
+  QString path = model()->data ( model()->index ( index.row(), 1,
+                                                  index.parent() ) ).toString();
+  auto full_name = path + "/" + file;
+
+  QStringList includes ( dbe::config::api::get::file::inclusions_singlefile (
+                           full_name ) );
+  QString message{"Files included by " + file + "\n"};
+  bool schema=false;
+  for (auto inc: includes) {
+    if (schema && !inc.endsWith(".schema.xml")) {
+      message.append("\nData files:");
+      schema = false;
+    }
+    if (inc.endsWith(".schema.xml")) {
+      if (!schema) {
+        message.append("\nSchema files:");
+        schema = true;
+      }
+    }
+    message.append("\n   " + inc);
+  }
+
+  QMessageBox mbox(this);
+  mbox.setWindowTitle(QString{"File information for  " + file});
+  mbox.setStandardButtons(QMessageBox::Ok);
+  mbox.setText(message);
+  mbox.exec();
 }
 
 void dbe::CustomFileView::LaunchIncludeEditorSlot()

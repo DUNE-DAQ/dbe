@@ -1,6 +1,7 @@
 /// Including QT Headers
 #include "dbe/confaccessor.hpp"
 #include "dbe/ui_constants.hpp"
+#include "dbe/StyleUtility.hpp"
 
 #include <QFileInfo>
 #include <QDir>
@@ -51,9 +52,24 @@ QVariant dbe::FileModel::data ( const QModelIndex & index, int role ) const
 {
   if ( index.isValid() )
   {
-    if ( role == Qt::DisplayRole )
+    if ( role == Qt::DisplayRole ) {
       return QVariant (
                IncludedFiles.at ( index.row() ).at ( index.column() ) );
+    }
+    if ( role == Qt::ForegroundRole )
+    {
+      if ( IncludedFiles.at ( index.row() ).at (
+             static_cast<int> ( tablepositions::filepermission ) ) == "RO" ) {
+        return QBrush (StyleUtility::FileReadOnlyForeground );
+      }
+    }
+    if ( role == Qt::BackgroundRole )
+    {
+      if ( IncludedFiles.at ( index.row() ).at (
+             static_cast<int> ( tablepositions::filepermission ) ) == "RO" ) {
+        return QBrush (StyleUtility::FileReadOnlyBackground );
+      }
+    }
   }
 
   return QVariant();
@@ -80,13 +96,13 @@ QVariant dbe::FileModel::headerData ( int section, Qt::Orientation orientation,
 
 Qt::ItemFlags dbe::FileModel::flags ( const QModelIndex & index ) const
 {
-  if ( IncludedFiles.at ( index.row() ).at ( static_cast<int>
-                                             ( tablepositions::filepermission ) ) == "RW" )
-  {
+  // if ( IncludedFiles.at ( index.row() ).at ( static_cast<int>
+  //                                            ( tablepositions::filepermission ) ) == "RW" )
+  // {
     return Qt::ItemIsEnabled | Qt::ItemIsSelectable;
-  }
+  // }
 
-  return Qt::ItemIsSelectable;
+  // return Qt::ItemIsSelectable;
 }
 
 void dbe::FileModel::initpaths()

@@ -4,6 +4,8 @@
 QColor dbe::StyleUtility::TableColorAttribute;
 QColor dbe::StyleUtility::TableAttributeBackground;
 QColor dbe::StyleUtility::TableAttributeHighlightBackground;
+QColor dbe::StyleUtility::FileReadOnlyForeground;
+QColor dbe::StyleUtility::FileReadOnlyBackground;
 
 QColor dbe::StyleUtility::TableColorRelationship;
 QPalette dbe::StyleUtility::AlertStatusBarPallete;
@@ -20,6 +22,11 @@ void dbe::StyleUtility::InitColorManagement()
   TableAttributeBackground = QColor ( "#ffffff" );
   TableAttributeHighlightBackground = QColor ( "#f0f0ff" );
   TableColorRelationship = QColor ( "#AD4713" );
+
+  FileReadOnlyForeground = QColor ("#a00000");
+  FileReadOnlyBackground = QColor ("#f0f0f0");
+
+
   AlertStatusBarPallete.setColor ( QPalette::Active, QPalette::Base, QColor ( "red" ) );
   AlertStatusBarPallete.setColor ( QPalette::Inactive, QPalette::Base, QColor ( "red" ) );
   WarningStatusBarPallete.setColor ( QPalette::Active, QPalette::Base, QColor ( "yellow" ) );
