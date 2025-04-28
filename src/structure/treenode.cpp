@@ -5,6 +5,7 @@
 #include "dbe/config_api_get.hpp"
 #include "dbe/config_api_graph.hpp"
 #include "dbe/dbcontroller.hpp"
+#include "dbe/StyleUtility.hpp"
 
 #include <QGraphicsPixmapItem>
 #include <QGraphicsScene>

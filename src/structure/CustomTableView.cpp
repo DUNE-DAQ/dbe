@@ -369,9 +369,11 @@ void dbe::CustomTableView::CreateActions()
   m_context_menu->addSeparator();
   m_last_object_item = m_context_menu->actions().size();
 
-  FindObject = new QAction ( tr ( "Find &Object" ), this );
-
+  FindObject = new QAction ( tr ( "&Find Object" ), this );
+  // FindObject->setShortcut ( QKeySequence ( tr ( "Ctrl+F" ) ) );
+  // FindObject->setShortcutContext ( Qt::WidgetShortcut );
   connect ( FindObject, SIGNAL ( triggered() ), this, SLOT ( FindObjectSlot() ) );
+  // addAction (FindObject);
   m_context_menu->addAction ( FindObject );
 
 }
