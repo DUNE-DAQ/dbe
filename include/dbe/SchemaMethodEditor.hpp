@@ -35,11 +35,12 @@ protected:
   void FillInfo();
 private:
   std::unique_ptr<dbse::Ui::SchemaMethodEditor> ui;
-  dunedaq::oks::OksClass * SchemaClass;
-  dunedaq::oks::OksMethod * SchemaMethod;
+  dunedaq::oks::OksClass * m_class;
+  dunedaq::oks::OksMethod * m_method;
   CustomMethodImplementationModel * ImplementationModel;
   bool UsedNew;
   bool ShouldOpenMethodImplementationEditor ( QString Name );
+  bool create();
 private slots:
   void ProxySlot();
   void AddNewMethodImplementation();

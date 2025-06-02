@@ -25,7 +25,7 @@
      <item>
       <widget class="QLabel" name="Label1">
        <property name="text">
-        <string>Please enter a commit message:</string>
+        <string>Please enter a commit message (optional):</string>
        </property>
       </widget>
      </item>
@@ -33,14 +33,20 @@
       <widget class="QLineEdit" name="CommitMessageLine"/>
      </item>
      <item>
-      <widget class="QLabel" name="Label2">
-       <property name="text">
-        <string>The commit message is required. Press the ok button to save the changes and the cancel button to leave the dialog.</string>
-       </property>
-      </widget>
-     </item>
-     <item>
       <layout class="QHBoxLayout" name="horizontalLayout">
+       <item>
+        <spacer name="horizontalSpacer">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
        <item>
         <widget class="QPushButton" name="OkButton">
          <property name="text">

@@ -27,6 +27,9 @@ public:
   ~SchemaIncludeFileWidget();
   explicit SchemaIncludeFileWidget ( QString FilePath, QWidget * parent = 0 );
 
+signals:
+  void files_updated();
+  
 private:
   void SetCurrentIncludeList();
   void SetController();

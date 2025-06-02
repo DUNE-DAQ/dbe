@@ -150,7 +150,8 @@ void dbse::SchemaRelationshipEditor::InitialSettings()
 
 void dbse::SchemaRelationshipEditor::SetController()
 {
-  connect ( ui->SaveButton, SIGNAL ( clicked() ), this, SLOT ( ProxySlot() ) );
+  connect ( ui->buttonBox, SIGNAL ( accepted() ), this, SLOT ( ProxySlot() ) );
+  connect ( ui->buttonBox, SIGNAL ( rejected() ), this, SLOT ( close() ) );
   connect ( &KernelWrapper::GetInstance(), SIGNAL ( ClassCreated() ), this,
             SLOT ( UpdateClassCombo() ) );
   connect ( &KernelWrapper::GetInstance(), SIGNAL ( ClassUpdated ( QString ) ), this,

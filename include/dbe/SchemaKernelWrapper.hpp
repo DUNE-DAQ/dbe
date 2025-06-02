@@ -136,7 +136,7 @@ private:
   QUndoStack * CommandStack;
   bool InheritanceMode;
 signals:
-  void ClassCreated();
+  void ClassCreated ( QString ClassName );
   void ClassRemoved ( QString ClassName );
   void ClassUpdated ( QString ClassName );
   void RebuildAttributeModel();

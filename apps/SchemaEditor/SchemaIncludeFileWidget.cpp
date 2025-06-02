@@ -6,7 +6,6 @@
 #include "dbe/config_api_commands.hpp"
 #include "ui_SchemaIncludeFileWidget.h"
 #include "dbe/messenger.hpp"
-//#include "dbe/SchemaMainWindow.hpp"
 #include "dbe/SchemaKernelWrapper.hpp"
 
 #include "dbe/SchemaCustomFileModel.hpp"
@@ -163,6 +162,7 @@ void dbse::SchemaIncludeFileWidget::SaveSchema()
   RemovedFileList.clear();
   SetCurrentIncludeList();
 
+  emit files_updated();
 }
 void dbse::SchemaIncludeFileWidget::SelectFileToInclude()
 {
@@ -248,6 +248,8 @@ void dbse::SchemaIncludeFileWidget::AddFileToInclude()
     ui->SaveButton->setEnabled ( true );
 
     SetCurrentIncludeList();
+
+  emit files_updated();
 }
 
 void dbse::SchemaIncludeFileWidget::AddNewFileToInclude ( const QString & File )
@@ -287,6 +289,8 @@ void dbse::SchemaIncludeFileWidget::AddNewFileToInclude ( const QString & File )
 
     ui->AddFileLine->addItem( fileToInclude );
     ui->AddToIncludeButton->setDisabled(false);
+
+    emit files_updated();
   }
 }
 
@@ -323,6 +327,8 @@ void dbse::SchemaIncludeFileWidget::RemoveFileFromInclude()
       QString ( "The files %1 %2 removed from the included files" ).arg ( removedFiles ).arg(verb) );
     ui->SaveButton->setEnabled ( true );
     SetCurrentIncludeList();
+
+    emit files_updated();
   }
   else
   {
@@ -422,6 +428,8 @@ void dbse::SchemaIncludeFileWidget::CreateFileToInclude()
   ui->SaveButton->setEnabled ( true );
 
   SetCurrentIncludeList();
+
+    emit files_updated();
 
 
 }

@@ -120,7 +120,8 @@ void dbse::SchemaAttributeEditor::SetController()
 {
   connect ( ui->AttributeTypeComboBox, SIGNAL ( currentIndexChanged ( int ) ), this,
             SLOT ( ToggleFormat ( int ) ) );
-  connect ( ui->SaveButton, SIGNAL ( clicked() ), this, SLOT ( ProxySlot() ) );
+  connect ( ui->buttonBox, SIGNAL ( accepted() ), this, SLOT ( ProxySlot() ) );
+  connect ( ui->buttonBox, SIGNAL ( rejected() ), this, SLOT ( close() ) );
   connect ( &KernelWrapper::GetInstance(), SIGNAL ( ClassUpdated ( QString ) ), this,
             SLOT ( ClassUpdated ( QString ) ) );
 }

@@ -1,11 +1,15 @@
 /// Including Schema Editor
 #include "dbe/SchemaMainWindow.hpp"
 #include "dbe/SchemaKernelWrapper.hpp"
+#include "dbe/SchemaGraphicsScene.hpp"
 #include "dbe/SchemaTab.hpp"
 #include "dbe/SchemaClassEditor.hpp"
 #include "dbe/SchemaRelationshipEditor.hpp"
 #include "dbe/SchemaMethodImplementationEditor.hpp"
 #include "dbe/SchemaIncludeFileWidget.hpp"
+
+#include "oks/kernel.hpp"  // for CanNotSetActiveFile exception
+
 /// Including Auto-Generated Files
 #include "ui_SchemaMainWindow.h"
 /// Including QT Headers
@@ -18,6 +22,7 @@
 #include <QCloseEvent>
 #include <QPrinter>
 #include <QPrintDialog>
+#include <QSvgGenerator>
 
 //#include <format>
 #include <sstream>
@@ -49,7 +54,7 @@ dbse::SchemaMainWindow::~SchemaMainWindow() = default;
 void dbse::SchemaMainWindow::InitialSettings()
 {
   ui->setupUi ( this );
-  setWindowTitle ( Title );
+  setWindowTitle ( m_title );
   ui->UndoView->setStack ( KernelWrapper::GetInstance().GetUndoStack() );
   ui->ClassTableView->horizontalHeader()->setSectionResizeMode ( QHeaderView::Stretch );
   ui->ClassTableView->setDragEnabled ( true );
@@ -64,7 +69,7 @@ void dbse::SchemaMainWindow::InitialSettings()
 
 void dbse::SchemaMainWindow::InitialTab()
 {
-  ui->TabWidget->addTab ( new SchemaTab(), "Schema View" );
+  add_tab();
   ui->TabWidget->removeTab ( 0 );
 }
 
@@ -72,7 +77,7 @@ void dbse::SchemaMainWindow::InitialTabCorner()
 {
   QPushButton * RightButton = new QPushButton ( "+" );
   ui->TabWidget->setCornerWidget ( RightButton, Qt::TopLeftCorner );
-  connect ( RightButton, SIGNAL ( clicked() ), this, SLOT ( AddTab() ) );
+  connect ( RightButton, SIGNAL ( clicked() ), this, SLOT ( add_tab() ) );
 }
 
 void dbse::SchemaMainWindow::SetController()
@@ -87,15 +92,20 @@ void dbse::SchemaMainWindow::SetController()
             SLOT ( ChangeCursorInheritance ( bool ) ) );
   connect ( ui->AddClass, SIGNAL ( triggered() ), this, SLOT ( AddNewClass() ) );
   connect ( ui->SaveView, SIGNAL ( triggered() ), this, SLOT ( SaveView() ) );
+  connect ( ui->SaveViewAs, SIGNAL ( triggered() ), this, SLOT ( SaveViewAs() ) );
   connect ( ui->LoadView, SIGNAL ( triggered() ), this, SLOT ( LoadView() ) );
   connect ( ui->NameView, SIGNAL ( triggered() ), this, SLOT ( NameView() ) );
   connect ( ui->Exit, SIGNAL ( triggered() ), this, SLOT ( close() ) );
   connect ( ui->ClassTableView, SIGNAL ( doubleClicked ( QModelIndex ) ), this,
             SLOT ( LaunchClassEditor ( QModelIndex ) ) );
-  connect ( &KernelWrapper::GetInstance(), SIGNAL ( ClassCreated() ), this,
-            SLOT ( BuildTableModelSlot() ) );
+  connect ( ui->close_tab, SIGNAL ( triggered() ), this, SLOT ( close_tab() ) );
+
+  connect ( &KernelWrapper::GetInstance(), SIGNAL ( ClassCreated( QString ) ), this,
+            SLOT ( update_models() ) );
+  connect ( &KernelWrapper::GetInstance(), SIGNAL ( ClassUpdated ( QString ) ), this,
+            SLOT ( update_models() ) );
   connect ( &KernelWrapper::GetInstance(), SIGNAL ( ClassRemoved ( QString ) ), this,
-            SLOT ( BuildTableModelSlot ( QString ) ) );
+            SLOT ( update_models() ) );
   connect ( ui->TabWidget, SIGNAL ( tabCloseRequested ( int ) ), this,
             SLOT ( RemoveTab ( int ) ) );
   connect ( ui->FileView, SIGNAL ( customContextMenuRequested ( QPoint ) ), this,
@@ -103,24 +113,29 @@ void dbse::SchemaMainWindow::SetController()
   connect ( ui->ClassTableView, SIGNAL ( customContextMenuRequested ( QPoint ) ), this,
             SLOT ( CustomContextMenuTableView ( QPoint ) ) );
   connect ( ui->PrintView, SIGNAL ( triggered() ), this, SLOT ( PrintCurrentView() ) );
+  connect ( ui->exportView, SIGNAL ( triggered() ), this, SLOT ( export_current_view() ) );
   connect ( ui->ClassTableSearchLine, SIGNAL( textChanged ( QString ) ), proxyModel, SLOT( setFilterRegExp( QString ) ) );
+
 }
 
 void dbse::SchemaMainWindow::LaunchIncludeEditor()
 {
   QModelIndex Index = ui->FileView->currentIndex();
   QStringList Row = FileModel->getRowFromIndex ( Index );
-  auto * FileWidget = new dbse::SchemaIncludeFileWidget ( Row.at ( 0 ) );
-  FileWidget->show();
-
+  auto * file_widget = new dbse::SchemaIncludeFileWidget ( Row.at ( 0 ) );
+  connect (file_widget, &SchemaIncludeFileWidget::files_updated,
+           this, &SchemaMainWindow::update_models);
+  file_widget->show();
 }
 
 void dbse::SchemaMainWindow::LaunchIncludeEditorActiveSchema()
 {
   std::string ActiveSchema = KernelWrapper::GetInstance().GetActiveSchema();
 
-  auto * FileWidget = new dbse::SchemaIncludeFileWidget ( QString::fromStdString (ActiveSchema) );
-  FileWidget->show();
+  auto file_widget = new dbse::SchemaIncludeFileWidget ( QString::fromStdString (ActiveSchema) );
+  connect (file_widget, &SchemaIncludeFileWidget::files_updated,
+           this, &SchemaMainWindow::update_models);
+  file_widget->show();
 }
 
 void dbse::SchemaMainWindow::BuildFileModel()
@@ -164,7 +179,9 @@ int dbse::SchemaMainWindow::ShouldSaveViewChanges() const
   for (int index=0; index<ui->TabWidget->count(); ++index) {
     auto tab = dynamic_cast<SchemaTab *> (ui->TabWidget->widget(index));
     if (tab->GetScene()->IsModified()) {
-      modified_views.append(tab->getName() + "\n");
+      auto label = ui->TabWidget->tabText(index);
+      label = label.remove('*');
+      modified_views.append("  " + label + "\n");
     }
   }
   if (!modified_views.isEmpty()) {
@@ -233,11 +250,50 @@ void dbse::SchemaMainWindow::RemoveClass()
   }
 }
 
+void dbse::SchemaMainWindow::editClass() {
+  QModelIndex Index = ui->ClassTableView->currentIndex();
+  QModelIndex proxyIndex = proxyModel->mapToSource( Index );
+  QStringList Row = TableModel->getRowFromIndex ( proxyIndex );
+
+  if ( !Row.isEmpty() ) {
+    bool widget_found = false;
+    QString class_name = Row.at ( 0 );
+    OksClass * class_info = KernelWrapper::GetInstance().FindClass (
+      class_name.toStdString() );
+
+    for ( QWidget * widget : QApplication::allWidgets() ) {
+      auto editor = dynamic_cast<SchemaClassEditor *> ( widget );
+      if ( editor != nullptr ) {
+        if ( ( editor->objectName() ).compare ( class_name ) == 0 ) {
+          editor->raise();
+          editor->setVisible ( true );
+          editor->activateWindow();
+          widget_found = true;
+        }
+      }
+    }
+    if ( !widget_found ) {
+      SchemaClassEditor * editor = new SchemaClassEditor ( class_info );
+      editor->show();
+    }
+  }
+}
+
 void dbse::SchemaMainWindow::SetSchemaFileActive()
 {
-  QModelIndex Index = ui->FileView->currentIndex();
-  QStringList Row = FileModel->getRowFromIndex ( Index );
-  KernelWrapper::GetInstance().SetActiveSchema ( Row.at ( 0 ).toStdString() );
+  QModelIndex index = ui->FileView->currentIndex();
+  QString file = FileModel->getRowFromIndex ( index ).at(0);
+  try {
+    KernelWrapper::GetInstance().SetActiveSchema ( file.toStdString() );
+  }
+  catch (oks::CanNotSetActiveFile& exc) {
+    QMessageBox::warning(0,
+                         "Set Active Schema",
+                         QString("Could not make schema active!\n\n").append(QString(exc.what())),
+                         QMessageBox::Ok);
+    return;
+  }
+  update_window_title(file);
 
   // In case we are highlighting classes in the active file, redraw current
   // view tab now we've changed active file
@@ -279,6 +335,37 @@ void dbse::SchemaMainWindow::PrintCurrentView()
     Scene->render ( &painter, QRectF(), View->viewport()->rect() );
   }
 }
+void dbse::SchemaMainWindow::export_current_view(){
+  auto tab = dynamic_cast<SchemaTab *> ( ui->TabWidget->currentWidget() );
+
+  auto file = QFileDialog::getSaveFileName(
+    this, tr("Export to SVG"),
+    m_export_path,
+    tr("SVG files (*.svg);;All files (*)"));
+  if (file.isEmpty()) {
+    return;
+  }
+
+  auto spos = file.lastIndexOf('/');
+  if (spos != -1) {
+    m_export_path = file;
+    m_export_path.truncate(spos);
+  }
+
+  auto scene = tab->GetScene();
+  auto view = tab->GetView();
+
+  QSvgGenerator generator;
+  generator.setFileName(file);
+  auto vpr=view->viewport()->rect();
+  generator.setSize(QSize(vpr.width(),vpr.height()));
+  generator.setViewBox(vpr);
+
+  QPainter painter;
+  painter.begin(&generator);
+  scene->render ( &painter, QRectF(), view->viewport()->rect() );
+  painter.end();
+}
 
 void dbse::SchemaMainWindow::closeEvent ( QCloseEvent * event )
 {
@@ -311,43 +398,49 @@ void dbse::SchemaMainWindow::closeEvent ( QCloseEvent * event )
   event->accept();
 }
 
-
-void dbse::SchemaMainWindow::focusInEvent( QFocusEvent * event )
-{
-  // Try to update whenever the main window receives focus since I
-  // don't know how to force this from another window
+void dbse::SchemaMainWindow::update_models() {
   BuildFileModel();
   BuildTableModel();
-  event->accept();
 }
 
 void dbse::SchemaMainWindow::OpenSchemaFile(QString SchemaFile) {
-    if(!SchemaFile.isEmpty()) {
-            try {
-                KernelWrapper::GetInstance().LoadSchema(SchemaFile.toStdString());
-                KernelWrapper::GetInstance().SetActiveSchema(SchemaFile.toStdString());
-
-                BuildTableModel();
-                BuildFileModel();
+  if(!SchemaFile.isEmpty()) {
+    try {
+      KernelWrapper::GetInstance().LoadSchema(SchemaFile.toStdString());
 
 #ifdef QT_DEBUG
-          /// KernelWrapper::GetInstance().ShowSchemaClasses();
+      /// KernelWrapper::GetInstance().ShowSchemaClasses();
 #endif
-            }
-            catch(oks::exception &Ex) {
-                QMessageBox::warning(0,
-                                     "Load Schema",
-                                     QString("Could not load schema!\n\n").append(QString(Ex.what())),
-                                     QMessageBox::Ok);
-            }
-
-    Title.append(QString(": -- "));
-    Title.append(QFileInfo(SchemaFile).fileName());
-  setWindowTitle ( Title );
-
-            ui->CreateNewSchema->setDisabled (true );
-            ui->OpenFileSchema->setDisabled (true );
     }
+    catch(oks::exception &Ex) {
+      QMessageBox::warning(0,
+                           "Load Schema",
+                           QString("Could not load schema!\n\n").append(QString(Ex.what())),
+                           QMessageBox::Ok);
+    }
+    try {
+      KernelWrapper::GetInstance().SetActiveSchema(SchemaFile.toStdString());
+    }
+    catch (oks::CanNotSetActiveFile& exc) {
+      QMessageBox::warning(0,
+                           "Load Schema",
+                           QString("Could not make schema active!\n\n").append(QString(exc.what())),
+                           QMessageBox::Ok);
+    }
+
+    BuildTableModel();
+    BuildFileModel();
+
+    update_window_title(QFileInfo(SchemaFile).fileName());
+    ui->CreateNewSchema->setDisabled (true );
+    ui->OpenFileSchema->setDisabled (true );
+  }
+}
+
+void dbse:: SchemaMainWindow::update_window_title(QString text) {
+  m_title.remove(QRegularExpression(": --.*"));
+  m_title.append(QString(": -- ") + text);
+    setWindowTitle ( m_title );
 }
 
 void dbse::SchemaMainWindow::OpenSchemaFile()
@@ -483,10 +576,25 @@ void dbse::SchemaMainWindow::ChangeCursorInheritance ( bool State )
   KernelWrapper::GetInstance().SetInheritanceMode ( true );
 }
 
-void dbse::SchemaMainWindow::AddTab()
+void dbse::SchemaMainWindow::add_tab()
 {
-  auto index = ui->TabWidget->addTab ( new SchemaTab(), "Schema View" );
+  auto index = ui->TabWidget->addTab ( new SchemaTab(), "unnamed Schema View" );
   ui->TabWidget->setCurrentIndex ( index );
+  auto  tab = dynamic_cast<SchemaTab *> ( ui->TabWidget->currentWidget() );
+  connect (tab->GetScene(), &SchemaGraphicsScene::sceneModified,
+           this, &dbse::SchemaMainWindow::modifiedView);
+}
+
+void dbse::SchemaMainWindow::modifiedView(bool modified) {
+  auto index = ui->TabWidget->currentIndex();
+  auto label = ui->TabWidget->tabText(index);
+  if (modified && !label.endsWith("*")) {
+    label += "*";
+  }
+  if (!modified && label.endsWith("*")) {
+    label = label.remove('*');
+  }
+  ui->TabWidget->setTabText(index, label);
 }
 
 void dbse::SchemaMainWindow::NameView() {
@@ -507,10 +615,20 @@ void dbse::SchemaMainWindow::NameView() {
   auto newtext = ui->TabWidget->tabText(index);
 }
 
-void dbse::SchemaMainWindow::SaveView()
-{
+void dbse::SchemaMainWindow::SaveView() {
+  SchemaTab * tab = dynamic_cast<SchemaTab *> ( ui->TabWidget->currentWidget() );
+  if ( tab->GetScene()->items().size() != 0 )
+  {
+    auto file_name = tab->getFileName();
+    if (file_name == "./") {
+      SaveViewAs();
+      return;
+    }
+    write_view_file(file_name, tab);
+  }
+}
+void dbse::SchemaMainWindow::SaveViewAs() {
   SchemaTab * CurrentTab = dynamic_cast<SchemaTab *> ( ui->TabWidget->currentWidget() );
-
   if ( CurrentTab->GetScene()->items().size() != 0 )
   {
     auto defName = CurrentTab->getFileName();
@@ -518,7 +636,8 @@ void dbse::SchemaMainWindow::SaveView()
       defName = m_view_dir;
     }
     QString FileName = QFileDialog::getSaveFileName (
-      this, tr ( "Save View" ), defName );
+      this, tr ( "Save View" ), defName,
+      tr("View files (*.view);;All files (*)") );
 
     if (! FileName.isEmpty()) {
       auto spos = FileName.lastIndexOf('/');
@@ -532,41 +651,55 @@ void dbse::SchemaMainWindow::SaveView()
       }
 
       CurrentTab->setFileName ( FileName );
-      if (CurrentTab->getName() == "") {
-        auto text = QFileInfo(FileName).baseName();
-        CurrentTab->setName(text);
-        auto index = ui->TabWidget->currentIndex();
-        ui->TabWidget->setTabText(index, text);
-      }
+      auto text = QFileInfo(FileName).baseName();
+      CurrentTab->setName(text);
+      auto index = ui->TabWidget->currentIndex();
+      ui->TabWidget->setTabText(index, text);
 
-      QFile ViewFile ( FileName );
-      ViewFile.open ( QIODevice::WriteOnly );
-
-      for ( QGraphicsItem * Item : CurrentTab->GetScene()->items() ) {
-        if ( dynamic_cast<SchemaGraphicObject *> ( Item ) ) {
-          SchemaGraphicObject * SchemaObject = dynamic_cast<SchemaGraphicObject *> ( Item );
-          QString ObjectDescription = SchemaObject->GetClassName() + ","
-            + QString::number ( SchemaObject->scenePos().x() ) + ","
-            + QString::number ( SchemaObject->scenePos().y() ) + "\n";
-          ViewFile.write ( ObjectDescription.toUtf8() );
-        }
-      }
-
-      ViewFile.close();
-      auto message = QString("Saved view to %1").arg(FileName);
-      ui->StatusBar->showMessage( message );
-      CurrentTab->GetScene()->ClearModified();
+      write_view_file(FileName, CurrentTab);
     }
   }
 }
 
-void dbse::SchemaMainWindow::LoadView()
-{
+void dbse::SchemaMainWindow::write_view_file (const QString& file_name,
+                                              SchemaTab* tab) {
+  QFile file ( file_name );
+  file.open ( QIODevice::WriteOnly );
+
+  for ( QGraphicsItem * item : tab->GetScene()->items() ) {
+    auto object = dynamic_cast<SchemaGraphicObject *> ( item );
+    if ( object != nullptr ) {
+      QString description = object->GetClassName() + ","
+        + QString::number ( object->scenePos().x() ) + ","
+        + QString::number ( object->scenePos().y() ) + "\n";
+      file.write ( description.toUtf8() );
+    }
+    else {
+      auto note = dynamic_cast<SchemaGraphicNote*> (item);
+      if ( note != nullptr && !note->text().isEmpty()) {
+        auto text = note->text().replace("\n", "<br>");
+        text = text.replace(",", "<comma>");
+        QString line = "#,"
+          + QString::number ( note->scenePos().x() ) + ","
+          + QString::number ( note->scenePos().y() ) + ","
+          + text + "\n";
+        file.write ( line.toUtf8() );
+      }
+    }
+  }
+
+  file.close();
+  auto message = QString("Saved view to %1").arg(file_name);
+  ui->StatusBar->showMessage( message );
+  tab->GetScene()->ClearModified();
+}
+
+void dbse::SchemaMainWindow::LoadView() {
   QString ViewPath = QFileDialog::getOpenFileName (
     this,
     tr ("Open view file"),
     m_view_dir,
-    "*.view");
+    tr("View files (*.view);;All files (*)"));
 
   if ( !ViewPath.isEmpty() )
   {
@@ -579,32 +712,50 @@ void dbse::SchemaMainWindow::LoadView()
     ViewFile.open ( QIODevice::ReadOnly );
 
     auto text = QFileInfo(ViewPath).baseName();
-    auto index = ui->TabWidget->addTab ( new SchemaTab(),
-                                         text );
-    ui->TabWidget->setCurrentIndex ( index );
-    SchemaTab * CurrentTab = dynamic_cast<SchemaTab *> ( ui->TabWidget->currentWidget() );
-    CurrentTab->setName(text);
-    CurrentTab->setFileName(ViewPath);
+    auto tab = dynamic_cast<SchemaTab *> ( ui->TabWidget->currentWidget() );
+    if (!tab->getName().isEmpty() || tab->GetScene()->IsModified()) {
+      add_tab();
+      tab = dynamic_cast<SchemaTab *> ( ui->TabWidget->currentWidget() );
+    }
+    auto index = ui->TabWidget->currentIndex();
+    ui->TabWidget->setTabText(index, text);
+    tab->setName(text);
+    tab->setFileName(ViewPath);
 
     QStringList ClassesNames;
     QList<QPointF> Positions;
-
+    QList<QPointF> note_positions;
+    QStringList notes;
     while ( !ViewFile.atEnd() )
     {
       QString Line ( ViewFile.readLine() );
-      QStringList ObjectDescription = Line.split ( "," );
-      ClassesNames.append ( ObjectDescription.at ( 0 ) );
-      QPointF Position;
-      Position.setX ( ObjectDescription.at ( 1 ).toInt() );
-      Position.setY ( ObjectDescription.at ( 2 ).toInt() );
-      Positions.append ( Position );
+      if (!Line.isEmpty()) {
+        QStringList ObjectDescription = Line.split ( "," );
+        QPointF Position;
+        Position.setX ( ObjectDescription.at ( 1 ).toInt() );
+        Position.setY ( ObjectDescription.at ( 2 ).toInt() );
+        if (ObjectDescription.at ( 0 ) == "#") {
+          note_positions.append (Position);
+          auto text = ObjectDescription.at(3);
+          if (text.back() == '\n') {
+            text.chop(1);
+          }
+          text = text.replace("<br>", "\n");
+          text = text.replace("<comma>", ",");
+          notes.append ( text );
+        }
+        else {
+          ClassesNames.append ( ObjectDescription.at ( 0 ) );
+          Positions.append ( Position );
+        }
+      }
     }
     ViewFile.close();
 
     auto message = QString("Loaded view from %1").arg(ViewPath);
     ui->StatusBar->showMessage( message );
 
-    auto scene = CurrentTab->GetScene();
+    auto scene = tab->GetScene();
     scene->CleanItemMap();
     auto missing = scene->AddItemsToScene ( ClassesNames, Positions );
     if (!missing.empty()) {
@@ -615,6 +766,8 @@ void dbse::SchemaMainWindow::LoadView()
       QMessageBox::warning(this, tr("Load View"), text);
     }
     scene->ClearModified();
+
+    scene->add_notes(notes, note_positions);
   }
 }
 
@@ -653,27 +806,17 @@ void dbse::SchemaMainWindow::LaunchClassEditor ( QModelIndex Index )
   }
 }
 
-void dbse::SchemaMainWindow::BuildTableModelSlot ( QString ClassName )
-{
-  Q_UNUSED ( ClassName )
-
-  BuildTableModel();
-}
-
-void dbse::SchemaMainWindow::BuildTableModelSlot()
-{
-  BuildTableModel();
+void dbse::SchemaMainWindow::close_tab() {
+  RemoveTab(ui->TabWidget->currentIndex());
 }
 
 void dbse::SchemaMainWindow::RemoveTab ( int index )
 {
-  if ( index == -1 || ( ( ui->TabWidget->count() == 1 ) && index == 0 ) )
-  {
+  if ( index == -1 || ( ( ui->TabWidget->count() == 1 ) && index == 0 ) ) {
     return;
   }
 
   auto tab = dynamic_cast<SchemaTab *> (ui->TabWidget->widget(index));
-
   if (tab->GetScene()->IsModified()) {
     auto choice = QMessageBox::question (
       0, tr ( "SchemaEditor" ),
@@ -720,18 +863,18 @@ void dbse::SchemaMainWindow::CustomContextMenuTableView ( QPoint Pos )
   {
     ContextMenuTableView = new QMenu ( this );
 
-    QAction * Add = new QAction ( tr ( "&Add New Class" ), this );
-    Add->setShortcut ( tr ( "Ctrl+A" ) );
-    Add->setShortcutContext ( Qt::WidgetShortcut );
-    connect ( Add, SIGNAL ( triggered() ), this, SLOT ( AddNewClass() ) );
+    QAction * add = new QAction ( tr ( "&Add New Class" ), this );
+    connect ( add, SIGNAL ( triggered() ), this, SLOT ( AddNewClass() ) );
 
-    QAction * Remove = new QAction ( tr ( "&Remove Selected Class" ), this );
-    Remove->setShortcut ( tr ( "Ctrl+R" ) );
-    Remove->setShortcutContext ( Qt::WidgetShortcut );
-    connect ( Remove, SIGNAL ( triggered() ), this, SLOT ( RemoveClass() ) );
+    QAction * remove = new QAction ( tr ( "&Remove Selected Class" ), this );
+    connect ( remove, SIGNAL ( triggered() ), this, SLOT ( RemoveClass() ) );
 
-    ContextMenuTableView->addAction ( Add );
-    ContextMenuTableView->addAction ( Remove );
+    QAction * edit = new QAction ( tr ( "&Edit Selected Class" ), this );
+    connect ( edit, SIGNAL ( triggered() ), this, SLOT ( editClass() ) );
+
+    ContextMenuTableView->addAction ( add );
+    ContextMenuTableView->addAction ( edit );
+    ContextMenuTableView->addAction ( remove );
   }
 
   QModelIndex Index = ui->ClassTableView->currentIndex();

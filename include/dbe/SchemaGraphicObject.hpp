@@ -22,16 +22,17 @@ class SchemaGraphicObject: public QGraphicsObject
 public:
   explicit SchemaGraphicObject ( QString & ClassName, QGraphicsObject * parent = nullptr );
   ~SchemaGraphicObject();
-  dunedaq::oks::OksClass * GetClass() const;
-  QString GetClassName() const;
+
+  [[nodiscard]] dunedaq::oks::OksClass * GetClass() const;
+  [[nodiscard]] QString GetClassName() const;
   void GetInfo();
   /// Graphic API
   void set_inherited_properties_visibility( bool visible );
   void set_highlight_active( bool highlight );
-  QRectF boundingRect() const;
-  QPainterPath shape() const;
+  [[nodiscard]] QRectF boundingRect() const override;
+  [[nodiscard]] QPainterPath shape() const override;
   void paint ( QPainter * painter, const QStyleOptionGraphicsItem * option,
-               QWidget * widget );
+               QWidget * widget ) override;
   /// Arrow API
   void AddArrow ( SchemaGraphicSegmentedArrow * Arrow );
   void RemoveArrow ( SchemaGraphicSegmentedArrow * Arrow );

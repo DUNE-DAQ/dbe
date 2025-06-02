@@ -21,8 +21,8 @@ void dbse::CustomMethodImplementationModel::setupModel()
     for ( OksMethodImplementation * Implementation : *ImplementationList )
     {
       QStringList Row;
-      Row.append ( QString::fromStdString ( Implementation->get_prototype() ) );
       Row.append ( QString::fromStdString ( Implementation->get_language() ) );
+      Row.append ( QString::fromStdString ( Implementation->get_prototype() ) );
       Data.append ( Row );
     }
   }

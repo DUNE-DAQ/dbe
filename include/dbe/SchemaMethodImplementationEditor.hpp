@@ -37,9 +37,9 @@ protected:
   void FillInfo();
 private:
   std::unique_ptr<dbse::Ui::SchemaMethodImplementationEditor> ui;
-  dunedaq::oks::OksClass * SchemaClass;
-  dunedaq::oks::OksMethod * SchemaMethod;
-  dunedaq::oks::OksMethodImplementation * SchemaImplementation;
+  dunedaq::oks::OksClass * m_class;
+  dunedaq::oks::OksMethod * m_method;
+  dunedaq::oks::OksMethodImplementation * m_implementation;
   bool UsedNew;
 private slots:
   void ProxySlot();

@@ -56,15 +56,77 @@ dbse::SchemaGraphicObject::~SchemaGraphicObject()
 
 
 void dbse::SchemaGraphicObject::hoverEnterEvent ( QGraphicsSceneHoverEvent* he) {
+  // std::cout << "hover event at scenePos" << he->scenePos().x() << "," << he->scenePos().y()
+  //           << ", pos=" << he->pos().x() << "," << he->pos().y() << "\n";
+
+  auto text = m_class_info->get_name();
+  auto desc = m_class_info->get_description();
+  if (!desc.empty()) {
+    text += "\n" + desc;
+  }
+  text += "\n-----------";
+
+  std::string attr_descriptions;
+  auto attributes = m_class_info->direct_attributes();
+  if (attributes != nullptr) {
+    for (auto attr: *attributes) {
+      if (!attr->get_description().empty()) {
+        attr_descriptions += "\n " + attr->get_name() + ": " +
+          attr->get_description();
+      }
+    }
+  }
+  std::string rel_descriptions;
+  auto relationships = m_class_info->direct_relationships();
+  if (relationships != nullptr) {
+    for (auto rel: *relationships) {
+      if (!rel->get_description().empty()) {
+        rel_descriptions += "\n " + rel->get_name() + ": " +
+          rel->get_description();
+      }
+    }
+  }
+  std::string method_descriptions;
+  auto methods = m_class_info->direct_methods();
+  if (methods != nullptr) {
+    for (auto method: *methods) {
+      if (!method->get_description().empty()) {
+        method_descriptions += "\n " + method->get_name() + ": " +
+          method->get_description();
+      }
+    }
+  }
+
+  std::string sep="\n-----";
+  if (!attr_descriptions.empty()) {
+    text += "\nAttributes:" + attr_descriptions;
+    if (!(rel_descriptions.empty() && method_descriptions.empty())) {
+      text += sep;
+    }
+  }
+  if (!rel_descriptions.empty()) {
+    text += "\nRelationships:" + rel_descriptions;
+    if (!method_descriptions.empty()) {
+      text += sep;
+    }
+  }
+  if (method_descriptions != "") {
+    text += "\nMethods:" + method_descriptions;
+  }
+  //std::cout << "text=<" << text << ">\n"; std::cout.flush();
   QToolTip::showText( he->screenPos(),
-                      QString::fromStdString(m_class_info->get_description()) );
+                      QString::fromStdString(text),
+                      nullptr, QRect(), 10000);
+  he->ignore();
 }
 void dbse::SchemaGraphicObject::hoverLeaveEvent ( QGraphicsSceneHoverEvent* he) {
+  // std::cout << "hover leave\n";
   QToolTip::hideText();
+  he->ignore();
 }
 
-void dbse::SchemaGraphicObject::mouseDoubleClickEvent ( QGraphicsSceneMouseEvent* ev ) {
-  std::cout << "Open class editor\n";
+void dbse::SchemaGraphicObject::mouseDoubleClickEvent ( QGraphicsSceneMouseEvent* ) {
+  // std::cout << "Open class editor\n";
   bool WidgetFound = false;
   QString ClassName = QString::fromStdString ( m_class_info->get_name() );
 
@@ -110,8 +172,9 @@ void dbse::SchemaGraphicObject::GetInfo()
   m_class_methods.clear();
 
   std::list<OksAttribute *> direct_attributes = {};
-  if (m_class_info->direct_attributes()) direct_attributes = *m_class_info->direct_attributes();
-
+  if (m_class_info->direct_attributes()) {
+    direct_attributes = *m_class_info->direct_attributes();
+  }
   std::list<OksMethod *> direct_methods = {};
   if (m_class_info->direct_methods()) direct_methods = *m_class_info->direct_methods();
 
@@ -127,7 +190,7 @@ void dbse::SchemaGraphicObject::GetInfo()
   std::list<OksRelationship *> all_relationships = {};
   if (m_class_info->all_relationships()) all_relationships = *m_class_info->all_relationships();
 
-  // Prepare indirect relatonship list
+  // Prepare indirect relationship list
   std::list<OksAttribute *> indirect_attributes = all_attributes;
   std::list<OksMethod *> indirect_methods = all_methods;
   std::list<OksRelationship *> indirect_relationships = all_relationships;

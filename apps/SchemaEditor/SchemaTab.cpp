@@ -8,7 +8,7 @@ dbse::SchemaTab::SchemaTab ( QWidget * parent )
 {
   /// Generating view/schema
   GraphView = new QGraphicsView();
-  GraphScene = new SchemaGraphicsScene();
+  GraphScene = new SchemaGraphicsScene(this);
   GraphView->setScene ( GraphScene );
   GraphView->centerOn ( 0, 0 );
   /// Adjusting layout

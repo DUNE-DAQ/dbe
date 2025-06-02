@@ -12,9 +12,9 @@ dbse::SchemaMethodImplementationEditor::SchemaMethodImplementationEditor (
   OksClass * Class, OksMethod * Method, OksMethodImplementation * Implementation, QWidget * parent )
   : QWidget ( parent ),
     ui ( new Ui::SchemaMethodImplementationEditor ),
-    SchemaClass ( Class ),
-    SchemaMethod ( Method ),
-    SchemaImplementation ( Implementation ),
+    m_class ( Class ),
+    m_method ( Method ),
+    m_implementation ( Implementation ),
     UsedNew ( false )
 {
   QWidget::setAttribute(Qt::WA_DeleteOnClose);
@@ -29,9 +29,9 @@ dbse::SchemaMethodImplementationEditor::SchemaMethodImplementationEditor (
   QWidget * parent )
   : QWidget ( parent ),
     ui ( new Ui::SchemaMethodImplementationEditor ),
-    SchemaClass ( Class ),
-    SchemaMethod ( Method ),
-    SchemaImplementation ( nullptr ),
+    m_class ( Class ),
+    m_method ( Method ),
+    m_implementation ( nullptr ),
     UsedNew ( true )
 {
   QWidget::setAttribute(Qt::WA_DeleteOnClose);
@@ -47,10 +47,10 @@ void dbse::SchemaMethodImplementationEditor::SetController()
             SLOT ( ClassUpdated ( QString ) ) );
 }
 
-void dbse::SchemaMethodImplementationEditor::ClassUpdated( QString ClassName )
+void dbse::SchemaMethodImplementationEditor::ClassUpdated( QString class_name )
 {
-  if(!UsedNew && ClassName.toStdString() == SchemaClass->get_name()) {
-      if(SchemaMethod->find_implementation(SchemaImplementation->get_language()) != nullptr) {
+  if(!UsedNew && class_name.toStdString() == m_class->get_name()) {
+      if(m_method->find_implementation(m_implementation->get_language()) != nullptr) {
           FillInfo();
       } else {
           QWidget::close();
@@ -60,25 +60,26 @@ void dbse::SchemaMethodImplementationEditor::ClassUpdated( QString ClassName )
 
 void dbse::SchemaMethodImplementationEditor::FillInfo()
 {
-  setObjectName ( QString::fromStdString ( SchemaImplementation->get_language() ) );
-  setWindowTitle (
-    QString ( "Method Implementation Editor : %1" ).arg (
-      SchemaImplementation->get_language().c_str() ) );
   ui->MethodImplementationLanguage->setText (
-    QString::fromStdString ( SchemaImplementation->get_language() ) );
+    QString::fromStdString ( m_implementation->get_language() ) );
   ui->MethodImplementationPrototype->setText (
-    QString::fromStdString ( SchemaImplementation->get_prototype() ) );
+    QString::fromStdString ( m_implementation->get_prototype() ) );
   ui->MethodImplementationDescription->setPlainText (
-    QString::fromStdString ( SchemaImplementation->get_body() ) );
+    QString::fromStdString ( m_implementation->get_body() ) );
+
+  std::string name = m_class->get_name() + m_method->get_name()
+    + m_implementation->get_language();
+  setObjectName ( QString::fromStdString(name) );
 }
 
 void dbse::SchemaMethodImplementationEditor::InitialSettings()
 {
-  setWindowTitle ( "New Method Implementation" );
-  setObjectName ( "NEW" );
+  std::string title = "Method Implementation for " + m_method->get_name() ;
+  setWindowTitle (QString::fromStdString(title));
+  std::string name = m_method->get_name();
+  setObjectName ( QString::fromStdString(name) );
 
-  if ( !UsedNew )
-  {
+  if ( !UsedNew ) {
       FillInfo();
   }
 }
@@ -91,29 +92,29 @@ void dbse::SchemaMethodImplementationEditor::ParseToSave()
   std::string MethodDescription = ui->MethodImplementationDescription->toPlainText()
                                   .toStdString();
 
-  if ( MethodLanguage != SchemaImplementation->get_language() )
+  if ( MethodLanguage != m_implementation->get_language() )
   {
-    KernelWrapper::GetInstance().PushSetMethodImplementationLanguage ( SchemaClass,
-                                                                       SchemaMethod,
-                                                                       SchemaImplementation,
+    KernelWrapper::GetInstance().PushSetMethodImplementationLanguage ( m_class,
+                                                                       m_method,
+                                                                       m_implementation,
                                                                        MethodLanguage );
     changed = true;
   }
 
-  if ( MethodPrototype != SchemaImplementation->get_prototype() )
+  if ( MethodPrototype != m_implementation->get_prototype() )
   {
-    KernelWrapper::GetInstance().PushSetMethodImplementationPrototype ( SchemaClass,
-                                                                        SchemaMethod,
-                                                                        SchemaImplementation,
+    KernelWrapper::GetInstance().PushSetMethodImplementationPrototype ( m_class,
+                                                                        m_method,
+                                                                        m_implementation,
                                                                         MethodPrototype );
     changed = true;
   }
 
-  if ( MethodDescription != SchemaImplementation->get_body() )
+  if ( MethodDescription != m_implementation->get_body() )
   {
-    KernelWrapper::GetInstance().PushSetMethodImplementationBody ( SchemaClass,
-                                                                   SchemaMethod,
-                                                                   SchemaImplementation,
+    KernelWrapper::GetInstance().PushSetMethodImplementationBody ( m_class,
+                                                                   m_method,
+                                                                   m_implementation,
                                                                    MethodDescription );
     changed = true;
   }
@@ -128,6 +129,14 @@ void dbse::SchemaMethodImplementationEditor::ParseToSave()
 
 void dbse::SchemaMethodImplementationEditor::ParseToCreate()
 {
+  if ( ui->MethodImplementationLanguage->text().isEmpty()
+       && ui->MethodImplementationLanguage->text().isEmpty()
+       &&  ui->MethodImplementationDescription->toPlainText().isEmpty() ) {
+    // Close empty dialogue box
+    close();
+    return;
+  }
+
   if ( ui->MethodImplementationLanguage->text().isEmpty() )
   {
     QMessageBox::warning (
@@ -149,8 +158,8 @@ void dbse::SchemaMethodImplementationEditor::ParseToCreate()
   std::string MethodDescription = ui->MethodImplementationDescription->toPlainText()
                                   .toStdString();
 
-  KernelWrapper::GetInstance().PushAddMethodImplementationComand ( SchemaClass,
-                                                                   SchemaMethod,
+  KernelWrapper::GetInstance().PushAddMethodImplementationComand ( m_class,
+                                                                   m_method,
                                                                    MethodLanguage,
                                                                    MethodPrototype,
                                                                    MethodDescription );

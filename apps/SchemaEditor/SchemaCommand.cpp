@@ -78,7 +78,7 @@ void CreateClassCommand::redo()
 {
   SchemaClass = new OksClass ( SchemaClassName, SchemaClassDescription, SchemaAbstract,
                                KernelWrapper::GetInstance().GetKernel() );
-  emit KernelWrapper::GetInstance().ClassCreated();
+  emit KernelWrapper::GetInstance().ClassCreated(QString::fromStdString(SchemaClassName));
 }
 
 void CreateClassCommand::undo()
@@ -118,7 +118,7 @@ void RemoveClassCommand::undo()
 {
   SchemaClass = new OksClass ( SchemaClassName, SchemaClassDescription, SchemaAbstract,
                                KernelWrapper::GetInstance().GetKernel() );
-  emit KernelWrapper::GetInstance().ClassCreated();
+  emit KernelWrapper::GetInstance().ClassCreated(QString::fromStdString(SchemaClassName));
 }
 
 AddSuperClassCommand::AddSuperClassCommand ( OksClass * Class, std::string SuperClass )

@@ -30,7 +30,7 @@ private:
   std::unique_ptr<dbe::Ui::CommitDialog> ui;
 
 private slots:
-  void CommitMessageEdited ( QString TextEdited );
+  void CommitMessageEdited ();
   void OkCommitMessage();
   void CancelCommitMessage();
 };

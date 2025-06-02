@@ -55,9 +55,11 @@ void dbse::SchemaGraphicSegmentedArrow::hoverEnterEvent ( QGraphicsSceneHoverEve
     QToolTip::showText( he->screenPos(),
                         QString::fromStdString(rel->get_description()) );
   }
+  he->ignore();
 }
 void dbse::SchemaGraphicSegmentedArrow::hoverLeaveEvent ( QGraphicsSceneHoverEvent* he) {
   QToolTip::hideText();
+  he->ignore();
 }
 
 QRectF SchemaGraphicSegmentedArrow::boundingRect() const
@@ -124,7 +126,7 @@ void SchemaGraphicSegmentedArrow::UpdatePosition()
   }
 
   QPointF start_offset(xoffset, yoffset);
-  QPointF end_offset(xoffset, yoffset);
+  QPointF end_offset(0, 0);
 
   QLineF center_line ( m_start_item->mapToScene ( m_start_item->boundingRect().center()+start_offset ),
                       m_end_item->mapToScene ( m_end_item->boundingRect().center()+end_offset ) );
@@ -135,7 +137,6 @@ void SchemaGraphicSegmentedArrow::UpdatePosition()
 
   // Iterate on the sides starting from top-left
   QPointF p1 = end_polygon.first() + m_end_item->pos(), p2;
-  QPointF end_sp;
   for ( int i = 1; i < end_polygon.count(); ++i )
   {
 
@@ -144,17 +145,6 @@ void SchemaGraphicSegmentedArrow::UpdatePosition()
     QLineF::IntersectType intersect_type = item_side.intersects ( center_line, &intersect_point_end );
 
     if ( intersect_type == QLineF::BoundedIntersection ) {
-      switch (i) {
-      case 1:
-      case 3: end_sp=QPointF {m_end_item->pos().x()+m_end_item->boundingRect().width() / 2+xoffset,
-        intersect_point_end.y()};
-        break;
-
-      case 2:
-      case 4: end_sp={intersect_point_end.x(),
-          m_end_item->pos().y()+m_end_item->boundingRect().height() / 2+yoffset};
-        break;
-      }
       intersect_norm_end = norms[i-1];
       break;
     }
@@ -193,7 +183,7 @@ void SchemaGraphicSegmentedArrow::UpdatePosition()
     p1 = p2;
   }
 
-  QLineF direct_line(start_sp, end_sp);
+  QLineF direct_line(start_sp, intersect_point_end);
   auto label_br = QRectF(QFontMetrics ( m_label_font ).boundingRect ( m_name ));
   // Center rectangle on origin
   label_br.translate(-label_br.width()/2, label_br.height()/2);
@@ -304,7 +294,7 @@ void SchemaGraphicSegmentedArrow::UpdatePosition()
 
   }
 
-  path.lineTo( end_sp );
+  path.lineTo( intersect_point_end );
   setPath(path);
   
   m_rel_label_br = label_br;
