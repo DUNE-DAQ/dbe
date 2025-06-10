@@ -161,12 +161,15 @@ void dbse::SchemaGraphicsScene::contextMenuEvent ( QGraphicsSceneContextMenuEven
     m_context_menu->addAction ( m_remove_note );
   }
 
-  for (int item=0; item<m_seperator_pos; item++) {
+  bool active = KernelWrapper::GetInstance().IsActive ( );
+  m_context_menu->actions().at ( 0 )->setVisible ( active );
+
+  for (int item=1; item<m_seperator_pos; item++) {
     m_context_menu->actions().at ( item )->setVisible ( true );
   }
 
   // Set all other items invisible
-  int nitems = m_context_menu->actions().size();
+  const auto nitems = m_context_menu->actions().size();
   for (int item=m_seperator_pos; item<nitems; item++) {
     m_context_menu->actions().at ( item )->setVisible ( false );
   }
@@ -189,8 +192,8 @@ void dbse::SchemaGraphicsScene::contextMenuEvent ( QGraphicsSceneContextMenuEven
         CurrentObject->GetClass()->get_file()->get_full_file_name();
       bool writable = KernelWrapper::GetInstance().IsFileWritable ( filename );
       m_context_menu->actions().at ( m_class_pos )->setVisible ( writable );
-      m_context_menu->actions().at ( m_class_pos+1 )->setVisible ( writable );
-      for (int item=m_class_pos+2; item<m_arrow_pos; item++) {
+
+      for (int item=m_class_pos+1; item<m_arrow_pos; item++) {
         m_context_menu->actions().at ( item )->setVisible ( true );
       }
     }

@@ -1,5 +1,6 @@
 /// Including Qt
 #include <QMessageBox>
+#include <QLineEdit>
 #include <QListWidget>
 #include <QInputDialog>
 /// Including Schema
@@ -44,23 +45,30 @@ dbse::SchemaClassEditor::SchemaClassEditor ( OksClass * ClassInfo, QWidget * par
 
 dbse::SchemaClassEditor::~SchemaClassEditor() = default;
 
+void dbse::SchemaClassEditor::keyPressEvent(QKeyEvent* event) {
+  if (event->key() == Qt::Key_Escape) {
+    close();
+  }
+  QWidget::keyPressEvent(event);
+}
 void dbse::SchemaClassEditor::SetController()
 {
-  connect ( ui->SaveButton, SIGNAL ( clicked() ), this, SLOT ( ProxySlot() ) );
+  connect ( ui->buttonBox, SIGNAL ( accepted() ), this, SLOT ( ParseToSave() ) );
+  connect ( ui->buttonBox, SIGNAL ( rejected() ), this, SLOT ( close_slot() ) );
   connect ( ui->AddButtonAttribute, SIGNAL ( clicked() ), this, SLOT ( AddNewAttribute() ) );
   connect ( ui->AddButtonSuperClass, SIGNAL ( clicked() ), this, SLOT ( AddNewSuperClass() ) );
   connect ( ui->AddButtonRelationship, SIGNAL ( clicked() ), this,
             SLOT ( AddNewRelationship() ) );
   connect ( ui->AddButtonMethod, SIGNAL ( clicked() ), this, SLOT ( AddNewMethod() ) );
-  connect ( ui->RelationshipView, SIGNAL ( doubleClicked ( QModelIndex ) ), this,
+  connect ( ui->RelationshipView, SIGNAL ( activated ( QModelIndex ) ), this,
             SLOT ( OpenRelationshipEditor ( QModelIndex ) ) );
-  connect ( ui->MethodsView, SIGNAL ( doubleClicked ( QModelIndex ) ), this,
+  connect ( ui->MethodsView, SIGNAL ( activated ( QModelIndex ) ), this,
             SLOT ( OpenMethodEditor ( QModelIndex ) ) );
-  connect ( ui->AttributeView, SIGNAL ( doubleClicked ( QModelIndex ) ), this,
+  connect ( ui->AttributeView, SIGNAL ( activated ( QModelIndex ) ), this,
             SLOT ( OpenAttributeEditor ( QModelIndex ) ) );
-  connect ( ui->SuperClassView, SIGNAL ( doubleClicked ( QModelIndex ) ), this,
+  connect ( ui->SuperClassView, SIGNAL ( activated ( QModelIndex ) ), this,
             SLOT ( OpenSuperClass ( QModelIndex ) ) );
-  connect ( ui->SubClassView, SIGNAL ( doubleClicked ( QModelIndex ) ), this,
+  connect ( ui->SubClassView, SIGNAL ( activated ( QModelIndex ) ), this,
             SLOT ( OpenSubClass ( QModelIndex ) ) );
   connect ( ui->AttributeView, SIGNAL ( customContextMenuRequested ( QPoint ) ), this,
             SLOT ( CustomMenuAttributeView ( QPoint ) ) );
@@ -120,7 +128,7 @@ void dbse::SchemaClassEditor::InitialSettings()
   ui->SchemaFileLineEdit->setEnabled ( false );
   /// Description
   ui->DescriptionTextEdit->setPlainText ( QString::fromStdString ( SchemaClass->get_description() ) );
-
+  ui->DescriptionTextEdit->setTabChangesFocus (true);
   /// Abstract
   if ( SchemaClass->get_is_abstract() )
   {
@@ -268,11 +276,6 @@ void dbse::SchemaClassEditor::RemoveSuperClass()
 }
 
 
-void dbse::SchemaClassEditor::ProxySlot()
-{
-  ParseToSave();
-}
-
 void dbse::SchemaClassEditor::ParseToSave()
 {
   std::string NewDescription = ui->DescriptionTextEdit->toPlainText().toStdString();
@@ -311,6 +314,9 @@ void dbse::SchemaClassEditor::AddNewSuperClass()
     QLabel* status = new QLabel();
     status->setStyleSheet("QLabel { color : green; }");
 
+    auto search = new QLineEdit("Search classes", w);
+    search->setClearButtonEnabled(true);
+
     QListWidget* qlw = new QListWidget();
     QStringList allClasses;
     KernelWrapper::GetInstance().GetClassListString(allClasses);
@@ -324,9 +330,17 @@ void dbse::SchemaClassEditor::AddNewSuperClass()
                                 status->setText(QString::fromStdString(className + " added as a super-class of " + SchemaClass->get_name()));
                            });
 
+    connect (search, &QLineEdit::textChanged, this, [search, qlw] () {
+      auto items = qlw->findItems(search->text(), Qt::MatchRegularExpression);
+      if (!items.empty()) {
+        qlw->setCurrentItem(items[0]);
+      }
+    });
+
     QVBoxLayout* l = new QVBoxLayout();
     l->addWidget(label);
     l->addWidget(qlw);
+    l->addWidget(search);
     l->addWidget(status);
 
     w->setWindowTitle("Select super-classe(s)");
@@ -387,12 +401,23 @@ void dbse::SchemaClassEditor::OpenRelationshipEditor ( QModelIndex Index )
 void dbse::SchemaClassEditor::OpenMethodEditor ( QModelIndex Index )
 {
   QStringList Row = MethodModel->getRowFromIndex ( Index );
+  auto method = Row.at(0).toStdString();
+  if (SchemaClass->find_direct_method(method) == nullptr) {
+    std::string message{"Method '" + method + "' is not a direct method of " +
+      SchemaClass->get_name() +
+". Please open the method editor from the base class or add a local implementation to overrride it."};
+    QMessageBox::warning (0,
+                          "Schema editor",
+                          QString::fromStdString(message));
+    return;
+  }
+
   bool ShouldOpen = ShouldOpenMethodEditor ( Row.at ( 0 ) );
 
   if ( !Row.isEmpty() && ShouldOpen )
   {
     SchemaMethodEditor * Editor = new SchemaMethodEditor (
-      SchemaClass, SchemaClass->find_method ( Row.at ( 0 ).toStdString() ) );
+      SchemaClass, SchemaClass->find_method ( method ) );
     connect ( Editor, SIGNAL ( RebuildModel() ), this, SLOT ( BuildMethodModelSlot() ) );
     Editor->show();
   }
@@ -453,14 +478,13 @@ void dbse::SchemaClassEditor::BuildAttributeModelSlot()
   QStringList AttributeHeaders
   { "Name", "Type" };
 
-  if ( AttributeModel == nullptr ) AttributeModel = new CustomAttributeModel ( SchemaClass,
-                                                                               AttributeHeaders,
-                                                                               ui->ShowDerivedAttributes->isChecked());
-  else
-  {
+  if ( AttributeModel != nullptr ) {
     delete AttributeModel;
-    AttributeModel = new CustomAttributeModel ( SchemaClass, AttributeHeaders, ui->ShowDerivedAttributes->isChecked() );
   }
+  AttributeModel = new CustomAttributeModel (
+    SchemaClass,
+    AttributeHeaders,
+    ui->ShowDerivedAttributes->isChecked());
 
   ui->AttributeView->setModel ( AttributeModel );
   ui->AttributeView->horizontalHeader()->setSectionResizeMode ( QHeaderView::Stretch );

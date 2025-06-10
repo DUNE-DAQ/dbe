@@ -74,12 +74,14 @@ void dbse::SchemaMethodImplementationEditor::FillInfo()
 
 void dbse::SchemaMethodImplementationEditor::InitialSettings()
 {
-  std::string title = "Method Implementation for " + m_method->get_name() ;
+  std::string title = "Method Implementation for " + m_class->get_name() + "::" + m_method->get_name(); ;
   setWindowTitle (QString::fromStdString(title));
-  std::string name = m_method->get_name();
-  setObjectName ( QString::fromStdString(name) );
 
-  if ( !UsedNew ) {
+  if ( UsedNew ) {
+    std::string name = m_class->get_name() + m_method->get_name();
+    setObjectName ( QString::fromStdString(name) );
+  }
+  else {
       FillInfo();
   }
 }
@@ -89,6 +91,7 @@ void dbse::SchemaMethodImplementationEditor::ParseToSave()
   bool changed = false;
   std::string MethodLanguage = ui->MethodImplementationLanguage->text().toStdString();
   std::string MethodPrototype = ui->MethodImplementationPrototype->text().toStdString();
+
   std::string MethodDescription = ui->MethodImplementationDescription->toPlainText()
                                   .toStdString();
 

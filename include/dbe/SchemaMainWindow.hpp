@@ -2,6 +2,7 @@
 #define MAINWINDOW_H
 
 #include <memory>
+#include <QDir>
 #include <QMainWindow>
 #include <QModelIndex>
 #include <QMenu>
@@ -38,6 +39,7 @@ private:
   QString m_title{"DUNE DAQ Configuration Schema editor"};
   QString m_view_dir{"."};
   QString m_export_path{"."};
+  QDir m_schema_directory{"."};
   void InitialSettings();
   void InitialTab();
   void InitialTabCorner();
@@ -82,6 +84,7 @@ private slots:
   void SetSchemaFileActive();
   void PrintCurrentView();
   void export_current_view();
+  void toggle_casesensitive ( int );
 };
 
 }  // namespace dbse

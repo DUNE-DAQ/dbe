@@ -19,7 +19,7 @@ dbse::CustomTableModel::~CustomTableModel()
 int dbse::CustomTableModel::rowCount ( const QModelIndex & parent ) const
 {
   Q_UNUSED ( parent )
-  return Data.size();
+  return m_data.size();
 }
 
 int dbse::CustomTableModel::columnCount ( const QModelIndex & parent ) const
@@ -52,12 +52,17 @@ QVariant dbse::CustomTableModel::headerData ( int section, Qt::Orientation orien
 
 QVariant dbse::CustomTableModel::data ( const QModelIndex & index, int role ) const
 {
-  if ( role != Qt::DisplayRole )
+  if ( role == Qt::DisplayRole )
   {
-    return QVariant();
+    return m_data.value ( index.row() ).value ( index.column() );
+  }
+  if ( role == Qt::ToolTipRole )
+  {
+    return m_tooltips.value ( index.row() ).value ( index.column() );
   }
 
-  return Data.value ( index.row() ).value ( index.column() );
+
+  return QVariant();
 }
 
 QStringList dbse::CustomTableModel::getRowFromIndex ( QModelIndex & index )
@@ -67,7 +72,7 @@ QStringList dbse::CustomTableModel::getRowFromIndex ( QModelIndex & index )
     return QStringList();
   }
 
-  return Data.at ( index.row() );
+  return m_data.at ( index.row() );
 }
 
 void dbse::CustomTableModel::setupModel()
@@ -80,7 +85,8 @@ void dbse::CustomTableModel::setupModel()
     QList<QString> Row;
     OksClass * Class = ClassList.at ( i );
     Row.append ( QString ( Class->get_name().c_str() ) );
-    Data.append ( Row );
+    m_data.append ( Row );
+    m_tooltips.append (QStringList {QString ( Class->get_description().c_str() )});
   }
 }
 

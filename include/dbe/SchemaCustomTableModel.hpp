@@ -27,7 +27,8 @@ public:
   QMimeData * mimeData ( const QModelIndexList & indexes ) const;
 private:
   QStringList HeaderList;
-  QList<QList<QString>> Data;
+  QList<QList<QString>> m_data;
+  QList<QList<QString>> m_tooltips;
 };
 
 }  // namespace dbse

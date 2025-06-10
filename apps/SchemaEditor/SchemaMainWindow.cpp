@@ -64,7 +64,9 @@ void dbse::SchemaMainWindow::InitialSettings()
   ui->FileView->setSelectionBehavior ( QAbstractItemView::SelectRows );
   ui->TabWidget->setTabsClosable ( true );
   ui->ClassTableSearchLine->setProperty ( "placeholderText",
-                                          QVariant ( QString ( "Type to search" ) ) );
+                                          QVariant ( QString ( "Search for classes regex" ) ) );
+
+  proxyModel->setFilterCaseSensitivity (Qt::CaseInsensitive);
 }
 
 void dbse::SchemaMainWindow::InitialTab()
@@ -96,7 +98,7 @@ void dbse::SchemaMainWindow::SetController()
   connect ( ui->LoadView, SIGNAL ( triggered() ), this, SLOT ( LoadView() ) );
   connect ( ui->NameView, SIGNAL ( triggered() ), this, SLOT ( NameView() ) );
   connect ( ui->Exit, SIGNAL ( triggered() ), this, SLOT ( close() ) );
-  connect ( ui->ClassTableView, SIGNAL ( doubleClicked ( QModelIndex ) ), this,
+  connect ( ui->ClassTableView, SIGNAL ( activated ( QModelIndex ) ), this,
             SLOT ( LaunchClassEditor ( QModelIndex ) ) );
   connect ( ui->close_tab, SIGNAL ( triggered() ), this, SLOT ( close_tab() ) );
 
@@ -115,7 +117,8 @@ void dbse::SchemaMainWindow::SetController()
   connect ( ui->PrintView, SIGNAL ( triggered() ), this, SLOT ( PrintCurrentView() ) );
   connect ( ui->exportView, SIGNAL ( triggered() ), this, SLOT ( export_current_view() ) );
   connect ( ui->ClassTableSearchLine, SIGNAL( textChanged ( QString ) ), proxyModel, SLOT( setFilterRegExp( QString ) ) );
-
+  connect ( ui->case_sensitive, SIGNAL ( stateChanged(int) ), this,
+            SLOT (toggle_case_sensitive(int)) );
 }
 
 void dbse::SchemaMainWindow::LaunchIncludeEditor()
@@ -159,15 +162,12 @@ void dbse::SchemaMainWindow::BuildTableModel()
   QStringList Headers
   { "Class Name" };
 
-  if ( TableModel == nullptr )
-  {
-    TableModel = new CustomTableModel ( Headers );
-  }
-  else
+  if ( TableModel != nullptr )
   {
     delete TableModel;
-    TableModel = new CustomTableModel ( Headers );
   }
+  TableModel = new CustomTableModel ( Headers );
+
 
   proxyModel->setSourceModel(TableModel);
   ui->ClassTableView->setModel ( proxyModel );
@@ -418,14 +418,17 @@ void dbse::SchemaMainWindow::OpenSchemaFile(QString SchemaFile) {
                            QString("Could not load schema!\n\n").append(QString(Ex.what())),
                            QMessageBox::Ok);
     }
-    try {
-      KernelWrapper::GetInstance().SetActiveSchema(SchemaFile.toStdString());
-    }
-    catch (oks::CanNotSetActiveFile& exc) {
-      QMessageBox::warning(0,
-                           "Load Schema",
-                           QString("Could not make schema active!\n\n").append(QString(exc.what())),
-                           QMessageBox::Ok);
+
+    if (KernelWrapper::GetInstance().GetActiveSchema().empty()) {
+      try {
+        KernelWrapper::GetInstance().SetActiveSchema(SchemaFile.toStdString());
+      }
+      catch (oks::CanNotSetActiveFile& exc) {
+        QMessageBox::warning(0,
+                             "Load Schema",
+                             QString("Could not make schema active!\n\n").append(QString(exc.what())),
+                             QMessageBox::Ok);
+      }
     }
 
     BuildTableModel();
@@ -433,7 +436,7 @@ void dbse::SchemaMainWindow::OpenSchemaFile(QString SchemaFile) {
 
     update_window_title(QFileInfo(SchemaFile).fileName());
     ui->CreateNewSchema->setDisabled (true );
-    ui->OpenFileSchema->setDisabled (true );
+    //ui->OpenFileSchema->setDisabled (true );
   }
 }
 
@@ -449,6 +452,7 @@ void dbse::SchemaMainWindow::OpenSchemaFile()
   FileDialog.setAcceptMode ( QFileDialog::AcceptOpen );
   FileDialog.setFileMode ( QFileDialog::AnyFile );
   FileDialog.setViewMode ( QFileDialog::Detail );
+  FileDialog.setDirectory ( m_schema_directory );
   QStringList FilesSelected;
   QString SchemaPath;
 
@@ -459,6 +463,7 @@ void dbse::SchemaMainWindow::OpenSchemaFile()
 
   if ( FilesSelected.size() )
   {
+    m_schema_directory = FileDialog.directory();
     SchemaPath = FilesSelected.value ( 0 );
   }
 
@@ -885,3 +890,14 @@ void dbse::SchemaMainWindow::CustomContextMenuTableView ( QPoint Pos )
   }
 }
 
+void dbse::SchemaMainWindow::toggle_casesensitive ( int state )
+{
+  std::cout << __FUNCTION__ << " entered flag=" << state
+            << " ui->case_sensitive->isChecked()=" << ui->case_sensitive->isChecked() << "\n";
+  if ( ui->case_sensitive->isChecked() ) {
+    proxyModel->setFilterCaseSensitivity ( Qt::CaseSensitive );
+  }
+  else {
+    proxyModel->setFilterCaseSensitivity ( Qt::CaseInsensitive );
+  }
+}

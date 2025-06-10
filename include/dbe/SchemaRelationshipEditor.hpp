@@ -33,6 +33,7 @@ public:
 protected:
   void FillInfo();
 private:
+  void keyPressEvent(QKeyEvent* event) override;
   dbse::Ui::SchemaRelationshipEditor * ui;
   dunedaq::oks::OksRelationship * SchemaRelationship;
   dunedaq::oks::OksClass * SchemaClass;

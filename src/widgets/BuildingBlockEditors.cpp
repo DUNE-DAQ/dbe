@@ -127,15 +127,15 @@ relation::relation ( t_virtue const & relation, QWidget * parent,
 
   // if it is X_ and many then set multivalue
 
-  if ( ( Virtue.p_cardinality == dunedaq::conffwk::zero_or_many ) or ( Virtue.p_cardinality
-                                                                  == dunedaq::conffwk::one_or_many ) )
+  if ( ( Virtue.p_cardinality == dunedaq::conffwk::zero_or_many ) ||
+       ( Virtue.p_cardinality == dunedaq::conffwk::one_or_many ) )
   {
     IsMultiValue = true;
   }
 
   // Check if this relation can be left unset
-  if ( ( Virtue.p_cardinality == dunedaq::conffwk::one_or_many ) or ( Virtue.p_cardinality
-                                                                 == dunedaq::conffwk::only_one ) )
+  if ( ( Virtue.p_cardinality == dunedaq::conffwk::one_or_many ) ||
+       ( Virtue.p_cardinality == dunedaq::conffwk::only_one ) )
   {
     p_base_data_editor->set_not_null ( true );
     p_base_data_editor->set_valid ( false );

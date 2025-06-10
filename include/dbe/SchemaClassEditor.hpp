@@ -20,7 +20,7 @@ namespace dbse
 namespace Ui
 {
 class SchemaClassEditor;
-}
+} // namespace Ui
 
 class SchemaClassEditor: public QWidget
 {
@@ -32,7 +32,7 @@ public:
 
   static void createNewClass ();
 private:
-
+  void keyPressEvent(QKeyEvent* event);
   void SetController();
   void BuildModels();
   void InitialSettings();
@@ -58,9 +58,10 @@ private:
   void OpenNewClassEditor( const QString& ClassName);
 
 private slots:
+  void close_slot(){close();}
   void OpenSuperClass( QModelIndex Index);
   void OpenSubClass( QModelIndex Index);
-  void ProxySlot();
+
   void ParseToSave();
   void AddNewSuperClass();
   void AddNewAttribute();

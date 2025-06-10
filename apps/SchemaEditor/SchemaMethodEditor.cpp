@@ -210,7 +210,8 @@ void dbse::SchemaMethodEditor::OpenMethodImplementationEditor ( QModelIndex Inde
 {
   QStringList Row = ImplementationModel->getRowFromIndex ( Index );
   if ( !Row.isEmpty() ) {
-    QString name = QString::fromStdString(m_method->get_name()).append(Row.at ( 0 ));
+    QString name = QString::fromStdString(
+      m_class->get_name()+m_method->get_name()).append(Row.at ( 0 ));
     if (ShouldOpenMethodImplementationEditor ( name )) {
       SchemaMethodImplementationEditor * Editor = new SchemaMethodImplementationEditor (
         m_class, m_method, m_method->find_implementation ( Row.at ( 0 ).toStdString() ) );

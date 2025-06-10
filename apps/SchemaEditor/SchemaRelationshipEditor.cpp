@@ -20,8 +20,9 @@ dbse::SchemaRelationshipEditor::SchemaRelationshipEditor ( OksClass * Class,
 {
   QWidget::setAttribute(Qt::WA_DeleteOnClose);
   ui->setupUi ( this );
+  auto title = SchemaClass->get_name() + "::" + SchemaRelationship->get_name();
   setWindowTitle (
-    QString ( "Relationship Editor : %1" ).arg ( SchemaRelationship->get_name().c_str() ) );
+    QString ( "Relationship Editor : %1" ).arg ( title.c_str() ) );
   InitialSettings();
   SetController();
 }
@@ -73,7 +74,8 @@ void dbse::SchemaRelationshipEditor::ClassUpdated( QString ClassName )
 
 void dbse::SchemaRelationshipEditor::FillInfo()
 {
-    setObjectName ( QString::fromStdString ( SchemaRelationship->get_name() ) );
+    auto name = SchemaClass->get_name() + "::" + SchemaRelationship->get_name();
+    setObjectName ( QString::fromStdString ( name ) );
     ui->RelationshipNameLineEdit->setText (
       QString::fromStdString ( SchemaRelationship->get_name() ) );
     ui->RelationshipTypeComboBox->setCurrentIndex (
@@ -135,6 +137,15 @@ void dbse::SchemaRelationshipEditor::FillInfo()
       ui->HighCcCombo->setCurrentIndex ( 2 );
     }
 }
+
+void dbse::SchemaRelationshipEditor::keyPressEvent(QKeyEvent* event) {
+  if (event->key() == Qt::Key_Escape) {
+    close();
+  }
+  QWidget::keyPressEvent(event);
+}
+
+
 void dbse::SchemaRelationshipEditor::InitialSettings()
 {
   QStringList ClassList;

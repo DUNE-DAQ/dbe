@@ -31,6 +31,7 @@ public:
 protected:
   void FillInfo();
 private:
+  void keyPressEvent(QKeyEvent* event) override;
   std::unique_ptr<dbse::Ui::SchemaAttributeEditor> ui;
   dunedaq::oks::OksClass * SchemaClass;
   dunedaq::oks::OksAttribute * SchemaAttribute;

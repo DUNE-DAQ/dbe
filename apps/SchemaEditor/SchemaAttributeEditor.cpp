@@ -100,6 +100,13 @@ void dbse::SchemaAttributeEditor::FillInfo()
     }
 }
 
+void dbse::SchemaAttributeEditor::keyPressEvent(QKeyEvent* event) {
+  if (event->key() == Qt::Key_Escape) {
+    close();
+  }
+  QWidget::keyPressEvent(event);
+}
+
 void dbse::SchemaAttributeEditor::InitialSettings()
 {
   QStringList Items
