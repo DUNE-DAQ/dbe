@@ -6,7 +6,7 @@
 #include "dbe/SchemaClassEditor.hpp"
 #include "dbe/SchemaRelationshipEditor.hpp"
 #include "dbe/SchemaMethodImplementationEditor.hpp"
-#include "dbe/SchemaIncludeFileWidget.hpp"
+#include "dbe/SchemaFileInfo.hpp"
 
 #include "oks/kernel.hpp"  // for CanNotSetActiveFile exception
 
@@ -86,7 +86,7 @@ void dbse::SchemaMainWindow::SetController()
 {
   connect ( ui->OpenFileSchema, SIGNAL ( triggered() ), this, SLOT ( OpenSchemaFile() ) );
   connect ( ui->CreateNewSchema, SIGNAL ( triggered() ), this, SLOT ( CreateNewSchema() ) );
-  connect ( ui->AddInclude, SIGNAL ( triggered() ), this, SLOT ( LaunchIncludeEditorActiveSchema() ) );
+  connect ( ui->ShowSchema, SIGNAL ( triggered() ), this, SLOT ( show_file_info_active_schema() ) );
   connect ( ui->SaveSchema, SIGNAL ( triggered() ), this, SLOT ( SaveSchema() ) );
   connect ( ui->SetRelationship, SIGNAL ( triggered ( bool ) ), this,
             SLOT ( ChangeCursorRelationship ( bool ) ) );
@@ -108,10 +108,16 @@ void dbse::SchemaMainWindow::SetController()
             SLOT ( update_models() ) );
   connect ( &KernelWrapper::GetInstance(), SIGNAL ( ClassRemoved ( QString ) ), this,
             SLOT ( update_models() ) );
+  connect ( &KernelWrapper::GetInstance(), SIGNAL ( active_updated ( ) ), this,
+            SLOT ( update_models() ) );
   connect ( ui->TabWidget, SIGNAL ( tabCloseRequested ( int ) ), this,
             SLOT ( RemoveTab ( int ) ) );
+
   connect ( ui->FileView, SIGNAL ( customContextMenuRequested ( QPoint ) ), this,
             SLOT ( CustomContextMenuFileView ( QPoint ) ) );
+  connect ( ui->FileView, SIGNAL ( activated(QModelIndex) ), this, SLOT ( show_file_info(QModelIndex) ) );
+
+
   connect ( ui->ClassTableView, SIGNAL ( customContextMenuRequested ( QPoint ) ), this,
             SLOT ( CustomContextMenuTableView ( QPoint ) ) );
   connect ( ui->PrintView, SIGNAL ( triggered() ), this, SLOT ( PrintCurrentView() ) );
@@ -121,26 +127,50 @@ void dbse::SchemaMainWindow::SetController()
             SLOT (toggle_case_sensitive(int)) );
 }
 
-void dbse::SchemaMainWindow::LaunchIncludeEditor()
+void dbse::SchemaMainWindow::show_file_info_active_schema()
 {
-  QModelIndex Index = ui->FileView->currentIndex();
-  QStringList Row = FileModel->getRowFromIndex ( Index );
-  auto * file_widget = new dbse::SchemaIncludeFileWidget ( Row.at ( 0 ) );
-  connect (file_widget, &SchemaIncludeFileWidget::files_updated,
-           this, &SchemaMainWindow::update_models);
-  file_widget->show();
+  show_file_info(QString::fromStdString(
+                   KernelWrapper::GetInstance().GetActiveSchema()));
 }
 
-void dbse::SchemaMainWindow::LaunchIncludeEditorActiveSchema()
+void dbse::SchemaMainWindow::show_file_info()
 {
-  std::string ActiveSchema = KernelWrapper::GetInstance().GetActiveSchema();
-
-  auto file_widget = new dbse::SchemaIncludeFileWidget ( QString::fromStdString (ActiveSchema) );
-  connect (file_widget, &SchemaIncludeFileWidget::files_updated,
-           this, &SchemaMainWindow::update_models);
-  file_widget->show();
+  QModelIndex index = ui->FileView->currentIndex();
+  show_file_info(index);
 }
-
+void dbse::SchemaMainWindow::show_file_info(QModelIndex index)
+{
+  QStringList row = FileModel->getRowFromIndex ( index );
+  show_file_info(row.at ( 0 ));
+}
+void dbse::SchemaMainWindow::show_file_info(QString fn) {
+  bool widget_found = false;
+  for ( QWidget * widget : QApplication::allWidgets() ) {
+    auto sfi = dynamic_cast<SchemaFileInfo *> ( widget );
+    if ( sfi != nullptr ) {
+      if ( (sfi->objectName() ).compare ( fn ) == 0 ) {
+        sfi->raise();
+        sfi->setVisible ( true );
+        sfi->activateWindow();
+        widget_found = true;
+        break;
+      }
+    }
+  }
+  if ( !widget_found ) {
+    auto info = new SchemaFileInfo(fn.toStdString());
+    connect (info, &SchemaFileInfo::files_updated,
+             this, &SchemaMainWindow::update_models);
+    connect (info, &SchemaFileInfo::new_window,
+             this, &SchemaMainWindow::connect_file_info);
+    info->show();
+  }
+}
+void dbse::SchemaMainWindow::connect_file_info(SchemaFileInfo* win){
+  std::cout << __FUNCTION__ << " New SchemaFileInfo\n";
+  connect (win, &SchemaFileInfo::files_updated,
+           this, &SchemaMainWindow::update_models);
+}
 void dbse::SchemaMainWindow::BuildFileModel()
 {
   QStringList Headers { "File Name", "Access", "Status" };
@@ -399,6 +429,7 @@ void dbse::SchemaMainWindow::closeEvent ( QCloseEvent * event )
 }
 
 void dbse::SchemaMainWindow::update_models() {
+  std::cout << __FUNCTION__ << "\n";
   BuildFileModel();
   BuildTableModel();
 }
@@ -407,6 +438,13 @@ void dbse::SchemaMainWindow::OpenSchemaFile(QString SchemaFile) {
   if(!SchemaFile.isEmpty()) {
     try {
       KernelWrapper::GetInstance().LoadSchema(SchemaFile.toStdString());
+
+      if (m_schema_directory == QString(".")) {
+        std::vector<std::string> fnames; 
+        KernelWrapper::GetInstance().GetSchemaFiles(fnames);
+        std::string dir = fnames[0].substr(0,fnames[0].find_last_of('/'));
+        m_schema_directory.setPath(QString::fromStdString(dir));
+      }
 
 #ifdef QT_DEBUG
       /// KernelWrapper::GetInstance().ShowSchemaClasses();
@@ -448,7 +486,8 @@ void dbse:: SchemaMainWindow::update_window_title(QString text) {
 
 void dbse::SchemaMainWindow::OpenSchemaFile()
 {
-  QFileDialog FileDialog ( this, tr ( "Open File" ), ".", tr ( "XML files (*.xml);;All files (*)" ) );
+  QFileDialog FileDialog ( this, tr ( "Open File" ), ".",
+                           tr ( "XML schema files (*.schema.xml);;All files (*)" ) );
   FileDialog.setAcceptMode ( QFileDialog::AcceptOpen );
   FileDialog.setFileMode ( QFileDialog::AnyFile );
   FileDialog.setViewMode ( QFileDialog::Detail );
@@ -741,13 +780,13 @@ void dbse::SchemaMainWindow::LoadView() {
         Position.setY ( ObjectDescription.at ( 2 ).toInt() );
         if (ObjectDescription.at ( 0 ) == "#") {
           note_positions.append (Position);
-          auto text = ObjectDescription.at(3);
-          if (text.back() == '\n') {
-            text.chop(1);
+          auto note_text = ObjectDescription.at(3);
+          if (note_text.back() == '\n') {
+            note_text.chop(1);
           }
-          text = text.replace("<br>", "\n");
-          text = text.replace("<comma>", ",");
-          notes.append ( text );
+          note_text = note_text.replace("<br>", "\n");
+          note_text = note_text.replace("<comma>", ",");
+          notes.append ( note_text );
         }
         else {
           ClassesNames.append ( ObjectDescription.at ( 0 ) );
@@ -764,11 +803,11 @@ void dbse::SchemaMainWindow::LoadView() {
     scene->CleanItemMap();
     auto missing = scene->AddItemsToScene ( ClassesNames, Positions );
     if (!missing.empty()) {
-      QString text{"The following classes in "};
-      text.append(QFileInfo(ViewPath).fileName());
-      text.append(" are not present in the loaded schema:\n  ");
-      text.append(missing.join(",\n  "));
-      QMessageBox::warning(this, tr("Load View"), text);
+      QString warning_text{"The following classes in "};
+      warning_text.append(QFileInfo(ViewPath).fileName());
+      warning_text.append(" are not present in the loaded schema:\n  ");
+      warning_text.append(missing.join(",\n  "));
+      QMessageBox::warning(this, tr("Load View"), warning_text);
     }
     scene->ClearModified();
 
@@ -781,33 +820,8 @@ void dbse::SchemaMainWindow::LaunchClassEditor ( QModelIndex Index )
   QModelIndex proxyIndex = proxyModel->mapToSource( Index );
   QStringList Row = TableModel->getRowFromIndex ( proxyIndex );
 
-  if ( !Row.isEmpty() )
-  {
-    bool WidgetFound = false;
-    QString ClassName = Row.at ( 0 );
-    OksClass * ClassInfo = KernelWrapper::GetInstance().FindClass ( ClassName.toStdString() );
-
-    for ( QWidget * Editor : QApplication::allWidgets() )
-    {
-      SchemaClassEditor * Widget = dynamic_cast<SchemaClassEditor *> ( Editor );
-
-      if ( Widget != nullptr )
-      {
-        if ( ( Widget->objectName() ).compare ( ClassName ) == 0 )
-        {
-          Widget->raise();
-          Widget->setVisible ( true );
-          Widget->activateWindow();
-          WidgetFound = true;
-        }
-      }
-    }
-
-    if ( !WidgetFound )
-    {
-      SchemaClassEditor * Editor = new SchemaClassEditor ( ClassInfo );
-      Editor->show();
-    }
+  if ( !Row.isEmpty() ) {
+    SchemaClassEditor::launch(Row.at ( 0 ));
   }
 }
 
@@ -846,11 +860,11 @@ void dbse::SchemaMainWindow::CustomContextMenuFileView ( QPoint Pos )
     connect ( Act, SIGNAL ( triggered() ), this, SLOT ( SetSchemaFileActive() ) );
     QAction * Sav = new QAction ( tr ( "Save Schema File" ), this );
     connect ( Sav, SIGNAL ( triggered() ), this, SLOT ( SaveSchemaFile() ) );
-    QAction * Inc = new QAction ( tr ( "Show/Update include file list" ), this );
-    connect ( Inc, SIGNAL ( triggered() ), this, SLOT ( LaunchIncludeEditor() ) );
+    QAction * info = new QAction ( tr ( "Show file info" ), this );
+    connect ( info, SIGNAL ( triggered() ), this, SLOT ( show_file_info() ) );
 
+    ContextMenuFileView->addAction ( info );
     ContextMenuFileView->addAction ( Act );
-    ContextMenuFileView->addAction ( Inc );
     ContextMenuFileView->addAction ( Sav );
   }
 
@@ -890,10 +904,8 @@ void dbse::SchemaMainWindow::CustomContextMenuTableView ( QPoint Pos )
   }
 }
 
-void dbse::SchemaMainWindow::toggle_casesensitive ( int state )
+void dbse::SchemaMainWindow::toggle_case_sensitive ( int /*state*/ )
 {
-  std::cout << __FUNCTION__ << " entered flag=" << state
-            << " ui->case_sensitive->isChecked()=" << ui->case_sensitive->isChecked() << "\n";
   if ( ui->case_sensitive->isChecked() ) {
     proxyModel->setFilterCaseSensitivity ( Qt::CaseSensitive );
   }

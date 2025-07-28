@@ -15,6 +15,7 @@ class QGraphicsView;
 namespace dbse
 {
   class SchemaTab;
+  class SchemaFileInfo;
 
 namespace Ui
 {
@@ -59,8 +60,11 @@ public slots:
 private slots:
   void OpenSchemaFile();
   void CreateNewSchema();
-  void LaunchIncludeEditor();
-  void LaunchIncludeEditorActiveSchema();
+  void show_file_info_active_schema();
+  void show_file_info(QModelIndex);
+  void show_file_info(QString);
+  void show_file_info();
+  void connect_file_info(SchemaFileInfo* win);
   // From main menu / shortcut
   void SaveSchema();
   // From FileView 
@@ -84,7 +88,7 @@ private slots:
   void SetSchemaFileActive();
   void PrintCurrentView();
   void export_current_view();
-  void toggle_casesensitive ( int );
+  void toggle_case_sensitive ( int );
 };
 
 }  // namespace dbse

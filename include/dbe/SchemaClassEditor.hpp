@@ -30,7 +30,9 @@ public:
 
   explicit SchemaClassEditor ( dunedaq::oks::OksClass * ClassInfo, QWidget * parent = nullptr );
 
-  static void createNewClass ();
+  static QString createNewClass ();
+  static void launch(QString class_name);
+
 private:
   void keyPressEvent(QKeyEvent* event);
   void SetController();
@@ -87,6 +89,7 @@ private slots:
   void RemoveSuperClass();
   void ClassRemoved( QString className );
   void ClassUpdated( QString className );
+  void move_class();
 };
 }  // namespace dbse
 

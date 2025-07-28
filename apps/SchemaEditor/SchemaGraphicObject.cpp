@@ -126,34 +126,9 @@ void dbse::SchemaGraphicObject::hoverLeaveEvent ( QGraphicsSceneHoverEvent* he) 
 }
 
 void dbse::SchemaGraphicObject::mouseDoubleClickEvent ( QGraphicsSceneMouseEvent* ) {
-  // std::cout << "Open class editor\n";
-  bool WidgetFound = false;
-  QString ClassName = QString::fromStdString ( m_class_info->get_name() );
-
-  for ( QWidget * Editor : QApplication::allWidgets() )
-  {
-    SchemaClassEditor * Widget = dynamic_cast<SchemaClassEditor *> ( Editor );
-
-    if ( Widget != nullptr )
-    {
-      if ( ( Widget->objectName() ).compare ( ClassName ) == 0 )
-      {
-        Widget->raise();
-        Widget->setVisible ( true );
-        Widget->activateWindow();
-        WidgetFound = true;
-      }
-    }
-  }
-
-  if ( !WidgetFound )
-  {
-    SchemaClassEditor * Editor = new SchemaClassEditor ( m_class_info );
-    Editor->show();
-  }
-
+  QString class_name = QString::fromStdString ( m_class_info->get_name() );
+  SchemaClassEditor::launch(class_name);
 }
-
 
 OksClass * dbse::SchemaGraphicObject::GetClass() const
 {

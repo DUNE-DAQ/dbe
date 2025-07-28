@@ -3,6 +3,9 @@
 #include <QLineEdit>
 #include <QListWidget>
 #include <QInputDialog>
+#include <QString>
+#include <QStringList>
+
 /// Including Schema
 #include "dbe/SchemaClassEditor.hpp"
 #include "dbe/SchemaAttributeEditor.hpp"
@@ -11,6 +14,10 @@
 #include "dbe/SchemaKernelWrapper.hpp"
 /// Including Ui file
 #include "ui_SchemaClassEditor.h"
+
+#include "oks/file.hpp"
+
+#include <map>
 
 using namespace dunedaq::oks;
 
@@ -55,6 +62,7 @@ void dbse::SchemaClassEditor::SetController()
 {
   connect ( ui->buttonBox, SIGNAL ( accepted() ), this, SLOT ( ParseToSave() ) );
   connect ( ui->buttonBox, SIGNAL ( rejected() ), this, SLOT ( close_slot() ) );
+  connect ( ui->moveButton, SIGNAL(clicked()), this, SLOT (move_class()));
   connect ( ui->AddButtonAttribute, SIGNAL ( clicked() ), this, SLOT ( AddNewAttribute() ) );
   connect ( ui->AddButtonSuperClass, SIGNAL ( clicked() ), this, SLOT ( AddNewSuperClass() ) );
   connect ( ui->AddButtonRelationship, SIGNAL ( clicked() ), this,
@@ -122,10 +130,15 @@ void dbse::SchemaClassEditor::InitialSettings()
 
   /// Class Name
   ui->ClassNameLineEdit->setText ( QString::fromStdString ( SchemaClass->get_name() ) );
-  ui->ClassNameLineEdit->setEnabled ( false );
+  //ui->ClassNameLineEdit->setEnabled ( false );
+  ui->renameButton->setEnabled ( false );
   /// Schema File
   ui->SchemaFileLineEdit->setText ( QString::fromStdString ( SchemaClass->get_file()->get_short_file_name() ) );
-  ui->SchemaFileLineEdit->setEnabled ( false );
+  //ui->SchemaFileLineEdit->setEnabled ( false );
+  ui->moveButton->setEnabled (
+    KernelWrapper::GetInstance().IsFileWritable(
+      SchemaClass->get_file()->get_full_file_name()));
+
   /// Description
   ui->DescriptionTextEdit->setPlainText ( QString::fromStdString ( SchemaClass->get_description() ) );
   ui->DescriptionTextEdit->setTabChangesFocus (true);
@@ -138,6 +151,70 @@ void dbse::SchemaClassEditor::InitialSettings()
   {
       ui->AbstractComboBox->setCurrentIndex ( 1 );
   }
+}
+
+void dbse::SchemaClassEditor::move_class() {
+  std::string current_file = SchemaClass->get_file()->get_full_file_name();
+  std::vector<OksFile*> files;
+  KernelWrapper::GetInstance().GetSchemaFiles(files);
+  QStringList writable_files;
+  std::map<QString, OksFile*> file_map;
+  int current_row = -1;
+  for (auto file: files) {
+    auto fn = file->get_full_file_name();
+    if (KernelWrapper::GetInstance().IsFileWritable(fn)) {
+      if (fn == current_file) {
+        current_row = writable_files.size();
+      }
+      std::cout << "current=<" << current_file << ">  fn=<" << fn << ">\n";
+
+      writable_files.append(QString::fromStdString(fn));
+      file_map[QString::fromStdString(fn)] = file;
+    }
+  }
+  if (writable_files.empty()) {
+    QMessageBox::warning ( 0, "Schema editor",
+                           QString ( "No writable schema files to move class to." ) );
+    return;
+  }
+
+  QWidget* widget = new QWidget();
+  QString text = "Select file to hold class " +
+    QString::fromStdString(SchemaClass->get_name());
+  QLabel* label = new QLabel(text);
+  QListWidget* qlw = new QListWidget();
+  qlw->addItems(writable_files);
+  if (current_row != -1) {
+    qlw->setCurrentRow(current_row);
+  }
+  auto bb = new QDialogButtonBox(QDialogButtonBox::Ok|QDialogButtonBox::Cancel);
+  connect (bb, &QDialogButtonBox::accepted, this, [=] () {
+    auto it = qlw->currentItem();
+    if (it != nullptr) {
+      auto fn = it->text();
+      if (fn.toStdString() != current_file) {
+        std::cout << "Moving to " << fn.toStdString() << "\n";
+        SchemaClass->set_file(file_map.at(fn));
+        emit KernelWrapper::GetInstance().ClassUpdated ( QString::fromStdString(SchemaClass->get_name()) );
+      }
+      delete widget;
+    }
+    else {
+      QMessageBox::warning ( 0, "Schema editor",
+                             QString ( "No schema file selected to move class to." ) );
+      return;
+    }
+  });
+  connect ( bb, &QDialogButtonBox::rejected, this,  [=] () {delete widget;} );
+
+  QVBoxLayout* layout = new QVBoxLayout();
+  layout->addWidget(label);
+  layout->addWidget(qlw);
+  layout->addWidget(bb);
+  widget->setWindowTitle("Select new file for class");
+  widget->setLayout(layout);
+  widget->setParent(this, Qt::Dialog);
+  widget->show();
 }
 
 bool dbse::SchemaClassEditor::ShouldOpenAttributeEditor ( QString Name )
@@ -343,7 +420,7 @@ void dbse::SchemaClassEditor::AddNewSuperClass()
     l->addWidget(search);
     l->addWidget(status);
 
-    w->setWindowTitle("Select super-classe(s)");
+    w->setWindowTitle("Select super-class(es)");
     w->setLayout(l);
     w->setParent(this, Qt::Dialog);
     w->show();
@@ -685,7 +762,7 @@ void dbse::SchemaClassEditor::CustomMenuMethodView ( QPoint pos )
   }
 }
 
-void dbse::SchemaClassEditor::createNewClass ()
+QString dbse::SchemaClassEditor::createNewClass ()
 {
     auto createNewClass = [] (const std::string& className) -> bool {
         if ( !KernelWrapper::GetInstance().IsActive() )
@@ -725,4 +802,29 @@ void dbse::SchemaClassEditor::createNewClass ()
            Editor->show();
         }
     }
+    return text;
 }
+
+void dbse::SchemaClassEditor::launch(QString class_name) {
+  bool widgetFound=false;
+  dunedaq::oks::OksClass* class_info =
+    KernelWrapper::GetInstance().FindClass (class_name.toStdString());
+  for ( QWidget* widget : QApplication::allWidgets() ) {
+    SchemaClassEditor* editor = dynamic_cast<SchemaClassEditor *> (widget);
+    if (editor != nullptr) {
+      if ((editor->objectName()).compare(class_name) == 0 ) {
+          widget->raise();
+          widget->setVisible ( true );
+          widget->activateWindow();
+          widgetFound = true;
+          break;
+        }
+      }
+    }
+
+    if ( !widgetFound ) {
+      SchemaClassEditor* editor = new SchemaClassEditor (class_info);
+      editor->show();
+    }
+}
+

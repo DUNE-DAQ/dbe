@@ -252,7 +252,7 @@ set(schema_core_ui
                     ui/SchemaMethodImplementationEditor.ui
                     ui/SchemaNoteEditor.ui
                     ui/SchemaRelationshipEditor.ui
-                    ui/SchemaIncludeFileWidget.ui
+                    ui/SchemaFileInfo.ui
                     )
 
 qt5_wrap_ui(schema_core_ui_header ${schema_core_ui})
@@ -282,7 +282,7 @@ set(schema_core_src
                     SchemaEditor/SchemaCustomSuperClassModel.cpp
                     SchemaEditor/SchemaCustomSubClassModel.cpp
                     SchemaEditor/SchemaTab.cpp
-                    SchemaEditor/SchemaIncludeFileWidget.cpp
+                    SchemaEditor/SchemaFileInfo.cpp
   )
 
 qt5_wrap_cpp(schema_core_moc_src
@@ -301,7 +301,7 @@ qt5_wrap_cpp(schema_core_moc_src
                     include/dbe/SchemaNoteEditor.hpp
                     include/dbe/SchemaRelationshipEditor.hpp
                     include/dbe/SchemaTab.hpp
-                    include/dbe/SchemaIncludeFileWidget.hpp
+                    include/dbe/SchemaFileInfo.hpp
 )
 
 qt5_add_resources(qrc_SchemaResource icons/SchemaResource.qrc OPTIONS -name SchemaResource)

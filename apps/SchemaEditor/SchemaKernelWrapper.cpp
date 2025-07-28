@@ -5,6 +5,7 @@
 /// Include oks
 #include "oks/kernel.hpp"
 #include "oks/class.hpp"
+#include "oks/file.hpp"
 
 using namespace dunedaq;
 using namespace dunedaq::oks;
@@ -27,6 +28,7 @@ void dbse::KernelWrapper::SetActiveSchema ( const std::string & ActiveSchema )
   if ( File && IsFileWritable( ActiveSchema ))
   {
     Kernel->set_active_schema ( File );
+    emit active_updated();
   }
 }
 
@@ -100,10 +102,56 @@ void dbse::KernelWrapper::GetSchemaFiles ( std::vector<std::string> & SchemaFile
   }
 }
 
-void dbse::KernelWrapper::GetIncludedList ( const std::string & FileName,
-                                            std::set<std::string> & IncludedFiles )
+void dbse::KernelWrapper::GetSchemaFiles ( std::vector<OksFile*> & SchemaFiles )
 {
-  Kernel->get_includes ( FileName, IncludedFiles );
+  for (auto [name, file]:  Kernel->schema_files())
+  {
+    SchemaFiles.push_back ( file );
+  }
+}
+
+std::vector<OksClass*>
+dbse::KernelWrapper::get_schema_classes (std::string& filename)
+{
+  auto file = Kernel->find_schema_file ( filename );
+  std::vector<OksClass*> list;
+  auto klist = Kernel->create_list_of_schema_classes(file);
+  if (klist != nullptr) {
+    for (auto cls: *klist) {
+      list.push_back(cls/*->get_name()*/);
+    }
+    delete klist;
+  }
+  return list;
+}
+
+void dbse::KernelWrapper::GetIncludedList ( const std::string & filename,
+                                            std::set<std::string> & included_files )
+{
+  Kernel->get_includes ( filename, included_files );
+}
+void dbse::KernelWrapper::get_all_includes ( const std::string & filename,
+                                            std::set<std::string> & included_files )
+{
+  auto parentschema = Kernel->find_schema_file( filename );
+  if ( parentschema != nullptr) {
+    std::set<OksFile*> includes;
+    parentschema->get_all_include_files(Kernel, includes);
+    for (auto file : includes) {
+      included_files.insert(file->get_full_file_name());
+    }
+  }
+}
+
+void dbse::KernelWrapper::get_direct_includes ( const std::string & filename,
+                                            std::set<std::string> & included_files )
+{
+  auto parentschema = Kernel->find_schema_file( filename );
+  if ( parentschema != nullptr) {
+    for (auto file : parentschema->get_include_files()) {
+      included_files.insert(file);
+    }
+  }
 }
 
 bool dbse::KernelWrapper::IsFileWritable (const std::string & FileName ) const
@@ -316,7 +364,9 @@ void dbse::KernelWrapper::PushCreateClassCommand ( std::string ClassName,
 {
   try
   {
+  std::cout << __FUNCTION__ << " class=" << KernelWrapper::GetInstance().FindClass ( ClassName ) << "\n";
     CommandStack->push ( new CreateClassCommand ( ClassName, ClassDescription, Abstract ) );
+  std::cout << __FUNCTION__ << " class=" << KernelWrapper::GetInstance().FindClass ( ClassName ) << "\n";
   }
   catch ( ... )
   {

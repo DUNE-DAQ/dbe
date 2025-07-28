@@ -10,6 +10,8 @@
 /// Including Schema
 #include "dbe/SchemaCommand.hpp"
 
+#include "oks/file.hpp"
+
 namespace dunedaq {
   namespace oks {
     class OksKernel;
@@ -36,7 +38,15 @@ public:
   void GetClassList ( std::vector<dunedaq::oks::OksClass *> & ClassList ) const;
   void GetClassListString ( QStringList & ClassListString ) const;
   void GetSchemaFiles ( std::vector<std::string> & SchemaFiles );
+  void GetSchemaFiles ( std::vector<dunedaq::oks::OksFile*> & SchemaFiles );
+
+  std::vector<dunedaq::oks::OksClass*> get_schema_classes (std::string& filename);
+
   void GetIncludedList ( const std::string & FileName,
+                         std::set<std::string> & IncludedFiles );
+  void get_direct_includes ( const std::string & FileName,
+                         std::set<std::string> & IncludedFiles );
+  void get_all_includes ( const std::string & FileName,
                          std::set<std::string> & IncludedFiles );
   bool IsFileWritable ( const std::string & FileName ) const;
   bool IsActive() const;
@@ -140,6 +150,7 @@ signals:
   void ClassRemoved ( QString ClassName );
   void ClassUpdated ( QString ClassName );
   void RebuildAttributeModel();
+  void active_updated();
 };
 
 }  // namespace dbse

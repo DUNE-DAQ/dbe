@@ -112,23 +112,26 @@ void dbse::SchemaGraphicsScene::dropEvent ( QGraphicsSceneDragDropEvent * event 
 {
   QByteArray encodedData = event->mimeData()->data ( "application/vnd.text.list" );
   QDataStream stream ( &encodedData, QIODevice::ReadOnly );
-  QStringList SchemaClasses;
 
+  if (stream.atEnd()) {
+    return;
+  }
+
+  QStringList schema_classes;
   while ( !stream.atEnd() )
   {
-    QString ClassName;
-    stream >> ClassName;
-    SchemaClasses.append ( ClassName );
+    QString class_name;
+    stream >> class_name;
+    schema_classes.append ( class_name );
   }
 
-  QList<QPointF> Positions;
-
-  for ( int i = 0; i < SchemaClasses.size(); ++i )
+  QList<QPointF> positions;
+  for ( int i = 0; i < schema_classes.size(); ++i )
   {
-    Positions.push_back ( event->scenePos() );
+    positions.push_back ( event->scenePos() );
   }
 
-  AddItemsToScene ( SchemaClasses, Positions );
+  AddItemsToScene ( schema_classes, positions );
 }
 
 void dbse::SchemaGraphicsScene::contextMenuEvent ( QGraphicsSceneContextMenuEvent * event )
@@ -514,30 +517,8 @@ void dbse::SchemaGraphicsScene::new_class_slot() {
 
 void dbse::SchemaGraphicsScene::EditClassSlot()
 {
-  bool WidgetFound = false;
-  QString ClassName = QString::fromStdString ( CurrentObject->GetClass()->get_name() );
-
-  for ( QWidget * Editor : QApplication::allWidgets() )
-  {
-    SchemaClassEditor * Widget = dynamic_cast<SchemaClassEditor *> ( Editor );
-
-    if ( Widget != nullptr )
-    {
-      if ( ( Widget->objectName() ).compare ( ClassName ) == 0 )
-      {
-        Widget->raise();
-        Widget->setVisible ( true );
-        Widget->activateWindow();
-        WidgetFound = true;
-      }
-    }
-  }
-
-  if ( !WidgetFound )
-  {
-    SchemaClassEditor * Editor = new SchemaClassEditor ( CurrentObject->GetClass() );
-    Editor->show();
-  }
+  QString class_name = QString::fromStdString ( CurrentObject->GetClass()->get_name() );
+  SchemaClassEditor::launch(class_name);
 }
 
 void dbse::SchemaGraphicsScene::ToggleHighlightActive() {
