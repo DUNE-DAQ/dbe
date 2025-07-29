@@ -39,9 +39,10 @@ dbse::SchemaAttributeEditor::~SchemaAttributeEditor() = default;
 
 void dbse::SchemaAttributeEditor::FillInfo()
 {
-    setWindowTitle ( QString ( "Attribute Editor : %1" ).arg (
-                       SchemaAttribute->get_name().c_str() ) );
-    setObjectName ( QString::fromStdString ( SchemaAttribute->get_name() ) );
+  auto name = QString::fromStdString(SchemaClass->get_name() + "::" +
+                                     SchemaAttribute->get_name());
+    setWindowTitle (name);
+    setObjectName (name);
     ui->AttributeNameLineEdit->setText ( QString::fromStdString (
                                            SchemaAttribute->get_name() ) );
     ui->AttributeTypeComboBox->setCurrentIndex (
@@ -114,8 +115,9 @@ void dbse::SchemaAttributeEditor::InitialSettings()
     "bool", "s8", "u8", "s16", "u16", "s32", "u32", "s64", "u64", "float", "double", "date",
     "time", "string", "enum", "class" };
   ui->AttributeTypeComboBox->addItems ( Items );
-  setWindowTitle ( QString::fromStdString ( "New Attribute" ) );
-  setObjectName ( "NEW" );
+  auto name = SchemaClass->get_name() + "::";
+  setWindowTitle ( QString::fromStdString ( name + " New Attribute" ) );
+  setObjectName ( QString::fromStdString(name) );
 
   if ( !UsedNew )
   {

@@ -65,7 +65,7 @@ void dbse::SchemaMainWindow::InitialSettings()
   ui->TabWidget->setTabsClosable ( true );
   ui->ClassTableSearchLine->setProperty ( "placeholderText",
                                           QVariant ( QString ( "Search for classes regex" ) ) );
-
+  ui->ClassTableSearchLine->setClearButtonEnabled(true);
   proxyModel->setFilterCaseSensitivity (Qt::CaseInsensitive);
 }
 

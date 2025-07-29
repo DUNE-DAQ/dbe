@@ -217,50 +217,47 @@ void dbse::SchemaClassEditor::move_class() {
   widget->show();
 }
 
-bool dbse::SchemaClassEditor::ShouldOpenAttributeEditor ( QString Name )
+bool dbse::SchemaClassEditor::ShouldOpenAttributeEditor ( QString attrName )
 {
-  bool WidgetFound = false;
-
-  for ( QWidget * Editor : QApplication::allWidgets() )
+  QString name = QString::fromStdString(SchemaClass->get_name() + "::") +
+    attrName;
+  for (QWidget* widget : QApplication::allWidgets())
   {
-    SchemaAttributeEditor * Widget = dynamic_cast<SchemaAttributeEditor *> ( Editor );
-
-    if ( Widget != nullptr )
+    if (dynamic_cast<SchemaAttributeEditor *> (widget) != nullptr)
     {
-      if ( ( Widget->objectName() ).compare ( Name ) == 0 )
+      if ( (widget->objectName()).compare (name) == 0 )
       {
-        Widget->raise();
-        Widget->setVisible ( true );
-        Widget->activateWindow();
-        WidgetFound = true;
+        widget->raise();
+        widget->setVisible ( true );
+        widget->activateWindow();
+        return false;
       }
     }
   }
 
-  return !WidgetFound;
+  return true;
 }
 
-bool dbse::SchemaClassEditor::ShouldOpenRelationshipEditor ( QString Name )
+bool dbse::SchemaClassEditor::ShouldOpenRelationshipEditor ( QString relName )
 {
-  bool WidgetFound = false;
+  QString name = QString::fromStdString(SchemaClass->get_name() + "::") +
+    relName;
 
-  for ( QWidget * Editor : QApplication::allWidgets() )
+  for ( QWidget* widget : QApplication::allWidgets() )
   {
-    SchemaRelationshipEditor * Widget = dynamic_cast<SchemaRelationshipEditor *> ( Editor );
-
-    if ( Widget != nullptr )
+    if (dynamic_cast<SchemaRelationshipEditor *> (widget) != nullptr)
     {
-      if ( ( Widget->objectName() ).compare ( Name ) == 0 )
+      if ( ( widget->objectName() ).compare ( name ) == 0 )
       {
-        Widget->raise();
-        Widget->setVisible ( true );
-        Widget->activateWindow();
-        WidgetFound = true;
+        widget->raise();
+        widget->setVisible ( true );
+        widget->activateWindow();
+        return false;
       }
     }
   }
 
-  return !WidgetFound;
+  return true;
 }
 
 bool dbse::SchemaClassEditor::ShouldOpenMethodEditor ( QString Name )
@@ -383,61 +380,85 @@ void dbse::SchemaClassEditor::ParseToSave()
 
 void dbse::SchemaClassEditor::AddNewSuperClass()
 {
-    QWidget* w = new QWidget();
+  bool widgetFound=false;
+  QString class_name = QString::fromStdString(SchemaClass->get_name());
 
-    QLabel* label = new QLabel("Double click on a list item to add the corresponding super-class");
+  QString wname = "add_sc_"+class_name;
+  for ( QWidget* widget : QApplication::allWidgets() ) {
+    if (widget->objectName().compare(wname) == 0 ) {
+      widget->raise();
+      widget->setVisible ( true );
+      widget->activateWindow();
+      widgetFound = true;
+      break;
+    }
+  }
+
+  if (!widgetFound) {
+    QWidget* widget = new QWidget();
+    widget->setObjectName(wname);
+    QLabel* label = new QLabel("Select a super-class to add to " + class_name);
     label->setWordWrap(true);
 
-    QLabel* status = new QLabel();
-    status->setStyleSheet("QLabel { color : green; }");
+    // QLabel* status = new QLabel();
+    // status->setStyleSheet("QLabel { color : green; }");
 
-    auto search = new QLineEdit("Search classes", w);
+    auto search = new QLineEdit(widget);
+    search->setPlaceholderText("Search classes");
     search->setClearButtonEnabled(true);
 
-    QListWidget* qlw = new QListWidget();
+    QListWidget* qlwidget = new QListWidget();
     QStringList allClasses;
     KernelWrapper::GetInstance().GetClassListString(allClasses);
-    qlw->addItems(allClasses);
+    qlwidget->addItems(allClasses);
 
-    connect ( qlw, &QListWidget::itemDoubleClicked,
+    connect ( qlwidget, &QListWidget::itemDoubleClicked,
               this, [=] () {
-                                const std::string& className = qlw->currentItem()->text().toStdString();
+                                const std::string& className = qlwidget->currentItem()->text().toStdString();
                                 KernelWrapper::GetInstance().PushAddSuperClassCommand(SchemaClass, className);
                                 BuildModels();
-                                status->setText(QString::fromStdString(className + " added as a super-class of " + SchemaClass->get_name()));
+                                // status->setText(QString::fromStdString(className + " added as a super-class of " + SchemaClass->get_name()));
                            });
 
-    connect (search, &QLineEdit::textChanged, this, [search, qlw] () {
-      auto items = qlw->findItems(search->text(), Qt::MatchRegularExpression);
+    connect (search, &QLineEdit::textChanged, this, [search, qlwidget] () {
+      auto items = qlwidget->findItems(search->text(), Qt::MatchRegularExpression);
       if (!items.empty()) {
-        qlw->setCurrentItem(items[0]);
+        qlwidget->setCurrentItem(items[0]);
       }
     });
 
-    QVBoxLayout* l = new QVBoxLayout();
-    l->addWidget(label);
-    l->addWidget(qlw);
-    l->addWidget(search);
-    l->addWidget(status);
+    auto close_button = new QPushButton("Close");
+    connect (close_button, SIGNAL (clicked()), widget, SLOT(close()));
+    QVBoxLayout* lout = new QVBoxLayout();
+    lout->addWidget(label);
+    lout->addWidget(qlwidget);
+    lout->addWidget(search);
+    lout->addWidget(close_button);
+    // l->addWidget(status);
 
-    w->setWindowTitle("Select super-class(es)");
-    w->setLayout(l);
-    w->setParent(this, Qt::Dialog);
-    w->show();
+    widget->setWindowTitle("Select super-class(es) for " + class_name);
+    widget->setLayout(lout);
+    widget->setParent(this, Qt::Dialog);
+    widget->show();
+  }
 }
 
 void dbse::SchemaClassEditor::AddNewAttribute()
 {
-  SchemaAttributeEditor * Editor = new SchemaAttributeEditor ( SchemaClass );
-  connect ( Editor, SIGNAL ( RebuildModel() ), this, SLOT ( BuildAttributeModelSlot() ) );
-  Editor->show();
+  if (ShouldOpenAttributeEditor("")) {
+    SchemaAttributeEditor * Editor = new SchemaAttributeEditor ( SchemaClass );
+    connect ( Editor, SIGNAL ( RebuildModel() ), this, SLOT ( BuildAttributeModelSlot() ) );
+    Editor->show();
+  }
 }
 
 void dbse::SchemaClassEditor::AddNewRelationship()
 {
-  SchemaRelationshipEditor * Editor = new SchemaRelationshipEditor ( SchemaClass );
-  connect ( Editor, SIGNAL ( RebuildModel() ), this, SLOT ( BuildRelationshipModelSlot() ) );
-  Editor->show();
+  if (ShouldOpenRelationshipEditor("")) {
+    SchemaRelationshipEditor * Editor = new SchemaRelationshipEditor ( SchemaClass );
+    connect ( Editor, SIGNAL ( RebuildModel() ), this, SLOT ( BuildRelationshipModelSlot() ) );
+    Editor->show();
+  }
 }
 
 void dbse::SchemaClassEditor::AddNewMethod()

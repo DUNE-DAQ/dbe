@@ -38,7 +38,9 @@ dbse::SchemaRelationshipEditor::SchemaRelationshipEditor ( OksClass * Class,
 {
   QWidget::setAttribute(Qt::WA_DeleteOnClose);
   ui->setupUi ( this );
-  setWindowTitle ( "New Relationship" );
+  auto title = SchemaClass->get_name() + "  New Relationship";
+  setWindowTitle (
+    QString ( "Relationship Editor : %1" ).arg ( title.c_str() ) );
   InitialSettings();
   SetController();
 }
@@ -151,7 +153,8 @@ void dbse::SchemaRelationshipEditor::InitialSettings()
   QStringList ClassList;
   KernelWrapper::GetInstance().GetClassListString ( ClassList );
   ui->RelationshipTypeComboBox->addItems ( ClassList );
-  setObjectName ( "NEW" );
+  auto name = SchemaClass->get_name() + "::";
+  setObjectName ( QString::fromStdString(name) );
 
   if ( !UsedNew )
   {
@@ -163,7 +166,7 @@ void dbse::SchemaRelationshipEditor::SetController()
 {
   connect ( ui->buttonBox, SIGNAL ( accepted() ), this, SLOT ( ProxySlot() ) );
   connect ( ui->buttonBox, SIGNAL ( rejected() ), this, SLOT ( close() ) );
-  connect ( &KernelWrapper::GetInstance(), SIGNAL ( ClassCreated() ), this,
+  connect ( &KernelWrapper::GetInstance(), SIGNAL ( ClassCreated(QString) ), this,
             SLOT ( UpdateClassCombo() ) );
   connect ( &KernelWrapper::GetInstance(), SIGNAL ( ClassUpdated ( QString ) ), this,
             SLOT ( ClassUpdated ( QString ) ) );
