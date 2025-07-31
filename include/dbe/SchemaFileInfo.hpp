@@ -48,9 +48,12 @@ namespace dbse
     void activate_class_context_menu(QPoint point);
     void add_new_class();
     void edit_class();
+    void move_class();
     void remove_class();
     void set_schemafile_active();
     void show_status();
+    void class_updated(QString class_name);
+    void save_schema();
   private:
     void get_includes();
     void add_file(std::string file);
@@ -59,6 +62,7 @@ namespace dbse
     std::string prune_path(std::string file);
     bool set_active(std::string filename);
     void remove_include(std::string filename);
+    void update_class_list();
 
     Ui::SchemaFileInfo* m_ui;
     std::string m_filename;

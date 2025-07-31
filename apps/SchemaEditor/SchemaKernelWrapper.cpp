@@ -87,9 +87,7 @@ void dbse::KernelWrapper::RemoveInclude( std::string schemaFile, std::string Inc
 {
   auto ParentSchema = Kernel->find_schema_file( schemaFile );
   if (ParentSchema != nullptr) {
-    std::cout << "Calling remove_include_file()\n";
     ParentSchema->remove_include_file( IncludeFile );
-    std::cout << "Called remove_include_file()\n";
   }
 }
 
@@ -166,6 +164,15 @@ bool dbse::KernelWrapper::IsFileWritable (const std::string & FileName ) const
   return false;
 }
 
+bool dbse::KernelWrapper::is_file_modified (const std::string & FileName ) const
+{
+  OksFile* file = Kernel->find_schema_file ( FileName );
+  if (file != nullptr) {
+    return file->is_updated();
+  }
+  return false;
+}
+
 OksClass * dbse::KernelWrapper::FindClass ( std::string ClassName ) const
 {
   return Kernel->find_class ( ClassName );
@@ -187,6 +194,17 @@ std::string dbse::KernelWrapper::ModifiedSchemaFiles() const
   for (auto [name, file] : Kernel->schema_files()) {
     if (file->is_updated()) {
       modified += file->get_full_file_name() + "\n\n";
+    }
+  }
+  return modified;
+}
+
+std::vector<std::string> dbse::KernelWrapper::get_modified_schema_files() const
+{
+  std::vector<std::string> modified;
+  for (auto [name, file] : Kernel->schema_files()) {
+    if (file->is_updated()) {
+      modified.push_back(file->get_full_file_name());
     }
   }
   return modified;
@@ -364,9 +382,7 @@ void dbse::KernelWrapper::PushCreateClassCommand ( std::string ClassName,
 {
   try
   {
-  std::cout << __FUNCTION__ << " class=" << KernelWrapper::GetInstance().FindClass ( ClassName ) << "\n";
     CommandStack->push ( new CreateClassCommand ( ClassName, ClassDescription, Abstract ) );
-  std::cout << __FUNCTION__ << " class=" << KernelWrapper::GetInstance().FindClass ( ClassName ) << "\n";
   }
   catch ( ... )
   {

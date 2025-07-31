@@ -49,11 +49,13 @@ public:
   void get_all_includes ( const std::string & FileName,
                          std::set<std::string> & IncludedFiles );
   bool IsFileWritable ( const std::string & FileName ) const;
+  bool is_file_modified ( const std::string & FileName ) const;
   bool IsActive() const;
   dunedaq::oks::OksClass * FindClass ( std::string ClassName ) const;
   void LoadSchema ( const std::string & SchemaName ) const;
   void SaveAllSchema() const;
   void SaveSchema ( const std::string& file ) const;
+  std::vector<std::string> get_modified_schema_files() const;
   std::string ModifiedSchemaFiles() const;
   std::string SaveModifiedSchema() const;
   std::string GetActiveSchema() const;

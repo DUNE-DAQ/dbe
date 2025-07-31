@@ -32,6 +32,7 @@ public:
 
   static QString createNewClass ();
   static void launch(QString class_name);
+  static void move_class(dunedaq::oks::OksClass* schema_class, QWidget* widget);
 
 private:
   void keyPressEvent(QKeyEvent* event);
@@ -89,6 +90,7 @@ private slots:
   void RemoveSuperClass();
   void ClassRemoved( QString className );
   void ClassUpdated( QString className );
+
   void move_class();
 };
 }  // namespace dbse

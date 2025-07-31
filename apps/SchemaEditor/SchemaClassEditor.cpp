@@ -2,6 +2,7 @@
 #include <QMessageBox>
 #include <QLineEdit>
 #include <QListWidget>
+#include <QListWidgetItem>
 #include <QInputDialog>
 #include <QString>
 #include <QStringList>
@@ -154,7 +155,13 @@ void dbse::SchemaClassEditor::InitialSettings()
 }
 
 void dbse::SchemaClassEditor::move_class() {
-  std::string current_file = SchemaClass->get_file()->get_full_file_name();
+  move_class(SchemaClass, this);
+}
+
+
+void dbse::SchemaClassEditor::move_class(dunedaq::oks::OksClass* schema_class,
+  QWidget* pwidget) {
+  std::string current_file = schema_class->get_file()->get_full_file_name();
   std::vector<OksFile*> files;
   KernelWrapper::GetInstance().GetSchemaFiles(files);
   QStringList writable_files;
@@ -166,8 +173,6 @@ void dbse::SchemaClassEditor::move_class() {
       if (fn == current_file) {
         current_row = writable_files.size();
       }
-      std::cout << "current=<" << current_file << ">  fn=<" << fn << ">\n";
-
       writable_files.append(QString::fromStdString(fn));
       file_map[QString::fromStdString(fn)] = file;
     }
@@ -180,22 +185,34 @@ void dbse::SchemaClassEditor::move_class() {
 
   QWidget* widget = new QWidget();
   QString text = "Select file to hold class " +
-    QString::fromStdString(SchemaClass->get_name());
+    QString::fromStdString(schema_class->get_name());
   QLabel* label = new QLabel(text);
   QListWidget* qlw = new QListWidget();
   qlw->addItems(writable_files);
   if (current_row != -1) {
     qlw->setCurrentRow(current_row);
   }
+
+  connect (qlw, &QListWidget::itemActivated,
+           pwidget, [=] () {
+             QListWidgetItem* it = qlw->currentItem();
+             auto fn = it->text();
+             if (fn.toStdString() != current_file) {
+               schema_class->set_file(file_map.at(fn));
+               emit KernelWrapper::GetInstance().ClassUpdated ( QString::fromStdString(schema_class->get_name()) );
+             }
+             delete widget;
+           }
+    );
+
   auto bb = new QDialogButtonBox(QDialogButtonBox::Ok|QDialogButtonBox::Cancel);
-  connect (bb, &QDialogButtonBox::accepted, this, [=] () {
+  connect (bb, &QDialogButtonBox::accepted, pwidget, [=] () {
     auto it = qlw->currentItem();
     if (it != nullptr) {
       auto fn = it->text();
       if (fn.toStdString() != current_file) {
-        std::cout << "Moving to " << fn.toStdString() << "\n";
-        SchemaClass->set_file(file_map.at(fn));
-        emit KernelWrapper::GetInstance().ClassUpdated ( QString::fromStdString(SchemaClass->get_name()) );
+        schema_class->set_file(file_map.at(fn));
+        emit KernelWrapper::GetInstance().ClassUpdated ( QString::fromStdString(schema_class->get_name()) );
       }
       delete widget;
     }
@@ -205,7 +222,7 @@ void dbse::SchemaClassEditor::move_class() {
       return;
     }
   });
-  connect ( bb, &QDialogButtonBox::rejected, this,  [=] () {delete widget;} );
+  connect ( bb, &QDialogButtonBox::rejected, pwidget,  [=] () {delete widget;} );
 
   QVBoxLayout* layout = new QVBoxLayout();
   layout->addWidget(label);
@@ -213,7 +230,7 @@ void dbse::SchemaClassEditor::move_class() {
   layout->addWidget(bb);
   widget->setWindowTitle("Select new file for class");
   widget->setLayout(layout);
-  widget->setParent(this, Qt::Dialog);
+  widget->setParent(pwidget, Qt::Dialog);
   widget->show();
 }
 
@@ -412,7 +429,7 @@ void dbse::SchemaClassEditor::AddNewSuperClass()
     KernelWrapper::GetInstance().GetClassListString(allClasses);
     qlwidget->addItems(allClasses);
 
-    connect ( qlwidget, &QListWidget::itemDoubleClicked,
+    connect ( qlwidget, &QListWidget::itemActivated,
               this, [=] () {
                                 const std::string& className = qlwidget->currentItem()->text().toStdString();
                                 KernelWrapper::GetInstance().PushAddSuperClassCommand(SchemaClass, className);

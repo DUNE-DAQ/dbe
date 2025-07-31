@@ -23,8 +23,10 @@ SchemaFileInfo::SchemaFileInfo(std::string filename, QWidget* /*parent*/)
   QWidget::setAttribute(Qt::WA_DeleteOnClose);
 
   m_ui->setupUi(this);
-  m_ui->buttonBox->setStandardButtons(QDialogButtonBox::Ok);
-  m_ui->class_list->setDragEnabled ( true );
+  // m_ui->buttonBox->setStandardButtons(QDialogButtonBox::Ok);
+  m_ui->missing_button->hide();
+  // m_ui->class_list->setDragEnabled ( true );
+  // m_ui->class_list->setAcceptDrops ( true );
   setObjectName(QString::fromStdString(filename));
   auto sp = filename.find_last_of('/');
   if (sp == std::string::npos) {
@@ -56,18 +58,7 @@ SchemaFileInfo::SchemaFileInfo(std::string filename, QWidget* /*parent*/)
 
   m_ui->textBrowser->hide();
 
-  auto classes = KernelWrapper::GetInstance().get_schema_classes(filename);
-  for (auto cls: classes) {
-    auto item = new QListWidgetItem(QString::fromStdString(cls->get_name()));
-    if (!check_relationships(cls)) {
-      item->setForeground(QBrush(QColor ( 0xc00000 )));
-    }
-    if (!check_superclasses(cls)) {
-      item->setForeground(QBrush(QColor ( 0xc00000 )));
-    }
-
-    m_ui->class_list->addItem(item);
-  }
+  update_class_list();
 
   m_ui->include_list->setContextMenuPolicy ( Qt::ContextMenuPolicy::CustomContextMenu );
   m_ui->class_list->setContextMenuPolicy ( Qt::ContextMenuPolicy::CustomContextMenu );
@@ -83,21 +74,14 @@ SchemaFileInfo::SchemaFileInfo(std::string filename, QWidget* /*parent*/)
 
   connect (m_ui->active_button, SIGNAL(pressed()), this, SLOT(set_active()));
   connect (m_ui->add_button, SIGNAL(pressed()), this, SLOT(add_include()));
-
+  connect (m_ui->save_button, SIGNAL(pressed()), this, SLOT(save_schema()));
+  connect (m_ui->close_button, SIGNAL(pressed()), this, SLOT(close()));
+  connect (m_ui->missing_button, SIGNAL (pressed()), this, SLOT(add_missing_includes()));
   connect (&KernelWrapper::GetInstance(), SIGNAL (active_updated()),
            this, SLOT(show_status()));
-  m_ui->class_summary->setText (
-    QString("Total of %1 classes").arg(classes.size()));
+  connect (&KernelWrapper::GetInstance(), SIGNAL (ClassUpdated(QString)),
+           this, SLOT(class_updated(QString)));
 
-  if (!m_missing_includes.empty()) {
-    m_missing_button = m_ui->buttonBox->addButton("Add missing includes", QDialogButtonBox::ApplyRole);
-    if (m_missing_button != nullptr) {
-      connect ( m_missing_button, SIGNAL (pressed()), this, SLOT(add_missing_includes()));
-    }
-    else {
-      std::cout << "Failed to add button\n";
-    }
-  }
 }
 
 void SchemaFileInfo::get_includes() {
@@ -161,6 +145,7 @@ bool SchemaFileInfo::check_superclasses(dunedaq::oks::OksClass* cls) {
           + " which is not included<br>";
         m_ui->textBrowser->insertHtml(warning);
         m_ui->textBrowser->show();
+        ok = false;
       }
     }
   }
@@ -249,6 +234,63 @@ void SchemaFileInfo::launch_class_editor(QListWidgetItem* item) {
   SchemaClassEditor::launch(item->text());
 }
 
+void SchemaFileInfo::update_class_list() {
+  m_ui->class_list->clear();
+  m_ui->textBrowser->clear();
+  auto classes = KernelWrapper::GetInstance().get_schema_classes(m_filename);
+  for (auto cls: classes) {
+    auto item = new QListWidgetItem(QString::fromStdString(cls->get_name()));
+    if (!check_relationships(cls)) {
+      item->setForeground(QBrush(QColor ( 0xc00000 )));
+    }
+    if (!check_superclasses(cls)) {
+      item->setForeground(QBrush(QColor ( 0xc00000 )));
+    }
+
+    m_ui->class_list->addItem(item);
+  }
+  m_ui->class_summary->setText (
+    QString("Total of %1 classes").arg(classes.size()));
+
+  // if (!m_missing_includes.empty() && m_missing_button == nullptr) {
+  //   m_missing_button = m_ui->buttonBox->addButton("Add missing includes", QDialogButtonBox::ApplyRole);
+  //   if (m_missing_button != nullptr) {
+  //     connect ( m_missing_button, SIGNAL (pressed()), this, SLOT(add_missing_includes()));
+  //   }
+  //   else {
+  //     std::cout << "Failed to add button\n";
+  //   }
+  // }
+  if (!m_missing_includes.empty()) {
+    m_ui->missing_button->setEnabled(true);
+    m_ui->missing_button->show();
+  }
+}
+  void SchemaFileInfo::class_updated(QString /*class_name*/) {
+  // auto cls = KernelWrapper::GetInstance().FindClass(class_name.toStdString());
+  // auto file = cls->get_file()->get_full_file_name();
+  // if (file == m_filename) {
+    show_status();
+    update_class_list();
+  // }
+}
+
+void SchemaFileInfo::save_schema() {
+  try {
+    KernelWrapper::GetInstance().SaveSchema (m_filename);
+  }
+  catch (const dunedaq::oks::exception& exc) {
+    QMessageBox::warning(0,
+                         "Save Schema",
+                         QString("Failed to save file %1" )
+                         .arg (m_filename.c_str())
+                         .append(QString(exc.what())),
+                         QMessageBox::Ok);
+  }
+  show_status();
+  emit files_updated();
+}
+
 void SchemaFileInfo::show_status() {
   QString status("Status: ");
   if (KernelWrapper::GetInstance().IsFileWritable ( m_filename )) {
@@ -257,6 +299,14 @@ void SchemaFileInfo::show_status() {
   else {
     status.append("Read only");
   }
+  if (KernelWrapper::GetInstance().is_file_modified ( m_filename )) {
+    status.append("  Modified");
+    m_ui->save_button->setEnabled(true);
+  }
+  else {
+    m_ui->save_button->setEnabled(false);
+  }
+
   if (m_filename == KernelWrapper::GetInstance().GetActiveSchema()) {
     status.append("  Active");
     m_ui->active_button->setEnabled(false);
@@ -292,9 +342,12 @@ void SchemaFileInfo::add_missing_includes() {
   get_includes();
   m_ui->textBrowser->clear();
   m_ui->textBrowser->hide();
-  m_ui->buttonBox->removeButton(m_missing_button);
-  delete m_missing_button;
-  m_missing_button = nullptr;
+  // m_ui->buttonBox->removeButton(m_missing_button);
+  // delete m_missing_button;
+  // m_missing_button = nullptr;
+
+  m_ui->missing_button->setEnabled(false);
+  m_ui->missing_button->hide();
 }
 
 std::string SchemaFileInfo::prune_path(std::string file) {
@@ -329,11 +382,14 @@ void dbse::SchemaFileInfo::activate_include_context_menu (QPoint pos)
     connect (act, SIGNAL ( triggered() ), this, SLOT ( set_schemafile_active() ) );
     QAction* info = new QAction ( tr ( "Show file info" ), this );
     connect (info, SIGNAL ( triggered() ), this, SLOT ( show_file_info() ) );
+    QAction* add = new QAction ( tr ( "Add include file" ), this );
+    connect (add, SIGNAL ( triggered() ), this, SLOT ( add_include() ) );
     QAction* remove = new QAction ( tr ( "Remove include file" ), this );
     connect (remove, SIGNAL ( triggered() ), this, SLOT ( remove_include() ) );
 
     m_include_menu->addAction ( info );
     m_include_menu->addAction ( act );
+    m_include_menu->addAction ( add );
     m_include_menu->addAction ( remove );
   }
 
@@ -355,8 +411,12 @@ void dbse::SchemaFileInfo::activate_class_context_menu (QPoint pos)
     QAction* edit = new QAction(tr( "&Edit Selected Class"), this );
     connect (edit, SIGNAL (triggered()), this, SLOT (edit_class()));
 
+    QAction* move = new QAction(tr( "&Move Selected Class"), this );
+    connect (move, SIGNAL (triggered()), this, SLOT (move_class()));
+
     m_class_menu->addAction (add);
     m_class_menu->addAction (edit);
+    m_class_menu->addAction (move);
     m_class_menu->addAction (remove);
   }
 
@@ -368,6 +428,12 @@ void dbse::SchemaFileInfo::activate_class_context_menu (QPoint pos)
 void dbse::SchemaFileInfo::edit_class()
 {
   SchemaClassEditor::launch(m_ui->class_list->currentItem()->text());
+}
+void dbse::SchemaFileInfo::move_class()
+{
+  auto oks_class = KernelWrapper::GetInstance().FindClass(
+    m_ui->class_list->currentItem()->text().toStdString());
+  SchemaClassEditor::move_class(oks_class, this);
 }
 void dbse::SchemaFileInfo::remove_class()
 {

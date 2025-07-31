@@ -333,19 +333,28 @@ void dbse::SchemaMainWindow::SetSchemaFileActive()
 
   BuildFileModel();
 }
-void dbse::SchemaMainWindow::SaveSchemaFile()
-{
-  QModelIndex Index = ui->FileView->currentIndex();
-  const auto File = FileModel->getRowFromIndex ( Index ).at ( 0 );
+
+bool dbse::SchemaMainWindow::save_schema_file(QString filename){
+  bool status;
   QString message;
   try {
-    KernelWrapper::GetInstance().SaveSchema ( File.toStdString() );
-    message = QString ( "File %1 saved" ).arg ( File );
+    KernelWrapper::GetInstance().SaveSchema (filename.toStdString());
+    message = QString ( "File %1 saved" ).arg (filename);
+    status = true;
   }
   catch (const oks::exception& exc) {
-    message = QString ( "Faled to save file %1" ).arg ( File );
+    message = QString ( "Failed to save file %1" ).arg (filename);
+    status = false;
   }
   ui->StatusBar->showMessage( message );
+  return status;
+}
+
+void dbse::SchemaMainWindow::SaveSchemaFile()
+{
+  QModelIndex index = ui->FileView->currentIndex();
+  const auto file = FileModel->getRowFromIndex (index).at (0);
+  save_schema_file (file);
   BuildFileModel();
 }
 
@@ -429,7 +438,6 @@ void dbse::SchemaMainWindow::closeEvent ( QCloseEvent * event )
 }
 
 void dbse::SchemaMainWindow::update_models() {
-  std::cout << __FUNCTION__ << "\n";
   BuildFileModel();
   BuildTableModel();
 }
@@ -473,7 +481,7 @@ void dbse::SchemaMainWindow::OpenSchemaFile(QString SchemaFile) {
     BuildFileModel();
 
     update_window_title(QFileInfo(SchemaFile).fileName());
-    ui->CreateNewSchema->setDisabled (true );
+    //ui->CreateNewSchema->setDisabled (true );
     //ui->OpenFileSchema->setDisabled (true );
   }
 }
@@ -510,23 +518,11 @@ void dbse::SchemaMainWindow::OpenSchemaFile()
 }
 void dbse::SchemaMainWindow::SaveModifiedSchema()
 {
-   try
-    {
-      auto saved = KernelWrapper::GetInstance().SaveModifiedSchema();
-      //std::format msg("{} schema files successfully saved", nsaved)
-      std::ostringstream ostream;
-      ostream << "Schema files:\n" + saved + " successfully saved";
-      std::string msg = ostream.str();
-      QMessageBox::information ( 0, "Schema editor",
-                                 QString ( msg.c_str() ) );
-
-    }
-    catch ( oks::exception & Ex )
-    {
-      QMessageBox::warning ( 0, "Schema editor",
-                             QString ( "Could not save schemas.\n\n%1" ).arg ( QString ( Ex.what() ) ) );
-    }
- }
+  for (auto file: KernelWrapper::GetInstance().get_modified_schema_files()) {
+    save_schema_file(QString::fromStdString(file));
+  }
+  BuildFileModel();
+}
 
 void dbse::SchemaMainWindow::SaveSchema()
 {
@@ -545,7 +541,9 @@ void dbse::SchemaMainWindow::SaveSchema()
 
 void dbse::SchemaMainWindow::CreateNewSchema()
 {
-  QString FileName = QFileDialog::getSaveFileName ( this, tr ( "New schema File" ) );
+  QString FileName = QFileDialog::getSaveFileName (
+    this, tr ( "New schema File" ), ".",
+    tr ( "XML schema files (*.schema.xml);;All files (*)" ) );
 
   if ( FileName.isEmpty() )
   {

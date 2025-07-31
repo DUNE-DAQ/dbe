@@ -51,6 +51,7 @@ private:
   void write_view_file(const QString& fn, SchemaTab* tab);
   [[nodiscard]] int ShouldSaveChanges() const;
   [[nodiscard]] int ShouldSaveViewChanges() const;
+  bool save_schema_file(QString file);
 protected:
   void closeEvent ( QCloseEvent * event );
   void OpenSchemaFile( QString SchemaFile);
