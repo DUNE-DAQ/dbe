@@ -19,6 +19,9 @@ dbse::SchemaRelationshipEditor::SchemaRelationshipEditor ( OksClass * Class,
     GraphScene ( false )
 {
   QWidget::setAttribute(Qt::WA_DeleteOnClose);
+
+  m_writable = KernelWrapper::GetInstance().IsFileWritable(Class->get_file()->get_full_file_name());
+
   ui->setupUi ( this );
   auto title = SchemaClass->get_name() + "::" + SchemaRelationship->get_name();
   setWindowTitle (
@@ -38,6 +41,7 @@ dbse::SchemaRelationshipEditor::SchemaRelationshipEditor ( OksClass * Class,
 {
   QWidget::setAttribute(Qt::WA_DeleteOnClose);
   ui->setupUi ( this );
+  m_writable = true;
   auto title = SchemaClass->get_name() + "  New Relationship";
   setWindowTitle (
     QString ( "Relationship Editor : %1" ).arg ( title.c_str() ) );
@@ -56,6 +60,7 @@ dbse::SchemaRelationshipEditor::SchemaRelationshipEditor ( OksClass * Class,
     GraphScene ( true )
 {
   QWidget::setAttribute(Qt::WA_DeleteOnClose);
+  m_writable = true;
   ui->setupUi ( this );
   setWindowTitle ( "New Relationship" );
   InitialSettings();
@@ -156,6 +161,17 @@ void dbse::SchemaRelationshipEditor::InitialSettings()
   auto name = SchemaClass->get_name() + "::";
   setObjectName ( QString::fromStdString(name) );
 
+  if (!m_writable) {
+    ui->RelationshipTypeComboBox->setEnabled(false);
+    ui->IsCompositeCombo->setEnabled(false);
+    ui->IsExclusiveCombo->setEnabled(false);
+    ui->IsDependentCombo->setEnabled(false);
+    ui->LowCcCombo->setEnabled(false);
+    ui->HighCcCombo->setEnabled(false);
+    ui->RelationshipDescriptionTextEdit->setEnabled(false);
+    ui->RelationshipNameLineEdit->setEnabled(false);
+  }
+
   if ( !UsedNew )
   {
       FillInfo();
@@ -164,7 +180,12 @@ void dbse::SchemaRelationshipEditor::InitialSettings()
 
 void dbse::SchemaRelationshipEditor::SetController()
 {
-  connect ( ui->buttonBox, SIGNAL ( accepted() ), this, SLOT ( ProxySlot() ) );
+  if (m_writable) {
+    connect ( ui->buttonBox, SIGNAL ( accepted() ), this, SLOT ( ProxySlot() ) );
+  }
+  else {
+    connect ( ui->buttonBox, SIGNAL ( accepted() ), this, SLOT ( close() ) );
+  }
   connect ( ui->buttonBox, SIGNAL ( rejected() ), this, SLOT ( close() ) );
   connect ( &KernelWrapper::GetInstance(), SIGNAL ( ClassCreated(QString) ), this,
             SLOT ( UpdateClassCombo() ) );

@@ -21,6 +21,7 @@ dbse::SchemaMethodEditor::SchemaMethodEditor ( OksClass * ClassInfo, OksMethod *
     UsedNew ( false )
 {
   QWidget::setAttribute(Qt::WA_DeleteOnClose);
+  m_writable = KernelWrapper::GetInstance().IsFileWritable(m_class->get_file()->get_full_file_name());
   ui->setupUi ( this );
   InitialSettings();
   BuildModels();
@@ -36,6 +37,7 @@ dbse::SchemaMethodEditor::SchemaMethodEditor ( OksClass * ClassInfo, QWidget * p
     UsedNew ( true )
 {
   QWidget::setAttribute(Qt::WA_DeleteOnClose);
+  m_writable = KernelWrapper::GetInstance().IsFileWritable(m_class->get_file()->get_full_file_name());
   ui->setupUi ( this );
   InitialSettings();
   SetController();
@@ -86,7 +88,13 @@ void dbse::SchemaMethodEditor::InitialSettings()
   }
   else
   {
-      FillInfo();
+    if (!m_writable) {
+      ui->MethodName->setEnabled (false);
+      ui->DescriptionTextBox->setEnabled (false);
+      ui->AddButton->setEnabled (false);
+      ui->ImplementationsView->setEnabled (false);
+    }
+    FillInfo();
   }
 }
 

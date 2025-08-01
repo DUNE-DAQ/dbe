@@ -119,6 +119,15 @@ void dbse::SchemaAttributeEditor::InitialSettings()
   setWindowTitle ( QString::fromStdString ( name + " New Attribute" ) );
   setObjectName ( QString::fromStdString(name) );
 
+  if (!m_writable) {
+    ui->AttributeTypeComboBox->setEnabled(false);
+    ui->AttributeIsMultivariable->setEnabled(false);
+    ui->AttributeIsNotNull->setEnabled(false);
+    ui->AttributeDescriptionTextBox->setEnabled(false);
+    ui->AttributeRangeLineEdit->setEnabled(false);
+    ui->AttributeInitialValue->setEnabled(false);
+  }
+
   if ( !UsedNew )
   {
       FillInfo();

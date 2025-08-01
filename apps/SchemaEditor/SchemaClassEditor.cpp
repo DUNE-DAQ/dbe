@@ -136,9 +136,23 @@ void dbse::SchemaClassEditor::InitialSettings()
   /// Schema File
   ui->SchemaFileLineEdit->setText ( QString::fromStdString ( SchemaClass->get_file()->get_short_file_name() ) );
   //ui->SchemaFileLineEdit->setEnabled ( false );
-  ui->moveButton->setEnabled (
-    KernelWrapper::GetInstance().IsFileWritable(
-      SchemaClass->get_file()->get_full_file_name()));
+
+  if (KernelWrapper::GetInstance().IsFileWritable(
+        SchemaClass->get_file()->get_full_file_name())) {
+    ui->AddButtonAttribute->setEnabled (true);
+    ui->AddButtonSuperClass->setEnabled (true);
+    ui->AddButtonRelationship->setEnabled (true);
+    ui->AddButtonMethod->setEnabled (true);
+    ui->moveButton->setEnabled (true);
+  }
+  else {
+    ui->AddButtonAttribute->setEnabled (false);
+    ui->AddButtonSuperClass->setEnabled (false);
+    ui->AddButtonRelationship->setEnabled (false);
+    ui->AddButtonMethod->setEnabled (false);
+    ui->moveButton->setEnabled (false);
+    ui->AbstractComboBox->setEnabled(false);
+  }
 
   /// Description
   ui->DescriptionTextEdit->setPlainText ( QString::fromStdString ( SchemaClass->get_description() ) );

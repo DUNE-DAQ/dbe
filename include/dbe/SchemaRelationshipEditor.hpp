@@ -39,6 +39,7 @@ private:
   dunedaq::oks::OksClass * SchemaClass;
   bool UsedNew;
   bool GraphScene;
+  bool m_writable;
 private slots:
   void ProxySlot();
   void UpdateClassCombo();

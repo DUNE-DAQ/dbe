@@ -67,20 +67,28 @@ SchemaFileInfo::SchemaFileInfo(std::string filename, QWidget* /*parent*/)
   connect (m_ui->include_list, SIGNAL (customContextMenuRequested(QPoint)),
            this, SLOT (activate_include_context_menu(QPoint)));
 
-  connect (m_ui->class_list, SIGNAL (itemActivated(QListWidgetItem*)),
-           this, SLOT (launch_class_editor(QListWidgetItem*)));
-  connect (m_ui->class_list, SIGNAL (customContextMenuRequested(QPoint)),
-           this, SLOT (activate_class_context_menu(QPoint)));
 
-  connect (m_ui->active_button, SIGNAL(pressed()), this, SLOT(set_active()));
-  connect (m_ui->add_button, SIGNAL(pressed()), this, SLOT(add_include()));
+  if (KernelWrapper::GetInstance().IsFileWritable ( m_filename )) {
+    connect (m_ui->active_button, SIGNAL(pressed()), this, SLOT(set_active()));
+    connect (m_ui->add_button, SIGNAL(pressed()), this, SLOT(add_include()));
+    connect (m_ui->missing_button, SIGNAL (pressed()), this, SLOT(add_missing_includes()));
+    connect (&KernelWrapper::GetInstance(), SIGNAL (ClassUpdated(QString)),
+             this, SLOT(class_updated(QString)));
+
+    connect (m_ui->class_list, SIGNAL (itemActivated(QListWidgetItem*)),
+             this, SLOT (launch_class_editor(QListWidgetItem*)));
+    connect (m_ui->class_list, SIGNAL (customContextMenuRequested(QPoint)),
+             this, SLOT (activate_class_context_menu(QPoint)));
+  }
+  else {
+    m_ui->add_button->setEnabled(false);
+    m_ui->active_button->setEnabled(false);
+    m_ui->save_button->setEnabled(false);
+  }
   connect (m_ui->save_button, SIGNAL(pressed()), this, SLOT(save_schema()));
   connect (m_ui->close_button, SIGNAL(pressed()), this, SLOT(close()));
-  connect (m_ui->missing_button, SIGNAL (pressed()), this, SLOT(add_missing_includes()));
   connect (&KernelWrapper::GetInstance(), SIGNAL (active_updated()),
            this, SLOT(show_status()));
-  connect (&KernelWrapper::GetInstance(), SIGNAL (ClassUpdated(QString)),
-           this, SLOT(class_updated(QString)));
 
 }
 
@@ -96,6 +104,9 @@ void SchemaFileInfo::get_includes() {
     m_ui->include_list->addItem(item);
     if (!direct_includes.contains(prune_path(inc))) {
       item->setForeground(QBrush(QColor (QColorConstants::Svg::darkred)));
+    }
+    else if (!KernelWrapper::GetInstance().IsFileWritable (inc)) {
+      item->setForeground(QBrush(QColor (QColorConstants::Svg::gray )));
     }
     else {
       item->setForeground(QBrush(QColor (QColorConstants::Svg::black )));
@@ -240,6 +251,10 @@ void SchemaFileInfo::update_class_list() {
   auto classes = KernelWrapper::GetInstance().get_schema_classes(m_filename);
   for (auto cls: classes) {
     auto item = new QListWidgetItem(QString::fromStdString(cls->get_name()));
+
+    if (!KernelWrapper::GetInstance().IsFileWritable ( m_filename )) {
+      item->setForeground(QBrush(QColor (QColorConstants::Svg::gray )));
+    }
     if (!check_relationships(cls)) {
       item->setForeground(QBrush(QColor ( 0xc00000 )));
     }
@@ -311,7 +326,7 @@ void SchemaFileInfo::show_status() {
     status.append("  Active");
     m_ui->active_button->setEnabled(false);
   }
-  else {
+  else if (KernelWrapper::GetInstance().IsFileWritable (m_filename)) {
     m_ui->active_button->setEnabled(true);
   }
   m_ui->status->setText(status);
@@ -378,19 +393,21 @@ void dbse::SchemaFileInfo::activate_include_context_menu (QPoint pos)
   if (m_include_menu == nullptr) {
     m_include_menu = new QMenu (this);
 
-    QAction* act = new QAction ( tr ( "Set as Active Schema" ), this );
-    connect (act, SIGNAL ( triggered() ), this, SLOT ( set_schemafile_active() ) );
+    if (KernelWrapper::GetInstance().IsFileWritable ( m_filename )) {
+      QAction* act = new QAction ( tr ( "Set as Active Schema" ), this );
+      connect (act, SIGNAL ( triggered() ), this, SLOT ( set_schemafile_active() ) );
+      QAction* add = new QAction ( tr ( "Add include file" ), this );
+      connect (add, SIGNAL ( triggered() ), this, SLOT ( add_include() ) );
+      QAction* remove = new QAction ( tr ( "Remove include file" ), this );
+      connect (remove, SIGNAL ( triggered() ), this, SLOT ( remove_include() ) );
+      m_include_menu->addAction ( act );
+      m_include_menu->addAction ( add );
+      m_include_menu->addAction ( remove );
+    }
     QAction* info = new QAction ( tr ( "Show file info" ), this );
     connect (info, SIGNAL ( triggered() ), this, SLOT ( show_file_info() ) );
-    QAction* add = new QAction ( tr ( "Add include file" ), this );
-    connect (add, SIGNAL ( triggered() ), this, SLOT ( add_include() ) );
-    QAction* remove = new QAction ( tr ( "Remove include file" ), this );
-    connect (remove, SIGNAL ( triggered() ), this, SLOT ( remove_include() ) );
 
     m_include_menu->addAction ( info );
-    m_include_menu->addAction ( act );
-    m_include_menu->addAction ( add );
-    m_include_menu->addAction ( remove );
   }
 
   if (m_ui->include_list->currentIndex().isValid()) {
@@ -402,6 +419,7 @@ void dbse::SchemaFileInfo::activate_class_context_menu (QPoint pos)
 {
   if (m_class_menu == nullptr) {
     m_class_menu = new QMenu (this);
+
     QAction * add = new QAction (tr("&Add New Class"), this );
     connect (add, SIGNAL (triggered()), this, SLOT (add_new_class()));
 
