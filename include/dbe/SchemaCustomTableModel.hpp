@@ -3,8 +3,11 @@
 
 /// Including QT Headers
 #include <QAbstractTableModel>
+#include <QBrush>
 #include <QStringList>
 #include <QMimeData>
+
+#include <vector>
 
 namespace dbse
 {
@@ -29,6 +32,7 @@ private:
   QStringList HeaderList;
   QList<QList<QString>> m_data;
   QList<QList<QString>> m_tooltips;
+  std::vector<QBrush> m_brushes;
 };
 
 }  // namespace dbse

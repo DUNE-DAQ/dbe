@@ -34,7 +34,7 @@ private:
 
   CustomFileModel * FileModel;
   CustomTableModel * TableModel;
-  QSortFilterProxyModel * proxyModel;
+  QSortFilterProxyModel * m_proxyModel;
   QMenu * ContextMenuFileView;
   QMenu * ContextMenuTableView;
   QString m_title{"DUNE DAQ Configuration Schema editor"};

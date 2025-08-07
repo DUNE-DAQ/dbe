@@ -18,19 +18,19 @@ dbse::CustomTableModel::~CustomTableModel()
 
 int dbse::CustomTableModel::rowCount ( const QModelIndex & parent ) const
 {
-  Q_UNUSED ( parent )
+  Q_UNUSED ( parent );
   return m_data.size();
 }
 
 int dbse::CustomTableModel::columnCount ( const QModelIndex & parent ) const
 {
-  Q_UNUSED ( parent )
+  Q_UNUSED ( parent );
   return HeaderList.size();
 }
 
 Qt::ItemFlags dbse::CustomTableModel::flags ( const QModelIndex & index ) const
 {
-  Q_UNUSED ( index )
+  Q_UNUSED ( index );
   return Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsDragEnabled;
 }
 
@@ -60,7 +60,9 @@ QVariant dbse::CustomTableModel::data ( const QModelIndex & index, int role ) co
   {
     return m_tooltips.value ( index.row() ).value ( index.column() );
   }
-
+  if (role == Qt::ForegroundRole) {
+    return m_brushes.at(index.row());
+  }
 
   return QVariant();
 }
@@ -87,6 +89,17 @@ void dbse::CustomTableModel::setupModel()
     Row.append ( QString ( Class->get_name().c_str() ) );
     m_data.append ( Row );
     m_tooltips.append (QStringList {QString ( Class->get_description().c_str() )});
+
+    auto fn = Class->get_file()->get_full_file_name();
+    if (!KernelWrapper::GetInstance().IsFileWritable (fn)) {
+      m_brushes.emplace_back(QBrush(QColor (QColorConstants::Svg::darkred)));
+    }
+    else if (fn == KernelWrapper::GetInstance().GetActiveSchema()) {
+      m_brushes.emplace_back(QBrush(QColor (QColorConstants::Svg::darkblue)));
+    }
+    else {
+      m_brushes.emplace_back(QBrush(QColor (QColorConstants::Svg::black)));
+    }
   }
 }
 

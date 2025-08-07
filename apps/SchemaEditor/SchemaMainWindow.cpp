@@ -36,7 +36,7 @@ dbse::SchemaMainWindow::SchemaMainWindow ( QString SchemaFile, QWidget * parent 
     ui ( new Ui::SchemaMainWindow ),
     FileModel ( nullptr ),
     TableModel ( nullptr ),
-    proxyModel ( new QSortFilterProxyModel() ),
+    m_proxyModel ( new QSortFilterProxyModel() ),
     ContextMenuFileView ( nullptr ),
     ContextMenuTableView ( nullptr )
 {
@@ -66,7 +66,7 @@ void dbse::SchemaMainWindow::InitialSettings()
   ui->ClassTableSearchLine->setProperty ( "placeholderText",
                                           QVariant ( QString ( "Search for classes regex" ) ) );
   ui->ClassTableSearchLine->setClearButtonEnabled(true);
-  proxyModel->setFilterCaseSensitivity (Qt::CaseInsensitive);
+  m_proxyModel->setFilterCaseSensitivity (Qt::CaseInsensitive);
 }
 
 void dbse::SchemaMainWindow::InitialTab()
@@ -122,7 +122,7 @@ void dbse::SchemaMainWindow::SetController()
             SLOT ( CustomContextMenuTableView ( QPoint ) ) );
   connect ( ui->PrintView, SIGNAL ( triggered() ), this, SLOT ( PrintCurrentView() ) );
   connect ( ui->exportView, SIGNAL ( triggered() ), this, SLOT ( export_current_view() ) );
-  connect ( ui->ClassTableSearchLine, SIGNAL( textChanged ( QString ) ), proxyModel, SLOT( setFilterRegExp( QString ) ) );
+  connect ( ui->ClassTableSearchLine, SIGNAL( textChanged ( QString ) ), m_proxyModel, SLOT( setFilterRegExp( QString ) ) );
   connect ( ui->case_sensitive, SIGNAL ( stateChanged(int) ), this,
             SLOT (toggle_case_sensitive(int)) );
 }
@@ -198,9 +198,8 @@ void dbse::SchemaMainWindow::BuildTableModel()
   }
   TableModel = new CustomTableModel ( Headers );
 
-
-  proxyModel->setSourceModel(TableModel);
-  ui->ClassTableView->setModel ( proxyModel );
+  m_proxyModel->setSourceModel(TableModel);
+  ui->ClassTableView->setModel ( m_proxyModel );
 }
 
 int dbse::SchemaMainWindow::ShouldSaveViewChanges() const
@@ -253,7 +252,7 @@ void dbse::SchemaMainWindow::AddNewClass()
 void dbse::SchemaMainWindow::RemoveClass()
 {
   QModelIndex Index = ui->ClassTableView->currentIndex();
-  QModelIndex proxyIndex = proxyModel->mapToSource( Index );
+  QModelIndex proxyIndex = m_proxyModel->mapToSource( Index );
   QStringList Row = TableModel->getRowFromIndex ( proxyIndex );
   OksClass * SchemaClass = KernelWrapper::GetInstance().FindClass ( Row.at (
                                                                       0 ).toStdString() );
@@ -282,7 +281,7 @@ void dbse::SchemaMainWindow::RemoveClass()
 
 void dbse::SchemaMainWindow::editClass() {
   QModelIndex Index = ui->ClassTableView->currentIndex();
-  QModelIndex proxyIndex = proxyModel->mapToSource( Index );
+  QModelIndex proxyIndex = m_proxyModel->mapToSource( Index );
   QStringList Row = TableModel->getRowFromIndex ( proxyIndex );
 
   if ( !Row.isEmpty() ) {
@@ -815,7 +814,7 @@ void dbse::SchemaMainWindow::LoadView() {
 
 void dbse::SchemaMainWindow::LaunchClassEditor ( QModelIndex Index )
 {
-  QModelIndex proxyIndex = proxyModel->mapToSource( Index );
+  QModelIndex proxyIndex = m_proxyModel->mapToSource( Index );
   QStringList Row = TableModel->getRowFromIndex ( proxyIndex );
 
   if ( !Row.isEmpty() ) {
@@ -866,10 +865,24 @@ void dbse::SchemaMainWindow::CustomContextMenuFileView ( QPoint Pos )
     ContextMenuFileView->addAction ( Sav );
   }
 
-  QModelIndex Index = ui->FileView->currentIndex();
+  QModelIndex index = ui->FileView->currentIndex();
 
-  if ( Index.isValid() )
+  if ( index.isValid() )
   {
+    QStringList row = FileModel->getRowFromIndex ( index );
+    if (row.at(1) == "RW") {
+      ContextMenuFileView->actions().at(2)->setVisible(true);
+      if (!row.at(2).contains("Active")) {
+        ContextMenuFileView->actions().at(1)->setVisible(true);
+      }
+      else {
+        ContextMenuFileView->actions().at(1)->setVisible(false);
+      }
+    }
+    else {
+      ContextMenuFileView->actions().at(2)->setVisible(false);
+      ContextMenuFileView->actions().at(1)->setVisible(false);
+    }
     ContextMenuFileView->exec ( ui->FileView->mapToGlobal ( Pos ) );
   }
 }
@@ -905,9 +918,9 @@ void dbse::SchemaMainWindow::CustomContextMenuTableView ( QPoint Pos )
 void dbse::SchemaMainWindow::toggle_case_sensitive ( int /*state*/ )
 {
   if ( ui->case_sensitive->isChecked() ) {
-    proxyModel->setFilterCaseSensitivity ( Qt::CaseSensitive );
+    m_proxyModel->setFilterCaseSensitivity ( Qt::CaseSensitive );
   }
   else {
-    proxyModel->setFilterCaseSensitivity ( Qt::CaseInsensitive );
+    m_proxyModel->setFilterCaseSensitivity ( Qt::CaseInsensitive );
   }
 }
