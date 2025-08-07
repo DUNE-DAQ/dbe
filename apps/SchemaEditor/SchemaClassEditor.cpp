@@ -132,7 +132,6 @@ void dbse::SchemaClassEditor::InitialSettings()
   /// Class Name
   ui->ClassNameLineEdit->setText ( QString::fromStdString ( SchemaClass->get_name() ) );
   //ui->ClassNameLineEdit->setEnabled ( false );
-  ui->renameButton->setEnabled ( false );
   /// Schema File
   ui->SchemaFileLineEdit->setText ( QString::fromStdString ( SchemaClass->get_file()->get_short_file_name() ) );
   //ui->SchemaFileLineEdit->setEnabled ( false );
