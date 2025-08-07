@@ -38,10 +38,10 @@ SchemaFileInfo::SchemaFileInfo(std::string filename, QWidget* /*parent*/)
   setWindowTitle(
     QString("Schema File:  %1").arg(QString::fromStdString(filename.substr(sp))));
 
-  QString label{"File: "};
-  label.append(QString::fromStdString(filename));
-  m_ui->label->setText(label);
-
+  m_ui->label->setText(QString::fromStdString(filename));
+  if (!KernelWrapper::GetInstance().IsFileWritable ( m_filename )) {
+    m_ui->label->setStyleSheet("color:rgb(128,0,0);");
+  }
   show_status();
 
 
@@ -74,9 +74,6 @@ SchemaFileInfo::SchemaFileInfo(std::string filename, QWidget* /*parent*/)
     connect (m_ui->missing_button, SIGNAL (pressed()), this, SLOT(add_missing_includes()));
     connect (&KernelWrapper::GetInstance(), SIGNAL (ClassUpdated(QString)),
              this, SLOT(class_updated(QString)));
-
-    connect (m_ui->class_list, SIGNAL (itemActivated(QListWidgetItem*)),
-             this, SLOT (launch_class_editor(QListWidgetItem*)));
     connect (m_ui->class_list, SIGNAL (customContextMenuRequested(QPoint)),
              this, SLOT (activate_class_context_menu(QPoint)));
   }
@@ -90,6 +87,8 @@ SchemaFileInfo::SchemaFileInfo(std::string filename, QWidget* /*parent*/)
   connect (&KernelWrapper::GetInstance(), SIGNAL (active_updated()),
            this, SLOT(show_status()));
 
+  connect (m_ui->class_list, SIGNAL (itemActivated(QListWidgetItem*)),
+           this, SLOT (launch_class_editor(QListWidgetItem*)));
 }
 
 void SchemaFileInfo::get_includes() {
@@ -307,7 +306,7 @@ void SchemaFileInfo::save_schema() {
 }
 
 void SchemaFileInfo::show_status() {
-  QString status("Status: ");
+  QString status;
   if (KernelWrapper::GetInstance().IsFileWritable ( m_filename )) {
     status.append("Read/Write");
   }
@@ -394,13 +393,10 @@ void dbse::SchemaFileInfo::activate_include_context_menu (QPoint pos)
     m_include_menu = new QMenu (this);
 
     if (KernelWrapper::GetInstance().IsFileWritable ( m_filename )) {
-      QAction* act = new QAction ( tr ( "Set as Active Schema" ), this );
-      connect (act, SIGNAL ( triggered() ), this, SLOT ( set_schemafile_active() ) );
-      QAction* add = new QAction ( tr ( "Add include file" ), this );
+      QAction* add = new QAction ( tr ( "Add New Include File" ), this );
       connect (add, SIGNAL ( triggered() ), this, SLOT ( add_include() ) );
-      QAction* remove = new QAction ( tr ( "Remove include file" ), this );
+      QAction* remove = new QAction ( tr ( "Remove Selected Include File" ), this );
       connect (remove, SIGNAL ( triggered() ), this, SLOT ( remove_include() ) );
-      m_include_menu->addAction ( act );
       m_include_menu->addAction ( add );
       m_include_menu->addAction ( remove );
     }

@@ -146,6 +146,10 @@ void dbse::SchemaClassEditor::InitialSettings()
     ui->moveButton->setEnabled (true);
   }
   else {
+    ui->SchemaFileLineEdit->setStyleSheet("color:rgb(128,0,0);");
+    // ui->DescriptionTextEdit->setEnabled(false);
+    ui->DescriptionTextEdit->setReadOnly(true);
+
     ui->AddButtonAttribute->setEnabled (false);
     ui->AddButtonSuperClass->setEnabled (false);
     ui->AddButtonRelationship->setEnabled (false);

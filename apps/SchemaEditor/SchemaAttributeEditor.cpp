@@ -13,7 +13,9 @@ dbse::SchemaAttributeEditor::SchemaAttributeEditor ( OksClass * ClassInfo,
     ui ( new Ui::SchemaAttributeEditor ),
     SchemaClass ( ClassInfo ),
     SchemaAttribute ( AttributeData ),
-    UsedNew ( false )
+    UsedNew ( false ),
+    m_writable(KernelWrapper::GetInstance().IsFileWritable(
+                 SchemaClass->get_file()->get_full_file_name()))
 {
   QWidget::setAttribute(Qt::WA_DeleteOnClose);
   ui->setupUi ( this );
@@ -27,7 +29,9 @@ dbse::SchemaAttributeEditor::SchemaAttributeEditor ( OksClass * ClassInfo,
     ui ( new Ui::SchemaAttributeEditor ),
     SchemaClass ( ClassInfo ),
     SchemaAttribute ( nullptr ),
-    UsedNew ( true )
+    UsedNew ( true ),
+    m_writable(KernelWrapper::GetInstance().IsFileWritable(
+                 SchemaClass->get_file()->get_full_file_name()))
 {
   QWidget::setAttribute(Qt::WA_DeleteOnClose);
   ui->setupUi ( this );
@@ -84,7 +88,9 @@ void dbse::SchemaAttributeEditor::FillInfo()
     }
     else
     {
-      ui->FormatLayout->setEnabled ( true );
+      if (m_writable) {
+        ui->FormatLayout->setEnabled ( true );
+      }
       ui->FormatLabel->show();
       ui->AttributeFormatComboBox->show();
 
@@ -123,9 +129,10 @@ void dbse::SchemaAttributeEditor::InitialSettings()
     ui->AttributeTypeComboBox->setEnabled(false);
     ui->AttributeIsMultivariable->setEnabled(false);
     ui->AttributeIsNotNull->setEnabled(false);
-    ui->AttributeDescriptionTextBox->setEnabled(false);
     ui->AttributeRangeLineEdit->setEnabled(false);
     ui->AttributeInitialValue->setEnabled(false);
+
+    ui->AttributeDescriptionTextBox->setReadOnly(true);
   }
 
   if ( !UsedNew )
