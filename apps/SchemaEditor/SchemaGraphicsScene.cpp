@@ -407,7 +407,9 @@ void dbse::SchemaGraphicsScene::mouseReleaseEvent ( QGraphicsSceneMouseEvent * m
   if ( itemAt ( mouseEvent->scenePos(), QTransform() ) ) {
     auto item = itemAt(mouseEvent->scenePos(), QTransform() );
     if (!m_mouse_item_pos.isNull()) {
-      modified(m_mouse_item_pos != item->pos());
+      if (m_mouse_item_pos != item->pos()) {
+        modified(true);
+      }
       m_mouse_item_pos = QPointF();
     }
   }
