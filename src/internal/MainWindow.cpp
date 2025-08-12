@@ -106,8 +106,7 @@ void dbe::MainWindow::init_tabs()
 void dbe::MainWindow::slot_add_tab()
 {
   tableholder->addTab ( new TableTab ( tableholder ), "Table View" );
-  int cind = tableholder->currentIndex();
-  tableholder->setCurrentIndex ( ++cind );
+  tableholder->setCurrentIndex ( tableholder->count()-1 );
   tableholder->show();
 }
 
