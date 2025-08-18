@@ -134,6 +134,8 @@ void dbe::MainWindow::init()
   /// Table Settings
   UndoView->setStack ( confaccessor::get_commands().get() );
   SearchLineTable->hide();
+  SearchLineTable->setClearButtonEnabled(true);
+  SearchTreeLine->setClearButtonEnabled(true);
   CaseSensitiveCheckBoxTable->hide();
   tableholder->removeTab ( 1 );
 
