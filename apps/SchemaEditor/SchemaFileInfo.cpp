@@ -344,6 +344,7 @@ void SchemaFileInfo::add_include() {
     add_file(file.toStdString());
   }
   get_includes();
+  show_status();
 }
 
 void SchemaFileInfo::add_missing_includes() {
