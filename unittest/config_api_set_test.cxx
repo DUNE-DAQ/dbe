@@ -61,7 +61,13 @@ BOOST_AUTO_TEST_CASE(unset_multi_relation)
 		
 		dunedaq::conffwk::relationship_t relation = info::relation::match(relation_to_modify, aclass);
 		BOOST_CHECK_EQUAL(relation_to_modify,relation.p_name );
-		BOOST_CHECK_NO_THROW(set::noactions::relation(oref, relation , empty));
+
+		try {
+		  set::noactions::relation(oref, relation, empty);
+		} catch (const ers::Issue& e) {
+		  ers:error(e);
+		  BOOST_FAIL("Error: ERS exception thrown from relation function");
+		}
 	}
 }
 
