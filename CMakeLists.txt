@@ -1,3 +1,5 @@
+# JCF: this line is a TEST ONLY line. It is added simply so git recognizes a change was made to the source.
+
 cmake_minimum_required(VERSION 3.12)
 project(dbe VERSION 1.6.1)
 
