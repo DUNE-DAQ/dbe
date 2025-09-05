@@ -19,19 +19,20 @@
 using namespace dunedaq::oks;
 
 dbse::SchemaGraphicObject::SchemaGraphicObject ( QString & ClassName,
+                                                 SchemaGraphicsScene* scene,
                                                  QGraphicsObject * parent )
   : QGraphicsObject ( parent ),
-    m_inherited_properties_visible(true),
+    m_scene(scene),
     LineOffsetX ( 0 ),
     LineOffsetY ( 0 )
 {
   setAcceptHoverEvents(true);
   m_font = QFont( "Helvetica [Cronyx]", 9);
-  m_bold_font = QFont( "Helvetica [Cronyx]", 9, QFont::DemiBold);
-  m_default_color = QColor ( 0x1e1b18 );
+  // m_bold_font = QFont( "Helvetica [Cronyx]", 9, QFont::DemiBold);
+  m_default_color = Qt::black; //QColor ( 0x1e1b18 );
   m_active_color = QColor ( 0x14aaff );
   m_highlight_color = QColor ( 0xc00080 );
-  m_opaque_color = QColor ( 0x5d5b59 );
+  m_opaque_color = QColor ( 0x804040 );
 
   setFlag ( ItemIsMovable );
   setFlag ( ItemSendsGeometryChanges, true );
@@ -215,35 +216,31 @@ void dbse::SchemaGraphicObject::GetInfo()
     m_class_methods.append ( MethodString );
   }
 
-  if (m_inherited_properties_visible) {
-    /// Getting indirect Attributes
-    for ( OksAttribute * attribute : indirect_attributes )
-    {
-      QString attribute_string (
-        QString::fromStdString ( attribute->get_name() ) + " : "
-        + QString::fromStdString ( attribute->get_type() ) );
-      m_class_inherited_attributes.append ( attribute_string );
-    }
-
-    /// Getting indirect Relationships
-    for ( OksRelationship * relationship : indirect_relationships )
-    {
-      QString relationship_string ( QString::fromStdString ( relationship->get_name() ) + " : " 
-      + QString::fromStdString ( relationship->get_type() ) + " - "
-      + QString::fromStdString ( m[ relationship->get_low_cardinality_constraint() ] ) + ":"
-      + QString::fromStdString ( m[ relationship->get_high_cardinality_constraint() ] )  );
-      m_class_inherited_relationhips.append ( relationship_string );
-    }
-
-    /// Getting indirect Methods
-    for ( OksMethod * method : indirect_methods )
-    {
-      QString method_string ( QString::fromStdString ( method->get_name() ) + "()" );
-      m_class_inherited_methods.append ( method_string );
-    }
-
+  /// Getting indirect Attributes
+  for ( OksAttribute * attribute : indirect_attributes )
+  {
+    QString attribute_string (
+      QString::fromStdString ( attribute->get_name() ) + " : "
+      + QString::fromStdString ( attribute->get_type() ) );
+    m_class_inherited_attributes.append ( attribute_string );
   }
 
+  /// Getting indirect Relationships
+  for ( OksRelationship * relationship : indirect_relationships )
+  {
+    QString relationship_string ( QString::fromStdString ( relationship->get_name() ) + " : " 
+                                  + QString::fromStdString ( relationship->get_type() ) + " - "
+                                  + QString::fromStdString ( m[ relationship->get_low_cardinality_constraint() ] ) + ":"
+                                  + QString::fromStdString ( m[ relationship->get_high_cardinality_constraint() ] )  );
+    m_class_inherited_relationhips.append ( relationship_string );
+  }
+
+  /// Getting indirect Methods
+  for ( OksMethod * method : indirect_methods )
+  {
+    QString method_string ( QString::fromStdString ( method->get_name() ) + "()" );
+    m_class_inherited_methods.append ( method_string );
+  }
 }
 
 QRectF dbse::SchemaGraphicObject::boundingRect() const
@@ -267,7 +264,7 @@ QRectF dbse::SchemaGraphicObject::boundingRect() const
         FontMetrics.boundingRect ( AttributeName ).width();
   }
 
-  if (m_inherited_properties_visible) {
+  if (m_scene->inherited_properties_visible()) {
     for ( auto & AttributeName : m_class_inherited_attributes )
     {
       TotalBoundingHeight += FontMetrics.boundingRect ( AttributeName ).height();
@@ -287,7 +284,7 @@ QRectF dbse::SchemaGraphicObject::boundingRect() const
         FontMetrics.boundingRect ( relationship_name ).width();
   }
 
-  if (m_inherited_properties_visible) {
+  if (m_scene->inherited_properties_visible()) {
     for ( auto & relationship_name : m_class_inherited_relationhips )
     {
       TotalBoundingHeight += FontMetrics.boundingRect ( relationship_name ).height();
@@ -307,7 +304,7 @@ QRectF dbse::SchemaGraphicObject::boundingRect() const
         FontMetrics.boundingRect ( MethodName ).width();
   }
 
-  if (m_inherited_properties_visible) {
+  if (m_scene->inherited_properties_visible()) {
     for ( auto & MethodName : m_class_inherited_methods )
     {
       TotalBoundingHeight += FontMetrics.boundingRect ( MethodName ).height();
@@ -339,16 +336,22 @@ void dbse::SchemaGraphicObject::paint ( QPainter * painter,
   double SpaceX = 3;
   double SpaceY = 3;
 
+  bool abstract = m_class_info->get_is_abstract() && m_scene->highlight_abstract();
+
   QColor colour;
   if (m_highlight_class) {
      colour = m_highlight_color;
+     m_font = QFont( "Helvetica [Cronyx]", 9, QFont::DemiBold, abstract);
   }
-  else if (m_highlight_active && (m_class_info->get_file()->get_full_file_name()
-                             == KernelWrapper::GetInstance().GetActiveSchema())) {
+  else if (m_scene->highlight_active() &&
+           (m_class_info->get_file()->get_full_file_name()
+            == KernelWrapper::GetInstance().GetActiveSchema())) {
     colour = m_active_color;
+    m_font = QFont( "Helvetica [Cronyx]", 9, -1, abstract);
   }
   else {
     colour = m_default_color;
+    m_font = QFont( "Helvetica [Cronyx]", 9, -1, abstract);
   }
 
   const QPen bounding_box_pen = QPen(colour, 2.5);
@@ -377,7 +380,7 @@ void dbse::SchemaGraphicObject::paint ( QPainter * painter,
     painter->drawText ( SpaceX, HeightOffset, AttributeName );
   }
 
-  if (m_inherited_properties_visible) {
+  if (m_scene->inherited_properties_visible()) {
     painter->setPen ( m_opaque_color );
     for ( QString & AttributeName : m_class_inherited_attributes )
     {
@@ -399,7 +402,7 @@ void dbse::SchemaGraphicObject::paint ( QPainter * painter,
     painter->drawText ( SpaceX, HeightOffset, relationship_name );
   }
 
-  if (m_inherited_properties_visible) {
+  if (m_scene->inherited_properties_visible()) {
     painter->setPen ( m_opaque_color );
     for ( QString & relationship_name : m_class_inherited_relationhips )
     {
@@ -422,7 +425,7 @@ void dbse::SchemaGraphicObject::paint ( QPainter * painter,
     painter->drawText ( SpaceX, HeightOffset, MethodName );
   }
 
-  if (m_inherited_properties_visible) {
+  if (m_scene->inherited_properties_visible()) {
     painter->setPen ( m_opaque_color );
     for ( QString & MethodName : m_class_inherited_methods )
     {
@@ -480,19 +483,14 @@ bool dbse::SchemaGraphicObject::HasArrow ( SchemaGraphicObject * Dest ) const
   return false;
 }
 
-void dbse::SchemaGraphicObject::set_inherited_properties_visibility( bool visible ) {
-  
-  m_inherited_properties_visible = visible; 
+void dbse::SchemaGraphicObject::update_arrows()
+{
   for ( SchemaGraphicSegmentedArrow * arrow : m_arrows )
-    {
-      arrow->UpdatePosition();
-    }
+  {
+    arrow->UpdatePosition();
+  }
 }
 
-void dbse::SchemaGraphicObject::set_highlight_active(bool highlight)
-{
-  m_highlight_active = highlight;
-}
 void dbse::SchemaGraphicObject::toggle_highlight_class()
 {
   m_highlight_class = !m_highlight_class;

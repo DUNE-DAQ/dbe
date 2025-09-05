@@ -15,20 +15,21 @@ namespace dbse
 {
 
 class SchemaGraphicSegmentedArrow;
+class SchemaGraphicsScene;
 
 class SchemaGraphicObject: public QGraphicsObject
 {
   Q_OBJECT
 public:
-  explicit SchemaGraphicObject ( QString & ClassName, QGraphicsObject * parent = nullptr );
+  explicit SchemaGraphicObject ( QString & ClassName,
+                                 SchemaGraphicsScene* scene,
+                                 QGraphicsObject * parent = nullptr );
   ~SchemaGraphicObject();
 
   [[nodiscard]] dunedaq::oks::OksClass * GetClass() const;
   [[nodiscard]] QString GetClassName() const;
   void GetInfo();
   /// Graphic API
-  void set_inherited_properties_visibility( bool visible );
-  void set_highlight_active( bool highlight );
   void toggle_highlight_class();
   [[nodiscard]] QRectF boundingRect() const override;
   [[nodiscard]] QPainterPath shape() const override;
@@ -39,12 +40,14 @@ public:
   void RemoveArrow ( SchemaGraphicSegmentedArrow * Arrow );
   void RemoveArrows();
   bool HasArrow ( SchemaGraphicObject * Dest ) const;
+  void update_arrows();
 protected:
   QVariant itemChange ( GraphicsItemChange change, const QVariant & value );
   void hoverEnterEvent ( QGraphicsSceneHoverEvent* ev );
   void hoverLeaveEvent ( QGraphicsSceneHoverEvent* ev );
   void mouseDoubleClickEvent ( QGraphicsSceneMouseEvent* ev );
 private:
+  SchemaGraphicsScene* m_scene;
   dunedaq::oks::OksClass * m_class_info;
   QString m_class_object_name;
   QStringList m_class_attributes;

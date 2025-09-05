@@ -25,6 +25,7 @@ dbse::SchemaGraphicsScene::SchemaGraphicsScene ( QObject * parent )
     CurrentObject ( nullptr ),
     m_current_arrow ( nullptr ),
     m_inherited_properties_visible(false),
+    m_highlight_abstract(false),
     m_highlight_active(false),
     m_modified(false)
 {
@@ -53,6 +54,10 @@ void dbse::SchemaGraphicsScene::CreateActions()
   // Toggle highlighting of all classes in active schema
   m_toggle_highlight_active = new QAction ( "Toggle &highlighting of classes in active schema", this );
   connect ( m_toggle_highlight_active, SIGNAL ( triggered() ), this, SLOT ( ToggleHighlightActive() ) );
+
+  // Toggle highlighting of all abstract classes in view
+  m_toggle_highlight_abstract = new QAction ( "Toggle &highlighting of abstract classes in view", this );
+  connect ( m_toggle_highlight_abstract, SIGNAL ( triggered() ), this, SLOT ( ToggleHighlightAbstract() ) );
 
   // Toggle highlighting of current class
   m_toggle_highlight_class = new QAction ( "Toggle &highlighting of this class", this );
@@ -145,6 +150,7 @@ void dbse::SchemaGraphicsScene::contextMenuEvent ( QGraphicsSceneContextMenuEven
     m_context_menu->addAction ( m_add_class );
     m_context_menu->addAction ( m_add_note );
     m_context_menu->addAction ( m_toggle_indirect_infos );
+    m_context_menu->addAction ( m_toggle_highlight_abstract );
     m_context_menu->addAction ( m_toggle_highlight_active );
 
     m_seperator_pos = m_context_menu->actions().size();
@@ -237,10 +243,8 @@ QStringList dbse::SchemaGraphicsScene::AddItemsToScene (
           continue;
       }
 
-      SchemaGraphicObject * Object = new SchemaGraphicObject ( ClassName );
+      SchemaGraphicObject * Object = new SchemaGraphicObject ( ClassName, this );
       Object->setPos ( Positions.at ( SchemaClasses.indexOf ( ClassName ) ) );
-      Object->set_inherited_properties_visibility(m_inherited_properties_visible);
-      Object->set_highlight_active(m_highlight_active);
       addItem ( Object );
       /// Updating item list
       ItemMap.insert ( ClassName, Object );
@@ -507,10 +511,8 @@ void dbse::SchemaGraphicsScene::new_note_slot() {
 void dbse::SchemaGraphicsScene::add_class_slot(QString class_name) {
   disconnect(m_addclass_connection);
 
-  auto object = new SchemaGraphicObject(class_name);
+  auto object = new SchemaGraphicObject(class_name, this);
   object->setPos(m_current_pos);
-  object->set_inherited_properties_visibility(m_inherited_properties_visible);
-  object->set_highlight_active(m_highlight_active);
   addItem (object);
   /// Updating item list
   ItemMap.insert(class_name, object);
@@ -528,18 +530,18 @@ void dbse::SchemaGraphicsScene::EditClassSlot()
   SchemaClassEditor::launch(class_name);
 }
 
-void dbse::SchemaGraphicsScene::ToggleHighlightActive() {
-  m_highlight_active = !m_highlight_active;
-
-  for ( SchemaGraphicObject * item : ItemMap.values() ) {
-    item->set_highlight_active(m_highlight_active);
-  }
-
+void dbse::SchemaGraphicsScene::ToggleHighlightClass() {
+  CurrentObject->toggle_highlight_class();
   this->update();
 }
 
-void dbse::SchemaGraphicsScene::ToggleHighlightClass() {
-  CurrentObject->toggle_highlight_class();
+void dbse::SchemaGraphicsScene::ToggleHighlightActive() {
+  m_highlight_active = !m_highlight_active;
+  this->update();
+}
+
+void dbse::SchemaGraphicsScene::ToggleHighlightAbstract() {
+  m_highlight_abstract = !m_highlight_abstract;
   this->update();
 }
 
@@ -547,11 +549,9 @@ void dbse::SchemaGraphicsScene::ToggleIndirectInfos() {
   m_inherited_properties_visible = !m_inherited_properties_visible;
 
   for ( SchemaGraphicObject * item : ItemMap.values() ) {
-    item->set_inherited_properties_visibility(m_inherited_properties_visible);
+      item->update_arrows();
   }
-
   this->update();
-
 }
 
 void dbse::SchemaGraphicsScene::AddDirectSuperClassesSlot() {
