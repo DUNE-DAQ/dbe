@@ -54,6 +54,7 @@ private slots:
   void EditClassSlot();
   void ToggleIndirectInfos();
   void ToggleHighlightActive();
+  void ToggleHighlightClass();
   void AddDirectSuperClassesSlot();
   void AddAllSuperClassesSlot();
   void AddAllSubClassesSlot();
@@ -74,6 +75,7 @@ private:
   QAction * m_edit_class;
   QAction * m_toggle_indirect_infos;
   QAction * m_toggle_highlight_active;
+  QAction * m_toggle_highlight_class;
   QAction * m_add_direct_super_classes;
   QAction * m_add_direct_relationship_classes;
   QAction * m_add_all_super_classes;

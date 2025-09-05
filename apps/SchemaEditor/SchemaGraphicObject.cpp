@@ -29,7 +29,8 @@ dbse::SchemaGraphicObject::SchemaGraphicObject ( QString & ClassName,
   m_font = QFont( "Helvetica [Cronyx]", 9);
   m_bold_font = QFont( "Helvetica [Cronyx]", 9, QFont::DemiBold);
   m_default_color = QColor ( 0x1e1b18 );
-  m_highlight_color = QColor ( 0x14aaff );
+  m_active_color = QColor ( 0x14aaff );
+  m_highlight_color = QColor ( 0xc00080 );
   m_opaque_color = QColor ( 0x5d5b59 );
 
   setFlag ( ItemIsMovable );
@@ -339,9 +340,12 @@ void dbse::SchemaGraphicObject::paint ( QPainter * painter,
   double SpaceY = 3;
 
   QColor colour;
-  if (m_highlight_active && (m_class_info->get_file()->get_full_file_name()
+  if (m_highlight_class) {
+     colour = m_highlight_color;
+  }
+  else if (m_highlight_active && (m_class_info->get_file()->get_full_file_name()
                              == KernelWrapper::GetInstance().GetActiveSchema())) {
-    colour = m_highlight_color;
+    colour = m_active_color;
   }
   else {
     colour = m_default_color;
@@ -488,6 +492,10 @@ void dbse::SchemaGraphicObject::set_inherited_properties_visibility( bool visibl
 void dbse::SchemaGraphicObject::set_highlight_active(bool highlight)
 {
   m_highlight_active = highlight;
+}
+void dbse::SchemaGraphicObject::toggle_highlight_class()
+{
+  m_highlight_class = !m_highlight_class;
 }
 
 

@@ -54,6 +54,10 @@ void dbse::SchemaGraphicsScene::CreateActions()
   m_toggle_highlight_active = new QAction ( "Toggle &highlighting of classes in active schema", this );
   connect ( m_toggle_highlight_active, SIGNAL ( triggered() ), this, SLOT ( ToggleHighlightActive() ) );
 
+  // Toggle highlighting of current class
+  m_toggle_highlight_class = new QAction ( "Toggle &highlighting of this class", this );
+  connect ( m_toggle_highlight_class, SIGNAL ( triggered() ), this, SLOT ( ToggleHighlightClass() ) );
+
   m_add_note = new QAction ( "Add note to view", this );
   connect ( m_add_note, SIGNAL ( triggered() ), this, SLOT ( new_note_slot() ) );
 
@@ -149,6 +153,7 @@ void dbse::SchemaGraphicsScene::contextMenuEvent ( QGraphicsSceneContextMenuEven
     m_class_pos = m_context_menu->actions().size();
     m_context_menu->addAction ( m_edit_class );
     m_context_menu->addAction ( m_remove_class );
+    m_context_menu->addAction ( m_toggle_highlight_class );
     m_context_menu->addAction ( m_add_direct_super_classes );
     m_context_menu->addAction ( m_add_direct_relationship_classes );
     m_context_menu->addAction ( m_add_all_super_classes );
@@ -531,7 +536,11 @@ void dbse::SchemaGraphicsScene::ToggleHighlightActive() {
   }
 
   this->update();
+}
 
+void dbse::SchemaGraphicsScene::ToggleHighlightClass() {
+  CurrentObject->toggle_highlight_class();
+  this->update();
 }
 
 void dbse::SchemaGraphicsScene::ToggleIndirectInfos() {

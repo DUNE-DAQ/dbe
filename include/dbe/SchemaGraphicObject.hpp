@@ -29,6 +29,7 @@ public:
   /// Graphic API
   void set_inherited_properties_visibility( bool visible );
   void set_highlight_active( bool highlight );
+  void toggle_highlight_class();
   [[nodiscard]] QRectF boundingRect() const override;
   [[nodiscard]] QPainterPath shape() const override;
   void paint ( QPainter * painter, const QStyleOptionGraphicsItem * option,
@@ -56,9 +57,11 @@ private:
 
   bool m_inherited_properties_visible;  
   bool m_highlight_active{false};
+  bool m_highlight_class{false};
   QFont m_font;
   QFont m_bold_font;
   QColor m_default_color;
+  QColor m_active_color;
   QColor m_highlight_color;
   QColor m_opaque_color;
 
