@@ -27,10 +27,8 @@ dbse::SchemaGraphicObject::SchemaGraphicObject ( QString & ClassName,
     LineOffsetY ( 0 )
 {
   setAcceptHoverEvents(true);
-  m_font = QFont( "Helvetica [Cronyx]", 9);
-  // m_bold_font = QFont( "Helvetica [Cronyx]", 9, QFont::DemiBold);
   m_default_color = Qt::black; //QColor ( 0x1e1b18 );
-  m_active_color = QColor ( 0x14aaff );
+  m_active_color = Qt::blue; //QColor ( 0x14aaff );
   m_highlight_color = QColor ( 0xc00080 );
   m_opaque_color = QColor ( 0x804040 );
 
@@ -49,6 +47,8 @@ dbse::SchemaGraphicObject::SchemaGraphicObject ( QString & ClassName,
 
   /// Getting class info
   GetInfo();
+
+  set_font();
 }
 
 dbse::SchemaGraphicObject::~SchemaGraphicObject()
@@ -197,6 +197,12 @@ void dbse::SchemaGraphicObject::GetInfo()
       QString::fromStdString ( attribute->get_name() ) + " : "
       + QString::fromStdString ( attribute->get_type() ) + (attribute->get_is_multi_values() ? "[]" : "") );
     m_class_attributes.append ( AttributeString );
+
+    QString value;
+    if (!attribute->get_init_value().empty()) {
+      value = QString::fromStdString (" = " + attribute->get_init_value());
+    }
+    m_class_attribute_values.append (value);
   }
 
   /// Getting direct Relationships
@@ -255,13 +261,20 @@ QRectF dbse::SchemaGraphicObject::boundingRect() const
   TotalBoundingHeight += FontMetrics.boundingRect ( m_class_object_name ).height();
   TotalBoundingWidth += FontMetrics.boundingRect ( m_class_object_name ).width();
 
-  for ( auto & AttributeName : m_class_attributes )
-  {
-    TotalBoundingHeight += FontMetrics.boundingRect ( AttributeName ).height();
 
-    if ( FontMetrics.boundingRect ( AttributeName ).width() > TotalBoundingWidth )
+  for ( int entry=0; entry<m_class_attributes.size(); entry++)
+  {
+    QString attribute_name = m_class_attributes[entry];
+    if (m_scene->show_defaults()) {
+      attribute_name.append(m_class_attribute_values[entry]);
+    }
+    TotalBoundingHeight += FontMetrics.boundingRect ( attribute_name ).height();
+
+    if ( FontMetrics.boundingRect (attribute_name).width() > TotalBoundingWidth )
+    {
       TotalBoundingWidth =
-        FontMetrics.boundingRect ( AttributeName ).width();
+        FontMetrics.boundingRect (attribute_name).width();
+    }
   }
 
   if (m_scene->inherited_properties_visible()) {
@@ -336,23 +349,21 @@ void dbse::SchemaGraphicObject::paint ( QPainter * painter,
   double SpaceX = 3;
   double SpaceY = 3;
 
-  bool abstract = m_class_info->get_is_abstract() && m_scene->highlight_abstract();
 
   QColor colour;
   if (m_highlight_class) {
      colour = m_highlight_color;
-     m_font = QFont( "Helvetica [Cronyx]", 9, QFont::DemiBold, abstract);
   }
   else if (m_scene->highlight_active() &&
            (m_class_info->get_file()->get_full_file_name()
             == KernelWrapper::GetInstance().GetActiveSchema())) {
     colour = m_active_color;
-    m_font = QFont( "Helvetica [Cronyx]", 9, -1, abstract);
   }
   else {
     colour = m_default_color;
-    m_font = QFont( "Helvetica [Cronyx]", 9, -1, abstract);
   }
+
+  set_font();
 
   const QPen bounding_box_pen = QPen(colour, 2.5);
   const QPen inner_line_pen = QPen(colour, 1.5);
@@ -373,11 +384,15 @@ void dbse::SchemaGraphicObject::paint ( QPainter * painter,
   painter->setFont ( m_font );
   painter->drawLine ( 0, HeightOffset, ObjectBoundingRect.width(), HeightOffset );
 
-  for ( QString & AttributeName : m_class_attributes )
+  for ( int entry=0; entry<m_class_attributes.size(); entry++)
   {
-    QRectF AttributeBoundingRect = FontMetrics.boundingRect ( AttributeName );
+    QString attribute_name = m_class_attributes[entry];
+    if (m_scene->show_defaults()) {
+      attribute_name.append(m_class_attribute_values[entry]);
+    }
+    QRectF AttributeBoundingRect = FontMetrics.boundingRect (attribute_name);
     HeightOffset += AttributeBoundingRect.height();
-    painter->drawText ( SpaceX, HeightOffset, AttributeName );
+    painter->drawText ( SpaceX, HeightOffset, attribute_name );
   }
 
   if (m_scene->inherited_properties_visible()) {
@@ -491,9 +506,21 @@ void dbse::SchemaGraphicObject::update_arrows()
   }
 }
 
+void dbse::SchemaGraphicObject::set_font()
+{
+  bool abstract = m_class_info->get_is_abstract() && m_scene->highlight_abstract();
+  if (m_highlight_class) {
+    m_font = QFont( "Helvetica [Cronyx]", 9, QFont::DemiBold, abstract);
+  }
+  else {
+    m_font = QFont( "Helvetica [Cronyx]", 9, -1, abstract);
+  }
+}
 void dbse::SchemaGraphicObject::toggle_highlight_class()
 {
   m_highlight_class = !m_highlight_class;
+  set_font();
+  update_arrows();
 }
 
 

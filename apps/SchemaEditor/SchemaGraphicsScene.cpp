@@ -48,7 +48,7 @@ void dbse::SchemaGraphicsScene::CreateActions()
   connect ( m_edit_class, SIGNAL ( triggered() ), this, SLOT ( EditClassSlot() ) );
 
   // Toggle inherited properties of all classes in view
-  m_toggle_indirect_infos = new QAction ( "&Toggle inherited properties", this );
+  m_toggle_indirect_infos = new QAction ( "Toggle &inherited properties", this );
   connect ( m_toggle_indirect_infos, SIGNAL ( triggered() ), this, SLOT ( ToggleIndirectInfos() ) );
 
   // Toggle highlighting of all classes in active schema
@@ -59,17 +59,21 @@ void dbse::SchemaGraphicsScene::CreateActions()
   m_toggle_highlight_abstract = new QAction ( "Toggle &highlighting of abstract classes in view", this );
   connect ( m_toggle_highlight_abstract, SIGNAL ( triggered() ), this, SLOT ( ToggleHighlightAbstract() ) );
 
+  // Toggle displaying default values of attributes
+  m_toggle_default = new QAction ( "Toggle showing of &default values of attributes", this );
+  connect ( m_toggle_default, SIGNAL ( triggered() ), this, SLOT ( ToggleDefault() ) );
+
   // Toggle highlighting of current class
   m_toggle_highlight_class = new QAction ( "Toggle &highlighting of this class", this );
   connect ( m_toggle_highlight_class, SIGNAL ( triggered() ), this, SLOT ( ToggleHighlightClass() ) );
 
-  m_add_note = new QAction ( "Add note to view", this );
+  m_add_note = new QAction ( "&Add note to view", this );
   connect ( m_add_note, SIGNAL ( triggered() ), this, SLOT ( new_note_slot() ) );
 
-  m_edit_note = new QAction ( "Edit note", this );
+  m_edit_note = new QAction ( "&Edit note", this );
   connect ( m_edit_note, SIGNAL ( triggered() ), this, SLOT ( edit_note_slot() ) );
 
-  m_remove_note = new QAction ( "Remove note", this );
+  m_remove_note = new QAction ( "&Remove note", this );
   connect ( m_remove_note, SIGNAL ( triggered() ), this, SLOT ( remove_note_slot() ) );
 
   // Show superclasses of the current class
@@ -77,7 +81,7 @@ void dbse::SchemaGraphicsScene::CreateActions()
   connect ( m_add_direct_super_classes, SIGNAL ( triggered() ), this, SLOT ( AddDirectSuperClassesSlot() ) );
 
   // Show relationship classes of the current clas
-  m_add_direct_relationship_classes = new QAction ( "Add &direct relationship classes to view", this );
+  m_add_direct_relationship_classes = new QAction ( "Add direct &relationship classes to view", this );
   connect ( m_add_direct_relationship_classes, SIGNAL ( triggered() ), this, SLOT ( AddDirectRelationshipClassesSlot() ) );
   
   // Show superclasses of the current class
@@ -89,7 +93,7 @@ void dbse::SchemaGraphicsScene::CreateActions()
   connect ( m_add_all_sub_classes, SIGNAL ( triggered() ), this, SLOT ( AddAllSubClassesSlot() ) );
 
   // Show indirect relationship classes of the current class
-  m_add_all_relationship_classes = new QAction ( "Add a&ll relationship classes to view", this );
+  m_add_all_relationship_classes = new QAction ( "Add all &relationship classes to view", this );
   connect ( m_add_all_relationship_classes, SIGNAL ( triggered() ), this, SLOT ( AddAllRelationshipClassesSlot() ) );
 
   // Remove class
@@ -152,6 +156,7 @@ void dbse::SchemaGraphicsScene::contextMenuEvent ( QGraphicsSceneContextMenuEven
     m_context_menu->addAction ( m_toggle_indirect_infos );
     m_context_menu->addAction ( m_toggle_highlight_abstract );
     m_context_menu->addAction ( m_toggle_highlight_active );
+    m_context_menu->addAction ( m_toggle_default );
 
     m_seperator_pos = m_context_menu->actions().size();
     m_context_menu->addSeparator();
@@ -542,6 +547,14 @@ void dbse::SchemaGraphicsScene::ToggleHighlightActive() {
 
 void dbse::SchemaGraphicsScene::ToggleHighlightAbstract() {
   m_highlight_abstract = !m_highlight_abstract;
+  this->update();
+}
+
+void dbse::SchemaGraphicsScene::ToggleDefault() {
+  m_show_defaults = !m_show_defaults;
+  for ( SchemaGraphicObject * item : ItemMap.values() ) {
+      item->update_arrows();
+  }
   this->update();
 }
 

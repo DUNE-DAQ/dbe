@@ -36,6 +36,7 @@ public:
   [[nodiscard]] bool inherited_properties_visible() const {
     return m_inherited_properties_visible;}
 
+  [[nodiscard]] bool show_defaults () const {return m_show_defaults;};
   [[nodiscard]] bool IsModified () const {return m_modified;};
   void ClearModified();
 signals:
@@ -61,6 +62,7 @@ private slots:
   void ToggleHighlightAbstract();
   void ToggleHighlightActive();
   void ToggleHighlightClass();
+  void ToggleDefault();
   void AddDirectSuperClassesSlot();
   void AddAllSuperClassesSlot();
   void AddAllSubClassesSlot();
@@ -83,6 +85,7 @@ private:
   QAction * m_toggle_highlight_abstract;
   QAction * m_toggle_highlight_active;
   QAction * m_toggle_highlight_class;
+  QAction * m_toggle_default;
   QAction * m_add_direct_super_classes;
   QAction * m_add_direct_relationship_classes;
   QAction * m_add_all_super_classes;
@@ -103,6 +106,7 @@ private:
   bool m_inherited_properties_visible;
   bool m_highlight_abstract;
   bool m_highlight_active;
+  bool m_show_defaults;
   bool m_modified;
 };
 
