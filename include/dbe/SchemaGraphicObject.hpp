@@ -65,10 +65,6 @@ private:
   bool m_highlight_class{false};
   QFont m_font;
   QFont m_bold_font;
-  QColor m_default_color;
-  QColor m_active_color;
-  QColor m_highlight_color;
-  QColor m_opaque_color;
 
   double LineOffsetX;
   double LineOffsetY;

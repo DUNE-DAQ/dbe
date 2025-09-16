@@ -76,5 +76,5 @@ namespace dbse
     QPushButton* m_add_button;
     QPushButton* m_missing_button;
   };
-}
+} //namespace dbse
 #endif // DBE_SCHEMAFILEINFO_H

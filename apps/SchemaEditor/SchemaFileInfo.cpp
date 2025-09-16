@@ -2,6 +2,7 @@
 #include "dbe/SchemaClassEditor.hpp"
 #include "dbe/SchemaFileInfo.hpp"
 #include "dbe/SchemaKernelWrapper.hpp"
+#include "dbe/SchemaStyle.hpp"
 #include "oks/class.hpp"
 #include "oks/kernel.hpp"  // for CanNotSetActiveFile exception
 #include "ui_SchemaFileInfo.h"
@@ -40,7 +41,10 @@ SchemaFileInfo::SchemaFileInfo(std::string filename, QWidget* /*parent*/)
 
   m_ui->label->setText(QString::fromStdString(filename));
   if (!KernelWrapper::GetInstance().IsFileWritable ( m_filename )) {
-    m_ui->label->setStyleSheet("color:rgb(128,0,0);");
+    QPalette pal;
+    pal.setColor(QPalette::Active, QPalette::WindowText,SchemaStyle::get_color("foreground", "readonly"));
+    m_ui->label->setPalette(pal);
+//    m_ui->label->setStyleSheet("color:rgb(128,0,0);");
   }
   show_status();
 
@@ -93,6 +97,7 @@ SchemaFileInfo::SchemaFileInfo(std::string filename, QWidget* /*parent*/)
 
 void SchemaFileInfo::get_includes() {
   m_ui->include_list->clear();
+  m_all_includes.clear();
   KernelWrapper::GetInstance().get_all_includes(m_filename, m_all_includes);
 
   std::set<std::string> direct_includes;
@@ -102,13 +107,15 @@ void SchemaFileInfo::get_includes() {
     auto item = new QListWidgetItem(QString::fromStdString(inc));
     m_ui->include_list->addItem(item);
     if (!direct_includes.contains(prune_path(inc))) {
-      item->setForeground(QBrush(QColor (QColorConstants::Svg::darkred)));
+      item->setForeground(QBrush(SchemaStyle::get_color("foreground", "inherited")));
     }
     else if (!KernelWrapper::GetInstance().IsFileWritable (inc)) {
-      item->setForeground(QBrush(QColor (QColorConstants::Svg::gray )));
+      item->setForeground(QBrush(SchemaStyle::get_color("foreground", "readonly")));
+      item->setBackground(QBrush(SchemaStyle::get_color("background", "readonly")));
     }
     else {
-      item->setForeground(QBrush(QColor (QColorConstants::Svg::black )));
+      item->setForeground(QBrush(SchemaStyle::get_color("foreground", "default")));
+      item->setBackground(QBrush(SchemaStyle::get_color("background", "default")));
     }
   }
   m_ui->include_list->update();
@@ -214,14 +221,16 @@ void SchemaFileInfo::remove_include(std::string filename) {
   catch (dunedaq::oks::FailedRemoveInclude& exc) {
     QMessageBox::warning (0, "Schema editor", QString::fromStdString(exc.what()));
   }
+
   get_includes();
+  update_class_list();
+  show_status();
 }
 
 void dbse::SchemaFileInfo::remove_include() {
   auto item = m_ui->include_list->currentItem();
   std::string fn = item->text().toStdString();
   remove_include (fn);
-  show_status();
 }
 
 
@@ -252,13 +261,16 @@ void SchemaFileInfo::update_class_list() {
     auto item = new QListWidgetItem(QString::fromStdString(cls->get_name()));
 
     if (!KernelWrapper::GetInstance().IsFileWritable ( m_filename )) {
-      item->setForeground(QBrush(QColor (QColorConstants::Svg::gray )));
+      item->setForeground(QBrush(SchemaStyle::get_color("foreground", "readonly")));
+      item->setBackground(QBrush(SchemaStyle::get_color("background", "readonly")));
     }
     if (!check_relationships(cls)) {
-      item->setForeground(QBrush(QColor ( 0xc00000 )));
+      item->setForeground(QBrush(SchemaStyle::get_color("foreground", "error")));
+      item->setBackground(QBrush(SchemaStyle::get_color("background", "error")));
     }
     if (!check_superclasses(cls)) {
-      item->setForeground(QBrush(QColor ( 0xc00000 )));
+      item->setForeground(QBrush(SchemaStyle::get_color("foreground", "error")));
+      item->setBackground(QBrush(SchemaStyle::get_color("background", "error")));
     }
 
     m_ui->class_list->addItem(item);
@@ -344,6 +356,7 @@ void SchemaFileInfo::add_include() {
     add_file(file.toStdString());
   }
   get_includes();
+  update_class_list();
   show_status();
 }
 
@@ -363,6 +376,10 @@ void SchemaFileInfo::add_missing_includes() {
 
   m_ui->missing_button->setEnabled(false);
   m_ui->missing_button->hide();
+
+  get_includes();
+  update_class_list();
+  show_status();
 }
 
 std::string SchemaFileInfo::prune_path(std::string file) {

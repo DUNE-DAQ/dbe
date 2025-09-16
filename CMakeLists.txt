@@ -253,6 +253,7 @@ set(schema_core_ui
                     ui/SchemaNoteEditor.ui
                     ui/SchemaRelationshipEditor.ui
                     ui/SchemaFileInfo.ui
+                    ui/SchemaSettings.ui
                     )
 
 qt5_wrap_ui(schema_core_ui_header ${schema_core_ui})
@@ -283,6 +284,8 @@ set(schema_core_src
                     SchemaEditor/SchemaCustomSubClassModel.cpp
                     SchemaEditor/SchemaTab.cpp
                     SchemaEditor/SchemaFileInfo.cpp
+                    SchemaEditor/SchemaStyle.cpp
+                    SchemaEditor/SchemaSettings.cpp
   )
 
 qt5_wrap_cpp(schema_core_moc_src
@@ -302,6 +305,7 @@ qt5_wrap_cpp(schema_core_moc_src
                     include/dbe/SchemaRelationshipEditor.hpp
                     include/dbe/SchemaTab.hpp
                     include/dbe/SchemaFileInfo.hpp
+                    include/dbe/SchemaSettings.hpp
 )
 
 qt5_add_resources(qrc_SchemaResource icons/SchemaResource.qrc OPTIONS -name SchemaResource)

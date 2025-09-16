@@ -9,6 +9,7 @@
 #include <QSortFilterProxyModel>
 #include "dbe/SchemaCustomFileModel.hpp"
 #include "dbe/SchemaCustomTableModel.hpp"
+#include "dbe/SchemaSettings.hpp"
 
 class QGraphicsView;
 
@@ -35,6 +36,7 @@ private:
   CustomFileModel * FileModel;
   CustomTableModel * TableModel;
   QSortFilterProxyModel * m_proxyModel;
+  SchemaSettings* m_settings{nullptr};
   QMenu * ContextMenuFileView;
   QMenu * ContextMenuTableView;
   QString m_title{"DUNE DAQ Configuration Schema editor"};
@@ -66,6 +68,7 @@ private slots:
   void show_file_info(QString);
   void show_file_info();
   void connect_file_info(SchemaFileInfo* win);
+  void edit_settings();
   // From main menu / shortcut
   void SaveSchema();
   // From FileView 
@@ -90,6 +93,7 @@ private slots:
   void PrintCurrentView();
   void export_current_view();
   void toggle_case_sensitive ( int );
+  void update_view();
 };
 
 }  // namespace dbse

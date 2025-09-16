@@ -4,6 +4,7 @@
 /// Including QT Headers
 #include <QAbstractTableModel>
 #include <QBrush>
+#include <QColor>
 #include <QStringList>
 #include <QMimeData>
 
@@ -33,6 +34,7 @@ private:
   QList<QList<QString>> m_data;
   QList<QList<QString>> m_tooltips;
   std::vector<QBrush> m_brushes;
+  std::vector<QColor> m_backgrounds;
 };
 
 }  // namespace dbse

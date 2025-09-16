@@ -37,13 +37,6 @@ namespace dbse
   private:
     QString m_name;
     QString m_text;
-    QFont m_font;
-    QFont m_bold_font;
-    QColor m_default_color;
-    QColor m_highlight_color;
-    QColor m_background_color;
-
-
   };
 }  // namespace dbse
 #endif // SCHEMAGRAPHICNOTE_H

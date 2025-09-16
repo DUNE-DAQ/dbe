@@ -1,5 +1,6 @@
 #include "dbe/SchemaCustomTableModel.hpp"
 #include "dbe/SchemaKernelWrapper.hpp"
+#include "dbe/SchemaStyle.hpp"
 #include <QIODevice>
 #include <QDataStream>
 
@@ -63,6 +64,9 @@ QVariant dbse::CustomTableModel::data ( const QModelIndex & index, int role ) co
   if (role == Qt::ForegroundRole) {
     return m_brushes.at(index.row());
   }
+  if (role == Qt::BackgroundRole) {
+    return m_backgrounds.at(index.row());
+  }
 
   return QVariant();
 }
@@ -92,13 +96,16 @@ void dbse::CustomTableModel::setupModel()
 
     auto fn = Class->get_file()->get_full_file_name();
     if (!KernelWrapper::GetInstance().IsFileWritable (fn)) {
-      m_brushes.emplace_back(QBrush(QColor (QColorConstants::Svg::darkred)));
+      m_brushes.emplace_back(QBrush(SchemaStyle::get_color("foreground", "readonly")));
+      m_backgrounds.emplace_back(SchemaStyle::get_color("background", "readonly"));
     }
     else if (fn == KernelWrapper::GetInstance().GetActiveSchema()) {
-      m_brushes.emplace_back(QBrush(QColor (QColorConstants::Svg::darkblue)));
+      m_brushes.emplace_back(QBrush(SchemaStyle::get_color("foreground", "active_file")));
+      m_backgrounds.emplace_back(SchemaStyle::get_color("background", "active_file"));
     }
     else {
-      m_brushes.emplace_back(QBrush(QColor (QColorConstants::Svg::black)));
+      m_brushes.emplace_back(QBrush(SchemaStyle::get_color("foreground", "default")));
+      m_backgrounds.emplace_back(SchemaStyle::get_color("background", "default"));
     }
   }
 }

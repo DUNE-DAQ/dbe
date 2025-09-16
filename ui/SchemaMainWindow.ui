@@ -60,7 +60,14 @@
     <addaction name="separator"/>
     <addaction name="PrintView"/>
    </widget>
+   <widget class="QMenu" name="menuEdit">
+    <property name="title">
+     <string>Edit</string>
+    </property>
+    <addaction name="actionSettings"/>
+   </widget>
    <addaction name="MenuFile"/>
+   <addaction name="menuEdit"/>
    <addaction name="MenuView"/>
   </widget>
   <widget class="QToolBar" name="MainToolBar">
@@ -340,6 +347,11 @@ sensitive</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+W</string>
+   </property>
+  </action>
+  <action name="actionSettings">
+   <property name="text">
+    <string>Color/font Settings</string>
    </property>
   </action>
  </widget>

@@ -15,6 +15,7 @@
 #include "dbe/SchemaGraphicSegmentedArrow.hpp"
 #include "dbe/SchemaGraphicsScene.hpp"
 #include "dbe/SchemaKernelWrapper.hpp"
+#include "dbe/SchemaStyle.hpp"
 
 using namespace dunedaq::oks;
 
@@ -27,10 +28,6 @@ dbse::SchemaGraphicObject::SchemaGraphicObject ( QString & ClassName,
     LineOffsetY ( 0 )
 {
   setAcceptHoverEvents(true);
-  m_default_color = Qt::black; //QColor ( 0x1e1b18 );
-  m_active_color = Qt::blue; //QColor ( 0x14aaff );
-  m_highlight_color = QColor ( 0xc00080 );
-  m_opaque_color = QColor ( 0x804040 );
 
   setFlag ( ItemIsMovable );
   setFlag ( ItemSendsGeometryChanges, true );
@@ -351,16 +348,20 @@ void dbse::SchemaGraphicObject::paint ( QPainter * painter,
 
 
   QColor colour;
+  QColor background;
   if (m_highlight_class) {
-     colour = m_highlight_color;
+    colour = SchemaStyle::get_color("foreground", "highlight");
+    background = SchemaStyle::get_color("background", "highlight");
   }
   else if (m_scene->highlight_active() &&
            (m_class_info->get_file()->get_full_file_name()
             == KernelWrapper::GetInstance().GetActiveSchema())) {
-    colour = m_active_color;
+    colour = SchemaStyle::get_color("foreground", "active_file");
+    background = SchemaStyle::get_color("background", "active_file");
   }
   else {
-    colour = m_default_color;
+    colour = SchemaStyle::get_color("foreground", "default");
+    background = SchemaStyle::get_color("background", "default");
   }
 
   set_font();
@@ -370,8 +371,10 @@ void dbse::SchemaGraphicObject::paint ( QPainter * painter,
 
   painter->setFont ( m_font );
   painter->setPen ( bounding_box_pen );
+  painter->setBackground(background);
+  //painter->setBackgroundMode(Qt::OpaqueMode);
   painter->drawRect ( boundingRect() );
-  // painter->setPen ( m_default_color );
+
 
   QFontMetrics FontMetrics = painter->fontMetrics();
   QRectF ClassNameBoundingRect = FontMetrics.boundingRect ( m_class_object_name );
@@ -379,9 +382,7 @@ void dbse::SchemaGraphicObject::paint ( QPainter * painter,
 
   double HeightOffset = ClassNameBoundingRect.height() + SpaceY;
   int ClassNamePosition = ( ObjectBoundingRect.width() - ClassNameBoundingRect.width() ) / 2;
-  painter->setFont ( m_font );
   painter->drawText ( ClassNamePosition, ClassNameBoundingRect.height(), m_class_object_name );
-  painter->setFont ( m_font );
   painter->drawLine ( 0, HeightOffset, ObjectBoundingRect.width(), HeightOffset );
 
   for ( int entry=0; entry<m_class_attributes.size(); entry++)
@@ -396,7 +397,7 @@ void dbse::SchemaGraphicObject::paint ( QPainter * painter,
   }
 
   if (m_scene->inherited_properties_visible()) {
-    painter->setPen ( m_opaque_color );
+    painter->setPen ( SchemaStyle::get_color("foreground", "inherited") );
     for ( QString & AttributeName : m_class_inherited_attributes )
     {
       QRectF AttributeBoundingRect = FontMetrics.boundingRect ( AttributeName );
@@ -418,7 +419,7 @@ void dbse::SchemaGraphicObject::paint ( QPainter * painter,
   }
 
   if (m_scene->inherited_properties_visible()) {
-    painter->setPen ( m_opaque_color );
+    painter->setPen ( SchemaStyle::get_color("foreground", "inherited") );
     for ( QString & relationship_name : m_class_inherited_relationhips )
     {
       QRectF relationship_bounding_rect = FontMetrics.boundingRect ( relationship_name );
@@ -441,7 +442,7 @@ void dbse::SchemaGraphicObject::paint ( QPainter * painter,
   }
 
   if (m_scene->inherited_properties_visible()) {
-    painter->setPen ( m_opaque_color );
+    painter->setPen ( SchemaStyle::get_color("foreground", "inherited") );
     for ( QString & MethodName : m_class_inherited_methods )
     {
       QRectF AttributeBoundingRect = FontMetrics.boundingRect ( MethodName );
@@ -508,12 +509,15 @@ void dbse::SchemaGraphicObject::update_arrows()
 
 void dbse::SchemaGraphicObject::set_font()
 {
-  bool abstract = m_class_info->get_is_abstract() && m_scene->highlight_abstract();
   if (m_highlight_class) {
-    m_font = QFont( "Helvetica [Cronyx]", 9, QFont::DemiBold, abstract);
+    m_font = SchemaStyle::get_font("highlight");
   }
   else {
-    m_font = QFont( "Helvetica [Cronyx]", 9, -1, abstract);
+    m_font = SchemaStyle::get_font("default");
+  }
+  if (m_class_info->get_is_abstract() && m_scene->highlight_abstract()) {
+    // Use selected font but with style from abstract class font 
+    m_font.setStyle(SchemaStyle::get_font("abstract").style());
   }
 }
 void dbse::SchemaGraphicObject::toggle_highlight_class()

@@ -1,6 +1,7 @@
 /// Including Schema Editor
 #include "dbe/SchemaCustomFileModel.hpp"
 #include "dbe/SchemaKernelWrapper.hpp"
+#include "dbe/SchemaStyle.hpp"
 /// Including C++ Headers
 #include <vector>
 
@@ -64,10 +65,18 @@ QVariant dbse::CustomFileModel::data ( const QModelIndex & index, int role ) con
   }
   if (role == Qt::ForegroundRole) {
     if (Data.value(index.row()).value(1) == "RW" ) {
-      return QBrush(QColor (QColorConstants::Svg::black));
+      return QBrush(QColor (SchemaStyle::get_color("foreground", "default")));
     }
     else {
-      return QBrush(QColor (QColorConstants::Svg::darkred));
+      return QBrush(SchemaStyle::get_color("foreground", "readonly"));
+    }
+  }
+  if (role == Qt::BackgroundRole) {
+    if (Data.value(index.row()).value(1) == "RW" ) {
+      return QBrush(QColor (SchemaStyle::get_color("background", "default")));
+    }
+    else {
+      return QBrush(SchemaStyle::get_color("background", "readonly"));
     }
   }
   if (role == Qt::ToolTipRole) {

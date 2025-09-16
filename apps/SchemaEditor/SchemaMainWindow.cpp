@@ -7,6 +7,7 @@
 #include "dbe/SchemaRelationshipEditor.hpp"
 #include "dbe/SchemaMethodImplementationEditor.hpp"
 #include "dbe/SchemaFileInfo.hpp"
+#include "dbe/SchemaStyle.hpp"
 
 #include "oks/kernel.hpp"  // for CanNotSetActiveFile exception
 
@@ -40,6 +41,8 @@ dbse::SchemaMainWindow::SchemaMainWindow ( QString SchemaFile, QWidget * parent 
     ContextMenuFileView ( nullptr ),
     ContextMenuTableView ( nullptr )
 {
+  SchemaStyle::load();
+
   InitialSettings();
   InitialTab();
   InitialTabCorner();
@@ -98,6 +101,9 @@ void dbse::SchemaMainWindow::SetController()
   connect ( ui->LoadView, SIGNAL ( triggered() ), this, SLOT ( LoadView() ) );
   connect ( ui->NameView, SIGNAL ( triggered() ), this, SLOT ( NameView() ) );
   connect ( ui->Exit, SIGNAL ( triggered() ), this, SLOT ( close() ) );
+
+  connect ( ui->actionSettings, SIGNAL (triggered() ), this, SLOT ( edit_settings() ));
+
   connect ( ui->ClassTableView, SIGNAL ( activated ( QModelIndex ) ), this,
             SLOT ( LaunchClassEditor ( QModelIndex ) ) );
   connect ( ui->close_tab, SIGNAL ( triggered() ), this, SLOT ( close_tab() ) );
@@ -923,4 +929,19 @@ void dbse::SchemaMainWindow::toggle_case_sensitive ( int /*state*/ )
   else {
     m_proxyModel->setFilterCaseSensitivity ( Qt::CaseInsensitive );
   }
+}
+void dbse::SchemaMainWindow::update_view() {
+  auto tab = dynamic_cast<SchemaTab *> ( ui->TabWidget->currentWidget() );
+  tab->GetScene()->update();
+
+  BuildTableModel();
+  BuildFileModel();
+}
+
+void dbse::SchemaMainWindow::edit_settings() {
+  if (m_settings == nullptr) {
+    m_settings = new SchemaSettings(this);
+    connect(m_settings, SIGNAL(settings_updated()), this, SLOT(update_view()));
+  }
+  m_settings->show();
 }
