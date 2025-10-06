@@ -64,20 +64,22 @@ QVariant dbse::CustomFileModel::data ( const QModelIndex & index, int role ) con
     return Data.value(index.row()).value(index.column());
   }
   if (role == Qt::ForegroundRole) {
+    if (Data.value(index.row()).value(2).contains("Active")) {
+      return QBrush(QColor (SchemaStyle::get_color("foreground", "active_file")));
+    }
     if (Data.value(index.row()).value(1) == "RW" ) {
       return QBrush(QColor (SchemaStyle::get_color("foreground", "default")));
     }
-    else {
-      return QBrush(SchemaStyle::get_color("foreground", "readonly"));
-    }
+    return QBrush(SchemaStyle::get_color("foreground", "readonly"));
   }
   if (role == Qt::BackgroundRole) {
+    if (Data.value(index.row()).value(2).contains("Active")) {
+      return QBrush(QColor (SchemaStyle::get_color("background", "active_file")));
+    }
     if (Data.value(index.row()).value(1) == "RW" ) {
       return QBrush(QColor (SchemaStyle::get_color("background", "default")));
     }
-    else {
-      return QBrush(SchemaStyle::get_color("background", "readonly"));
-    }
+    return QBrush(SchemaStyle::get_color("background", "readonly"));
   }
   if (role == Qt::ToolTipRole) {
     return Data.value(index.row()).value(0);

@@ -5,6 +5,7 @@
 /// Including Schema Editor
 #include "dbe/SchemaGraphicSegmentedArrow.hpp"
 #include "dbe/SchemaKernelWrapper.hpp"
+#include "dbe/SchemaStyle.hpp"
 
 /// Including Oks Headers
 #include "oks/class.hpp"
@@ -36,8 +37,6 @@ SchemaGraphicSegmentedArrow::SchemaGraphicSegmentedArrow ( SchemaGraphicObject *
   }
   //setPen(QPen(Qt::black,2,Qt::SolidLine,Qt::RoundCap,Qt::RoundJoin));
   setFlag ( ItemIsSelectable, true );
-  m_default_color = QColor ( 0x1e1b18 );
-  m_label_font = QFont( "Helvetica [Cronyx]", 9);
   m_arrow_size = 20;
 
 }
@@ -184,20 +183,21 @@ void SchemaGraphicSegmentedArrow::UpdatePosition()
   }
 
   QLineF direct_line(start_sp, intersect_point_end);
-  auto label_br = QRectF(QFontMetrics ( m_label_font ).boundingRect ( m_name ));
+  auto font = QFont(SchemaStyle::get_font("line"));
+  auto label_br = QRectF(QFontMetrics ( font ).boundingRect ( m_name ));
   // Center rectangle on origin
   label_br.translate(-label_br.width()/2, label_br.height()/2);
 
 
-  auto cardinality_br = QRectF(QFontMetrics ( m_label_font ).boundingRect ( m_cardinality ));
+  auto cardinality_br = QRectF(QFontMetrics ( font ).boundingRect ( m_cardinality ));
   // Center rectangle on origin
   cardinality_br.translate(-cardinality_br.width()/2, cardinality_br.height()/2);
 
 
   qreal label_x_padding = 2;
   qreal label_y_padding = -2;
-  qreal card_x_padding = 20;
-  qreal card_y_padding = 0;
+  qreal card_x_padding = 2;
+  qreal card_y_padding = -2;
 
   QPainterPath path( intersect_point_start );
 
@@ -379,10 +379,10 @@ void SchemaGraphicSegmentedArrow::paint ( QPainter * painter,
     return;
   }
 
-  const QPen line_pen = QPen(m_default_color, 1);
-  const QPen arrow_pen = QPen(m_default_color, 1);
+  const QPen line_pen = QPen(SchemaStyle::get_color("foreground", "line"), 1);
+  const QPen arrow_pen = QPen(SchemaStyle::get_color("foreground", "line"), 1);
 
-  painter->setFont ( m_label_font );
+  painter->setFont ( QFont(SchemaStyle::get_font("line")) );
   painter->setPen ( line_pen );
   painter->setBrush ( {} );
   painter->setRenderHint(QPainter::Antialiasing);
@@ -403,7 +403,7 @@ void SchemaGraphicSegmentedArrow::paint ( QPainter * painter,
   else if ( m_composite )
   {
     /// Draw Rhombus
-    painter->setBrush ( Qt::black );
+    painter->setBrush ( SchemaStyle::get_color("foreground", "line") );
 
 
   } else {

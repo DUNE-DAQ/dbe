@@ -375,14 +375,15 @@ void dbse::SchemaGraphicObject::paint ( QPainter * painter,
   //painter->setBackgroundMode(Qt::OpaqueMode);
   painter->drawRect ( boundingRect() );
 
-
-  QFontMetrics FontMetrics = painter->fontMetrics();
-  QRectF ClassNameBoundingRect = FontMetrics.boundingRect ( m_class_object_name );
-  QRectF ObjectBoundingRect = boundingRect();
+  const QFontMetrics FontMetrics = painter->fontMetrics();
+  const QRectF ClassNameBoundingRect = FontMetrics.boundingRect ( m_class_object_name );
+  const QRectF ObjectBoundingRect = boundingRect();
 
   double HeightOffset = ClassNameBoundingRect.height() + SpaceY;
-  int ClassNamePosition = ( ObjectBoundingRect.width() - ClassNameBoundingRect.width() ) / 2;
-  painter->drawText ( ClassNamePosition, ClassNameBoundingRect.height(), m_class_object_name );
+  const auto ClassNamePosition = QPointF(
+    (ObjectBoundingRect.width() - ClassNameBoundingRect.width() ) / 2,
+    ClassNameBoundingRect.height());
+  painter->drawText ( ClassNamePosition, m_class_object_name );
   painter->drawLine ( 0, HeightOffset, ObjectBoundingRect.width(), HeightOffset );
 
   for ( int entry=0; entry<m_class_attributes.size(); entry++)
@@ -391,18 +392,18 @@ void dbse::SchemaGraphicObject::paint ( QPainter * painter,
     if (m_scene->show_defaults()) {
       attribute_name.append(m_class_attribute_values[entry]);
     }
-    QRectF AttributeBoundingRect = FontMetrics.boundingRect (attribute_name);
+    const QRectF AttributeBoundingRect = FontMetrics.boundingRect (attribute_name);
     HeightOffset += AttributeBoundingRect.height();
-    painter->drawText ( SpaceX, HeightOffset, attribute_name );
+    painter->drawText ( QPointF(SpaceX, HeightOffset), attribute_name );
   }
 
   if (m_scene->inherited_properties_visible()) {
     painter->setPen ( SchemaStyle::get_color("foreground", "inherited") );
     for ( QString & AttributeName : m_class_inherited_attributes )
     {
-      QRectF AttributeBoundingRect = FontMetrics.boundingRect ( AttributeName );
+      const QRectF AttributeBoundingRect = FontMetrics.boundingRect ( AttributeName );
       HeightOffset += AttributeBoundingRect.height();
-      painter->drawText ( SpaceX, HeightOffset, AttributeName );
+      painter->drawText ( QPointF(SpaceX, HeightOffset), AttributeName );
     }
     painter->setPen ( colour );
   }
@@ -411,20 +412,20 @@ void dbse::SchemaGraphicObject::paint ( QPainter * painter,
   painter->setPen ( inner_line_pen );
   painter->drawLine ( 0, HeightOffset, ObjectBoundingRect.width(), HeightOffset );
 
-  for ( QString & relationship_name : m_class_relationhips )
+  for (const QString & relationship_name : m_class_relationhips )
   {
-    QRectF relationship_bounding_rect = FontMetrics.boundingRect ( relationship_name );
+    const QRectF relationship_bounding_rect = FontMetrics.boundingRect ( relationship_name );
     HeightOffset += relationship_bounding_rect.height();
-    painter->drawText ( SpaceX, HeightOffset, relationship_name );
+    painter->drawText ( QPointF(SpaceX, HeightOffset), relationship_name );
   }
 
   if (m_scene->inherited_properties_visible()) {
     painter->setPen ( SchemaStyle::get_color("foreground", "inherited") );
-    for ( QString & relationship_name : m_class_inherited_relationhips )
+    for ( const QString & relationship_name : m_class_inherited_relationhips )
     {
-      QRectF relationship_bounding_rect = FontMetrics.boundingRect ( relationship_name );
+      const QRectF relationship_bounding_rect = FontMetrics.boundingRect ( relationship_name );
       HeightOffset += relationship_bounding_rect.height();
-      painter->drawText ( SpaceX, HeightOffset, relationship_name );
+      painter->drawText ( QPointF(SpaceX, HeightOffset), relationship_name );
     }
     painter->setPen ( colour );
   }
@@ -434,20 +435,20 @@ void dbse::SchemaGraphicObject::paint ( QPainter * painter,
   painter->setPen ( inner_line_pen );
   painter->drawLine ( 0, HeightOffset, ObjectBoundingRect.width(), HeightOffset );
   
-  for ( QString & MethodName : m_class_methods )
+  for ( const QString & MethodName : m_class_methods )
   {
-    QRectF AttributeBoundingRect = FontMetrics.boundingRect ( MethodName );
+    const QRectF AttributeBoundingRect = FontMetrics.boundingRect ( MethodName );
     HeightOffset += AttributeBoundingRect.height();
-    painter->drawText ( SpaceX, HeightOffset, MethodName );
+    painter->drawText ( QPointF(SpaceX, HeightOffset), MethodName );
   }
 
   if (m_scene->inherited_properties_visible()) {
     painter->setPen ( SchemaStyle::get_color("foreground", "inherited") );
-    for ( QString & MethodName : m_class_inherited_methods )
+    for ( const QString & MethodName : m_class_inherited_methods )
     {
-      QRectF AttributeBoundingRect = FontMetrics.boundingRect ( MethodName );
+      const QRectF AttributeBoundingRect = FontMetrics.boundingRect ( MethodName );
       HeightOffset += AttributeBoundingRect.height();
-      painter->drawText ( SpaceX, HeightOffset, MethodName );
+      painter->drawText (QPointF(SpaceX, HeightOffset), MethodName );
     }
     painter->setPen ( colour );
   }
@@ -460,7 +461,7 @@ void dbse::SchemaGraphicObject::AddArrow ( SchemaGraphicSegmentedArrow * Arrow )
 
 void dbse::SchemaGraphicObject::RemoveArrow ( SchemaGraphicSegmentedArrow * Arrow )
 {
-  int index = m_arrows.indexOf ( Arrow );
+  const int index = m_arrows.indexOf ( Arrow );
 
   if ( index != -1 )
   {
@@ -470,7 +471,7 @@ void dbse::SchemaGraphicObject::RemoveArrow ( SchemaGraphicSegmentedArrow * Arro
 
 void dbse::SchemaGraphicObject::RemoveArrows()
 {
-  foreach ( SchemaGraphicSegmentedArrow * arrow, m_arrows )
+  for ( SchemaGraphicSegmentedArrow * arrow : m_arrows )
   {
     arrow->GetStartItem()->RemoveArrow ( arrow );
     arrow->GetEndItem()->RemoveArrow ( arrow );

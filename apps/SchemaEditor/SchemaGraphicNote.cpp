@@ -6,6 +6,8 @@
 #include <QGraphicsSceneHoverEvent>
 #include <QGraphicsView>
 #include <QPainter>
+#include <QPainterPath>
+#include <QPen>
 
 #include <QToolTip>
 
@@ -90,12 +92,12 @@ void SchemaGraphicNote::paint (QPainter* painter,
                                QWidget* /*widget*/ ) {
 
   const QPen pen(SchemaStyle::get_color("foreground", "note"), 0.5);
-  QBrush brush(SchemaStyle::get_color("background", "note"));
+  const QBrush brush(SchemaStyle::get_color("background", "note"));
   painter->setFont (SchemaStyle::get_font("note"));
   painter->setBrush (brush);
 //  painter->setBackgroundMode(Qt::OpaqueMode);
   painter->setPen ( pen );
-  auto rect = boundingRect();
+  const auto rect = boundingRect();
   painter->drawRect ( rect );
   painter->drawText(rect.adjusted(5,5,-2,-2), Qt::AlignJustify, m_text);
 }
