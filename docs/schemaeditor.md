@@ -17,6 +17,7 @@ function schemaeditor ()
 
 ```
 
+![schemaeditor main window](schemaeditor_main.png)
 
 ## Starting the editor
 
@@ -117,13 +118,24 @@ button next to the view tabs. A tab can be renamed by selecting the
 'Name View' button on the toolbar. Tabs can be closed by selecting the
 cross on the top corner of the tab or with the short cut Ctl-W.
 
-### Highlighting classes from the active schema file
+### Highlighting classes
+
+Classes may be highlighted in different colors/fonts. The colors and
+fonts can be set from the `Color/font Settings` item on the `File`
+menu.
+
+#### Highlighting classes from the active schema file
 
 The classes contained in the current schema fie can be highlighted by
 selecting this option from the context menu. This can be useful to see
 at a glance which classes are in which file. Changing the active file
-from the File info tab will change which classes are highlighted
+from the `File info` tab will change which classes are highlighted
 accordingly.
+
+#### Highlighting selected class
+
+The class under the cursor can be highlighted by selecting the
+appropriate item from the context menu. 
 
 ### Tool-tips
 
