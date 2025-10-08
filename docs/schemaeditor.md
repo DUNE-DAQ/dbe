@@ -73,6 +73,14 @@ also allows you to save files that have not been updated (sometimes
 useful to ensure proper formatting of files edited outside of the
 schemaeditor).
 
+## Editing classes
+
+ To edit a class, activate (double click or select and hit enter) the
+class name in the `classes` panel, double click on the class in the
+`class view` panel or select the edit option from the context menu in
+either panel. It is possible to open the class editor for a read only
+class from the `classes` panel but the editor will not allow you to
+make any changes.
 
 ## Adding new classes
 
