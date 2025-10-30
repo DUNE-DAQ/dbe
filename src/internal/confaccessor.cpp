@@ -241,7 +241,7 @@ bool dbe::confaccessor::check_file_rw ( QString const & fn )
 {
   try
   {
-    if ( not fn.contains ( "schema" ) )
+    if ( not fn.endsWith ( ".schema.xml" ) )
     {
       return dbaccessor::dbptr()->is_writable ( fn.toStdString() );
     }

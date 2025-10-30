@@ -94,7 +94,7 @@ QVariant dbe::FileModel::headerData ( int section, Qt::Orientation orientation,
   return QVariant();
 }
 
-Qt::ItemFlags dbe::FileModel::flags ( const QModelIndex & index ) const
+Qt::ItemFlags dbe::FileModel::flags ( const QModelIndex & /*index*/ ) const
 {
   // if ( IncludedFiles.at ( index.row() ).at ( static_cast<int>
   //                                            ( tablepositions::filepermission ) ) == "RW" )
