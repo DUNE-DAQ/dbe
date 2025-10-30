@@ -6,12 +6,15 @@
 #include <QGraphicsSceneHoverEvent>
 #include <QGraphicsView>
 #include <QPainter>
+#include <QPainterPath>
+#include <QPen>
 
 #include <QToolTip>
 
 #include "dbe/SchemaGraphicNote.hpp"
 #include "dbe/SchemaGraphicsScene.hpp"
 #include "dbe/SchemaNoteEditor.hpp"
+#include "dbe/SchemaStyle.hpp"
 
 #include <iostream>
 
@@ -25,11 +28,6 @@ SchemaGraphicNote::SchemaGraphicNote (const QString& name,
     m_text(text) {
 
   setAcceptHoverEvents(true);
-  m_font = QFont( "Helvetica [Cronyx]", 9);
-  m_bold_font = QFont( "Helvetica [Cronyx]", 9, QFont::DemiBold);
-  m_default_color = QColor ( 0x1e1b18 );
-  m_highlight_color = QColor ( 0x14aaff );
-  m_background_color = QColor ( 0xf8f8ff );
 
   setFlag ( ItemIsMovable );
   setFlag ( ItemSendsGeometryChanges, true );
@@ -73,7 +71,7 @@ void SchemaGraphicNote::update_note (QString text) {
 
 QRectF SchemaGraphicNote::boundingRect() const
 {
-  QFontMetrics font_metrics(m_font);
+  QFontMetrics font_metrics(SchemaStyle::get_font("note"));
   double height = font_metrics.height()/2;
   double width = 0;
   for (auto line: m_text.split("\n")) {
@@ -93,13 +91,13 @@ void SchemaGraphicNote::paint (QPainter* painter,
                                const QStyleOptionGraphicsItem* /*option*/,
                                QWidget* /*widget*/ ) {
 
-  const QPen pen(m_default_color, 0.5);
-  QBrush brush(m_background_color);
-  painter->setFont ( m_font );
-  painter->setBrush (brush);//m_background_color);
+  const QPen pen(SchemaStyle::get_color("foreground", "note"), 0.5);
+  const QBrush brush(SchemaStyle::get_color("background", "note"));
+  painter->setFont (SchemaStyle::get_font("note"));
+  painter->setBrush (brush);
 //  painter->setBackgroundMode(Qt::OpaqueMode);
   painter->setPen ( pen );
-  auto rect = boundingRect();
+  const auto rect = boundingRect();
   painter->drawRect ( rect );
   painter->drawText(rect.adjusted(5,5,-2,-2), Qt::AlignJustify, m_text);
 }

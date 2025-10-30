@@ -66,6 +66,10 @@ QVariant dbe::models::table::data ( const QModelIndex & index, int role ) const
       return QVariant ( Data );
     }
 
+    if ( role == Qt::ToolTipRole )
+    {
+      return TableItem->get_tooltip();
+    }
     if ( role == Qt::FontRole )
     {
       if ( dynamic_cast<TableAttributeNode *> ( TableItem ) )
@@ -92,6 +96,21 @@ QVariant dbe::models::table::data ( const QModelIndex & index, int role ) const
       {
         return QVariant();
       }
+    }
+
+    if ( role == Qt::BackgroundRole )
+    {
+      auto attr_node = dynamic_cast<TableAttributeNode *> ( TableItem );
+      if ( attr_node != nullptr ) {
+        auto val = attr_node->GetData();
+        if (val.size() == 1 &&
+            val[0].toStdString() == attr_node->GetAttribute().p_default_value) {
+          return QBrush (
+            StyleUtility::TableAttributeHighlightBackground );
+        }
+      }
+      return QBrush (
+        StyleUtility::TableAttributeBackground );
     }
   }
 
@@ -148,8 +167,9 @@ QVariant dbe::models::table::headerData ( int section, Qt::Orientation orientati
     {
       return this_headers.at ( section );
     }
-    else if ( orientation == Qt::Vertical) {
-      return QString::fromStdString(this_objects.at(section).UID());
+    if ( orientation == Qt::Vertical )
+    {
+      return section + 1;
     }
   }
 
@@ -309,35 +329,36 @@ QList<dbe::models::table::type_datum *> dbe::models::table::createrow (
   std::bitset<1024> hindex; // maximum number of columns to display
 
   {
-    int c = 0;
+    int column = 0;
 
-    for ( dunedaq::conffwk::attribute_t const & a : attributes )
+    for ( dunedaq::conffwk::attribute_t const & attr : attributes )
     {
-      hindex.set ( c++, this_headers.contains ( QString::fromStdString ( a.p_name ) ) );
+      hindex.set ( column++, this_headers.contains ( QString::fromStdString ( attr.p_name ) ) );
     }
 
-    for ( dunedaq::conffwk::relationship_t const & r : relations )
+    for ( dunedaq::conffwk::relationship_t const & rel : relations )
     {
-      hindex.set ( c++, this_headers.contains ( QString::fromStdString ( r.p_name ) ) );
+      hindex.set ( column++, this_headers.contains ( QString::fromStdString ( rel.p_name ) ) );
     }
   }
 
   // Create the row for this object
   QList<TableNode *> Row;
-  Row.append ( new TableNode ( QStringList ( rownode->GetData ( 0 ).toString() ) ) );
-
+  Row.append ( new TableNode (
+                 QStringList {rownode->GetData ( 0 ).toString()},
+                 QVariant(QString::fromStdString(cdef.p_description))));
   {
     // Loop over object values and add them to the row
     // Values are represent as nodes ( attributes or relations ) and these contain
     // the structured data associated either with a attribute / multi-attribute or a relation
-    std::size_t c = 0;
+    std::size_t column = 0;
 
     for ( treenode * valuenode : rownode->GetChildren() )
     {
       QStringList values;
       // Every valuenode has its attributes and relations defined as its childs
 
-      if ( hindex[c++] )
+      if ( hindex[column++] )
       {
 
         for ( treenode * nodevalues : valuenode->GetChildren() )
@@ -600,11 +621,11 @@ MODEL_COMMON_INTERFACE_UPDATE_THAT_OBJ_IMPL ( dbe::models::table )
       // Recreate the row
       *sit = createrow ( handlernode );
 
-      int r = index.row() == 0 ? 0 : index.row() - 1;
+      int row = index.row() == 0 ? 0 : index.row() - 1;
 
-      int c = index.column() == 0 ? 0 : index.column() - 1;
+      int column = index.column() == 0 ? 0 : index.column() - 1;
 
-      emit dataChanged ( createIndex ( r, c ), createIndex ( r + 1, c + 1 ) );
+      emit dataChanged ( createIndex ( row, column ), createIndex ( row + 1, column + 1 ) );
     }
   }
 }

@@ -13,7 +13,9 @@ dbse::SchemaAttributeEditor::SchemaAttributeEditor ( OksClass * ClassInfo,
     ui ( new Ui::SchemaAttributeEditor ),
     SchemaClass ( ClassInfo ),
     SchemaAttribute ( AttributeData ),
-    UsedNew ( false )
+    UsedNew ( false ),
+    m_writable(KernelWrapper::GetInstance().IsFileWritable(
+                 SchemaClass->get_file()->get_full_file_name()))
 {
   QWidget::setAttribute(Qt::WA_DeleteOnClose);
   ui->setupUi ( this );
@@ -27,7 +29,9 @@ dbse::SchemaAttributeEditor::SchemaAttributeEditor ( OksClass * ClassInfo,
     ui ( new Ui::SchemaAttributeEditor ),
     SchemaClass ( ClassInfo ),
     SchemaAttribute ( nullptr ),
-    UsedNew ( true )
+    UsedNew ( true ),
+    m_writable(KernelWrapper::GetInstance().IsFileWritable(
+                 SchemaClass->get_file()->get_full_file_name()))
 {
   QWidget::setAttribute(Qt::WA_DeleteOnClose);
   ui->setupUi ( this );
@@ -39,9 +43,10 @@ dbse::SchemaAttributeEditor::~SchemaAttributeEditor() = default;
 
 void dbse::SchemaAttributeEditor::FillInfo()
 {
-    setWindowTitle ( QString ( "Attribute Editor : %1" ).arg (
-                       SchemaAttribute->get_name().c_str() ) );
-    setObjectName ( QString::fromStdString ( SchemaAttribute->get_name() ) );
+  auto name = QString::fromStdString(SchemaClass->get_name() + "::" +
+                                     SchemaAttribute->get_name());
+    setWindowTitle (name);
+    setObjectName (name);
     ui->AttributeNameLineEdit->setText ( QString::fromStdString (
                                            SchemaAttribute->get_name() ) );
     ui->AttributeTypeComboBox->setCurrentIndex (
@@ -83,7 +88,9 @@ void dbse::SchemaAttributeEditor::FillInfo()
     }
     else
     {
-      ui->FormatLayout->setEnabled ( true );
+      if (m_writable) {
+        ui->FormatLayout->setEnabled ( true );
+      }
       ui->FormatLabel->show();
       ui->AttributeFormatComboBox->show();
 
@@ -100,6 +107,13 @@ void dbse::SchemaAttributeEditor::FillInfo()
     }
 }
 
+void dbse::SchemaAttributeEditor::keyPressEvent(QKeyEvent* event) {
+  if (event->key() == Qt::Key_Escape) {
+    close();
+  }
+  QWidget::keyPressEvent(event);
+}
+
 void dbse::SchemaAttributeEditor::InitialSettings()
 {
   QStringList Items
@@ -107,8 +121,19 @@ void dbse::SchemaAttributeEditor::InitialSettings()
     "bool", "s8", "u8", "s16", "u16", "s32", "u32", "s64", "u64", "float", "double", "date",
     "time", "string", "enum", "class" };
   ui->AttributeTypeComboBox->addItems ( Items );
-  setWindowTitle ( QString::fromStdString ( "New Attribute" ) );
-  setObjectName ( "NEW" );
+  auto name = SchemaClass->get_name() + "::";
+  setWindowTitle ( QString::fromStdString ( name + " New Attribute" ) );
+  setObjectName ( QString::fromStdString(name) );
+
+  if (!m_writable) {
+    ui->AttributeTypeComboBox->setEnabled(false);
+    ui->AttributeIsMultivariable->setEnabled(false);
+    ui->AttributeIsNotNull->setEnabled(false);
+    ui->AttributeRangeLineEdit->setEnabled(false);
+    ui->AttributeInitialValue->setEnabled(false);
+
+    ui->AttributeDescriptionTextBox->setReadOnly(true);
+  }
 
   if ( !UsedNew )
   {

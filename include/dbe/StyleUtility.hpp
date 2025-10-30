@@ -14,7 +14,13 @@ public:
   StyleUtility();
   static void InitColorManagement();
   static QColor TableColorAttribute;
+  static QColor TableAttributeBackground;
+  static QColor TableAttributeHighlightBackground;
   static QColor TableColorRelationship;
+
+  static QColor FileReadOnlyForeground;
+  static QColor FileReadOnlyBackground;
+
   static QPalette AlertStatusBarPallete;
   static QPalette AlertStatusBarPalleteWindow;
   static QPalette WarningStatusBarPallete;

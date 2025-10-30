@@ -20,7 +20,7 @@ namespace dbse
 namespace Ui
 {
 class SchemaClassEditor;
-}
+} // namespace Ui
 
 class SchemaClassEditor: public QWidget
 {
@@ -30,9 +30,12 @@ public:
 
   explicit SchemaClassEditor ( dunedaq::oks::OksClass * ClassInfo, QWidget * parent = nullptr );
 
-  static void createNewClass ();
-private:
+  static QString createNewClass ();
+  static void launch(QString class_name);
+  static void move_class(dunedaq::oks::OksClass* schema_class, QWidget* widget);
 
+private:
+  void keyPressEvent(QKeyEvent* event);
   void SetController();
   void BuildModels();
   void InitialSettings();
@@ -58,9 +61,10 @@ private:
   void OpenNewClassEditor( const QString& ClassName);
 
 private slots:
+  void close_slot(){close();}
   void OpenSuperClass( QModelIndex Index);
   void OpenSubClass( QModelIndex Index);
-  void ProxySlot();
+
   void ParseToSave();
   void AddNewSuperClass();
   void AddNewAttribute();
@@ -86,6 +90,8 @@ private slots:
   void RemoveSuperClass();
   void ClassRemoved( QString className );
   void ClassUpdated( QString className );
+
+  void move_class();
 };
 }  // namespace dbse
 

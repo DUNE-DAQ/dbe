@@ -127,15 +127,15 @@ relation::relation ( t_virtue const & relation, QWidget * parent,
 
   // if it is X_ and many then set multivalue
 
-  if ( ( Virtue.p_cardinality == dunedaq::conffwk::zero_or_many ) or ( Virtue.p_cardinality
-                                                                  == dunedaq::conffwk::one_or_many ) )
+  if ( ( Virtue.p_cardinality == dunedaq::conffwk::zero_or_many ) ||
+       ( Virtue.p_cardinality == dunedaq::conffwk::one_or_many ) )
   {
     IsMultiValue = true;
   }
 
   // Check if this relation can be left unset
-  if ( ( Virtue.p_cardinality == dunedaq::conffwk::one_or_many ) or ( Virtue.p_cardinality
-                                                                 == dunedaq::conffwk::only_one ) )
+  if ( ( Virtue.p_cardinality == dunedaq::conffwk::one_or_many ) ||
+       ( Virtue.p_cardinality == dunedaq::conffwk::only_one ) )
   {
     p_base_data_editor->set_not_null ( true );
     p_base_data_editor->set_valid ( false );
@@ -251,8 +251,8 @@ bool relation::eventFilter ( QObject * Target, QEvent * Event )
                 ListWidget->addItem(FirstItem);
 
                 if(IsMultiValue) {
-                    FirstItem->setBackgroundColor(Qt::GlobalColor::lightGray);
-                    FirstItem->setTextColor(QColor(0, 0, 0, 127));
+                    FirstItem->setBackground(Qt::GlobalColor::lightGray);
+                    FirstItem->setForeground(QColor(0, 0, 0, 127));
                 }
 
                 FirstItem->setSizeHint(FirstItem->sizeHint() + QSize(0, 25));
@@ -274,8 +274,8 @@ bool relation::eventFilter ( QObject * Target, QEvent * Event )
                 ListWidget->addItem(FirstItem);
 
                 if(IsMultiValue) {
-                    FirstItem->setBackgroundColor(Qt::GlobalColor::lightGray);
-                    FirstItem->setTextColor(QColor(0, 0, 0, 127));
+                    FirstItem->setBackground(Qt::GlobalColor::lightGray);
+                    FirstItem->setForeground(QColor(0, 0, 0, 127));
                 }
 
                 FirstItem->setSizeHint(FirstItem->sizeHint() + QSize(0, 25));
@@ -408,8 +408,8 @@ void relation::SetFirstItem()
 
   if ( IsMultiValue )
   {
-    FirstItem->setBackgroundColor ( Qt::GlobalColor::lightGray );
-    FirstItem->setTextColor ( QColor ( 0, 0, 0, 127 ) );
+    FirstItem->setBackground ( Qt::GlobalColor::lightGray );
+    FirstItem->setForeground ( QColor ( 0, 0, 0, 127 ) );
   }
 
   FirstItem->setSizeHint ( FirstItem->sizeHint() + QSize ( 0, 25 ) );
@@ -582,7 +582,7 @@ void relation::MoveUpSlot()
 
   if ( ItemPosition != 0 )
   {
-    this_data.swap ( ItemPosition, ItemPosition - 1 );
+    this_data.swapItemsAt ( ItemPosition, ItemPosition - 1 );
 
     FirstItem = ListWidget->takeItem ( this_data.size() );
     ListWidget->clear();
@@ -604,7 +604,7 @@ void relation::MoveDownSlot()
 
   if ( ItemPosition != ( this_data.size() - 1 ) )
   {
-    this_data.swap ( ItemPosition, ItemPosition + 1 );
+    this_data.swapItemsAt ( ItemPosition, ItemPosition + 1 );
 
     FirstItem = ListWidget->takeItem ( this_data.size() );
     ListWidget->clear();
@@ -786,8 +786,8 @@ void relation::AddToDataList ( const QString & DataValue )
 
   if ( IsMultiValue )
   {
-    FirstItem->setBackgroundColor ( Qt::GlobalColor::lightGray );
-    FirstItem->setTextColor ( QColor ( 0, 0, 0, 127 ) );
+    FirstItem->setBackground ( Qt::GlobalColor::lightGray );
+    FirstItem->setForeground ( QColor ( 0, 0, 0, 127 ) );
   }
 
   FirstItem->setSizeHint ( FirstItem->sizeHint() + QSize ( 0, 25 ) );
@@ -2232,7 +2232,7 @@ multiattr::multiattr ( t_virtue const & attr, QWidget * parent,
     QFont Font;
     QFontMetrics FontMetrics ( Font );
     setMinimumWidth (
-      2 * FontMetrics.width ( QString ( "Edit Relationship: %1" ).arg ( Virtue.p_name.c_str() ) )
+      2 * FontMetrics.horizontalAdvance ( QString ( "Edit Relationship: %1" ).arg ( Virtue.p_name.c_str() ) )
       - 15 );
     setMinimumHeight ( 100 );
   }

@@ -241,7 +241,7 @@ bool dbe::confaccessor::check_file_rw ( QString const & fn )
 {
   try
   {
-    if ( not fn.contains ( "schema" ) )
+    if ( not fn.endsWith ( ".schema.xml" ) )
     {
       return dbaccessor::dbptr()->is_writable ( fn.toStdString() );
     }
@@ -349,8 +349,8 @@ void dbe::confaccessor::init()
   QString DUNEDAQ_DB_PATH = getenv ( "DUNEDAQ_DB_PATH" );
   QString GUI_DATA = getenv ( "OKS_GUI_INIT_DATA" );
 
-  QStringList CONFIG_DATABASE = GUI_DATA.split ( ":", QString::SkipEmptyParts );
-  QStringList DUNEDAQ_DB_PATH_SPLIT = DUNEDAQ_DB_PATH.split ( ":", QString::SkipEmptyParts );
+  QStringList CONFIG_DATABASE = GUI_DATA.split ( ":", Qt::SkipEmptyParts );
+  QStringList DUNEDAQ_DB_PATH_SPLIT = DUNEDAQ_DB_PATH.split ( ":", Qt::SkipEmptyParts );
 
   // We need to read the current configuration ( to retrieve parameters affecting dbe )
 

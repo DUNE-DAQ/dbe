@@ -2,18 +2,21 @@
 #define MAINWINDOW_H
 
 #include <memory>
+#include <QDir>
 #include <QMainWindow>
 #include <QModelIndex>
 #include <QMenu>
 #include <QSortFilterProxyModel>
 #include "dbe/SchemaCustomFileModel.hpp"
 #include "dbe/SchemaCustomTableModel.hpp"
+#include "dbe/SchemaSettings.hpp"
 
 class QGraphicsView;
 
 namespace dbse
 {
   class SchemaTab;
+  class SchemaFileInfo;
 
 namespace Ui
 {
@@ -32,12 +35,14 @@ private:
 
   CustomFileModel * FileModel;
   CustomTableModel * TableModel;
-  QSortFilterProxyModel * proxyModel;
+  QSortFilterProxyModel * m_proxyModel;
+  SchemaSettings* m_settings{nullptr};
   QMenu * ContextMenuFileView;
   QMenu * ContextMenuTableView;
   QString m_title{"DUNE DAQ Configuration Schema editor"};
   QString m_view_dir{"."};
   QString m_export_path{"."};
+  QDir m_schema_directory{"."};
   void InitialSettings();
   void InitialTab();
   void InitialTabCorner();
@@ -48,6 +53,7 @@ private:
   void write_view_file(const QString& fn, SchemaTab* tab);
   [[nodiscard]] int ShouldSaveChanges() const;
   [[nodiscard]] int ShouldSaveViewChanges() const;
+  bool save_schema_file(QString file);
 protected:
   void closeEvent ( QCloseEvent * event );
   void OpenSchemaFile( QString SchemaFile);
@@ -57,8 +63,12 @@ public slots:
 private slots:
   void OpenSchemaFile();
   void CreateNewSchema();
-  void LaunchIncludeEditor();
-  void LaunchIncludeEditorActiveSchema();
+  void show_file_info_active_schema();
+  void show_file_info(QModelIndex);
+  void show_file_info(QString);
+  void show_file_info();
+  void connect_file_info(SchemaFileInfo* win);
+  void edit_settings();
   // From main menu / shortcut
   void SaveSchema();
   // From FileView 
@@ -82,6 +92,8 @@ private slots:
   void SetSchemaFileActive();
   void PrintCurrentView();
   void export_current_view();
+  void toggle_case_sensitive ( int );
+  void update_view();
 };
 
 }  // namespace dbse

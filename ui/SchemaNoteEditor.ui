@@ -63,8 +63,14 @@
      <height>170</height>
     </size>
    </property>
+   <property name="sizeAdjustPolicy">
+    <enum>QAbstractScrollArea::AdjustToContents</enum>
+   </property>
    <property name="tabChangesFocus">
     <bool>true</bool>
+   </property>
+   <property name="placeholderText">
+    <string>Enter note here</string>
    </property>
   </widget>
  </widget>

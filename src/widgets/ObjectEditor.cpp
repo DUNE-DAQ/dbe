@@ -18,39 +18,32 @@ namespace dbegraph = dbe::config::api::graph;
 namespace {
     class NoScrollingTable : public QTableWidget {
         public:
-            NoScrollingTable(QWidget* parent = 0) : QTableWidget(parent) {}
+           explicit NoScrollingTable(QWidget* parent = nullptr)
+             : QTableWidget(parent) {}
 
-            void scrollTo(const QModelIndex& index, ScrollHint hint = EnsureVisible) override {
+      void scrollTo(const QModelIndex& /*index*/, ScrollHint /*hint*/) override {
                 // NOTE: for the reason why this is an empty implementation, see ATLASDBE-202
             }
     };
-}
+} // namespace
 
 //------------------------------------------------------------------------------------------
 dbe::ObjectEditor::~ObjectEditor() = default;
 //------------------------------------------------------------------------------------------
 
 //------------------------------------------------------------------------------------------
-dbe::ObjectEditor::ObjectEditor ( std::string const & cname, QWidget * parent )
+dbe::ObjectEditor::ObjectEditor(QWidget * parent)
   :
-  QWidget ( parent ),
+  QWidget(parent),
   ui ( new Ui::ObjectEditor ),
-  classname ( cname ),
-  object_to_edit ( nullptr ),
   IsValid ( false ),
-  this_is_in_copy_mode ( true ),
-  this_editor_is_owned ( true ),
-  this_is_in_creation_mode ( true ),
   this_editor_values_changed ( false ),
   CurrentRow ( 0 ),
-
   MainLayout ( new QHBoxLayout() ),
   WidgetTable ( new NoScrollingTable() ),
-
   RenameWidget ( nullptr ),
   LineEdit ( nullptr ),
   GoButton ( nullptr ),
-
   MoveWidget ( nullptr ),
   FileView ( nullptr ),
   IncludedFileModel ( nullptr ),
@@ -58,74 +51,36 @@ dbe::ObjectEditor::ObjectEditor ( std::string const & cname, QWidget * parent )
   uuid ( QUuid::createUuid() )
 {
   ui->setupUi ( this );
+}
+//------------------------------------------------------------------------------------------
+
+//------------------------------------------------------------------------------------------
+
+dbe::ObjectEditor::ObjectEditor ( std::string const & cname, QWidget * parent )
+  : ObjectEditor ( parent ) {
+
+  classname = cname;
+  m_object_to_edit = nullptr;
+  this_is_in_copy_mode = true;
+  this_editor_is_owned = true;
+  this_is_in_creation_mode = true;
 
   ui->RenameButton->setDisabled ( true ); // Cannot rename an object that does not exist
   ui->ClassLabel->setText ( QString ( "New Object" ) );
 
-  dunedaq::conffwk::class_t const & Class =
-    dbe::config::api::info::onclass::definition ( classname, false );
-  int NumberOfRows = Class.p_attributes.size() + Class.p_relationships.size();
-  int NumberOfColumns = 1;
-  WidgetTable->setRowCount ( NumberOfRows );
-  WidgetTable->setColumnCount ( NumberOfColumns );
-  setAttribute ( Qt::WA_DeleteOnClose, true );
-
-  SetController();
-  BuildWidgets();
-  UpdateActions();
-  BuildFileInfo();
-
-  ui->DetailsGroupBox->setVisible ( false );
-
-  WidgetTable->setSizePolicy ( QSizePolicy::Expanding, QSizePolicy::Expanding );
-  WidgetTable->horizontalHeader()->setVisible ( false );
-  WidgetTable->horizontalHeader()->setSectionResizeMode ( QHeaderView::ResizeToContents );
-  WidgetTable->horizontalHeader()->setSectionResizeMode ( 0, QHeaderView::Stretch );
-  WidgetTable->setVerticalHeaderLabels ( HorizontalHeaders );
-  WidgetTable->setSelectionMode ( QAbstractItemView::NoSelection );
-
-  ui->TableLayout->addWidget ( WidgetTable );
-
-  ui->ApplyButton->setEnabled ( false );
-
-  ui->RenameButton->setToolTip ( "Rename object" );
-
-  if ( this_is_in_creation_mode )
-  {
-    ui->RenameButton->setDisabled ( true );
-    ui->MoveButton->setDisabled ( true );
-  }
-
-  this->show();
+  init();
 }
 
 //------------------------------------------------------------------------------------------
 
-//------------------------------------------------------------------------------------------
 dbe::ObjectEditor::ObjectEditor ( tref const & object, QWidget * parent, bool iscopy )
-  :
-  QWidget ( parent ),
-  ui ( new Ui::ObjectEditor ),
-  classname ( object.class_name() ),
-  object_to_edit ( new dref ( object ) ),
-  IsValid ( false ),
-  this_is_in_copy_mode ( iscopy ),
-  this_editor_is_owned ( false ),
-  this_is_in_creation_mode ( false ),
-  this_editor_values_changed ( false ),
-  CurrentRow ( 0 ),
-  MainLayout ( new QHBoxLayout() ),
-  WidgetTable ( new NoScrollingTable() ),
-  RenameWidget ( nullptr ),
-  LineEdit ( nullptr ),
-  GoButton ( nullptr ),
-  MoveWidget ( nullptr ),
-  FileView ( nullptr ),
-  IncludedFileModel ( nullptr ),
-  MoveGoButton ( nullptr ),
-  uuid ( QUuid::createUuid() )
-{
-  ui->setupUi ( this );
+  : ObjectEditor ( parent ) {
+
+  classname = object.class_name();
+  m_object_to_edit.reset(new dref ( object ));
+  this_is_in_copy_mode = iscopy;
+  this_editor_is_owned = false;
+  this_is_in_creation_mode = false;
 
   ui->ClassLabel->setText (
     QString ( "Full object name : %1@%2" ).arg ( Object().UID().c_str() ).arg (
@@ -138,6 +93,11 @@ dbe::ObjectEditor::ObjectEditor ( tref const & object, QWidget * parent, bool is
   this->setObjectName (
     QString ( "%1@%2" ).arg ( Object().UID().c_str() ).arg ( Object().class_name().c_str() ) );
 
+  init();
+}
+
+//------------------------------------------------------------------------------------------
+void dbe::ObjectEditor::init() {
   dunedaq::conffwk::class_t const & Class =
     dbe::config::api::info::onclass::definition ( classname, false );
   int NumberOfRows = Class.p_attributes.size() + Class.p_relationships.size();
@@ -160,6 +120,13 @@ dbe::ObjectEditor::ObjectEditor ( tref const & object, QWidget * parent, bool is
   WidgetTable->setVerticalHeaderLabels ( HorizontalHeaders );
   WidgetTable->setSelectionMode ( QAbstractItemView::NoSelection );
 
+  if (!this_is_in_creation_mode) {
+    bool rw = confaccessor::check_file_rw (
+      QString::fromStdString ( Object().contained_in() ));
+    if (!rw) {
+      WidgetTable->setDisabled(true);
+    }
+  }
   ui->TableLayout->addWidget ( WidgetTable );
 
   ui->ApplyButton->setEnabled ( false );
@@ -175,6 +142,12 @@ dbe::ObjectEditor::ObjectEditor ( tref const & object, QWidget * parent, bool is
   this->show();
 }
 
+void dbe::ObjectEditor::keyPressEvent(QKeyEvent* event) {
+  if (event->key() == Qt::Key_Escape) {
+    close();
+  }
+  QWidget::keyPressEvent(event);
+}
 //------------------------------------------------------------------------------------------
 
 //------------------------------------------------------------------------------------------
@@ -210,7 +183,8 @@ bool dbe::ObjectEditor::WasObjectChanged() const
 //------------------------------------------------------------------------------------------
 bool dbe::ObjectEditor::CanCloseWindow()
 {
-  if ( this_editor_values_changed and ui->ApplyButton->isEnabled() )
+  if ( this_editor_values_changed and 
+       ui->ApplyButton->isEnabled() )
   {
     int ret =
       QMessageBox::question (
@@ -262,10 +236,8 @@ void dbe::ObjectEditor::SetController()
 {
   connect ( ui->DetailButton, SIGNAL ( toggled ( bool ) ), ui->DetailsGroupBox,
             SLOT ( setVisible ( bool ) ), Qt::UniqueConnection );
-
   connect ( ui->CloseButton, SIGNAL ( clicked ( bool ) ), this, SLOT ( close() ),
             Qt::UniqueConnection );
-
   connect ( ui->ApplyButton, SIGNAL ( clicked() ), this, SLOT ( ParseToSave() ),
             Qt::UniqueConnection );
 
@@ -316,11 +288,11 @@ void dbe::ObjectEditor::UpdateObjectEditor ( QString const & src, dref updated_o
   // to emit signals as needed
   Q_UNUSED ( src );
 
-  if ( not this_editor_is_owned and object_to_edit and Object().UID() == updated_object.UID()
+  if ( not this_editor_is_owned and m_object_to_edit and Object().UID() == updated_object.UID()
        and Object().class_name() == updated_object.class_name() )
   {
 
-    object_to_edit.reset ( new dref ( updated_object ) );
+    m_object_to_edit.reset ( new dref ( updated_object ) );
 
     dunedaq::conffwk::class_t const & classdef =
       dbe::config::api::info::onclass::definition ( classname, false );
@@ -401,7 +373,7 @@ void dbe::ObjectEditor::ShouldCloseThisWindow ( QString const src, dref const ke
 
   std::string const & fullname = key.UID() + "@" + key.class_name();
 
-  if ( ( object_to_edit and not object_to_edit->is_valid() )
+  if ( ( m_object_to_edit and not m_object_to_edit->is_valid() )
        or ( this->objectName().toStdString() == fullname ) )
   {
     this->close();
@@ -428,6 +400,7 @@ void dbe::ObjectEditor::BuildWidgets()
       widgets::editors::multiattr * widget = new widgets::editors::multiattr ( attr, this,
                                                                                true );
       set_attribute_widget ( attr, widget );
+
       set_tooltip ( attr, widget );
       register_attribute_widget ( name, widget );
       connect ( widget, SIGNAL ( signal_value_change() ), this, SLOT ( UpdateActions() ),
@@ -534,7 +507,7 @@ void dbe::ObjectEditor::BuildWidgets()
     QString name = QString::fromStdString ( arelation.p_name );
     QStringList Data;
 
-    if ( object_to_edit and not Object().is_null() )
+    if ( m_object_to_edit and not Object().is_null() )
     {
       std::vector<tref> DataList;
 
@@ -639,7 +612,7 @@ void dbe::ObjectEditor::set_attribute_widget ( dunedaq::conffwk::attribute_t con
   {
     QStringList values;
 
-    if ( not Widget->ischanged() and object_to_edit and not Object().is_null() )
+    if ( not Widget->ischanged() and m_object_to_edit and not Object().is_null() )
     {
       values = dbe::config::api::get::attribute::list<QStringList> ( Object(), Attribute );
     }
@@ -713,7 +686,7 @@ void dbe::ObjectEditor::register_relation_widget ( QString const & name,
 //------------------------------------------------------------------------------------------
 void dbe::ObjectEditor::BuildFileInfo()
 {
-  if ( object_to_edit and not Object().is_null() )
+  if ( m_object_to_edit and not Object().is_null() )
   {
     QString FileName = QString ( Object().contained_in().c_str() );
     QList<QStringList> FileCache = confaccessor::ref().GetIncludedFileCache();
@@ -737,21 +710,21 @@ void dbe::ObjectEditor::BuildFileInfo()
 //------------------------------------------------------------------------------------------
 
 //------------------------------------------------------------------------------------------
-void dbe::ObjectEditor::closeEvent ( QCloseEvent * e )
-{
-  if ( not this_editor_is_owned and CanCloseWindow() )
-  {
-    e->accept();
-  }
-  else if ( this_editor_is_owned )
-  {
-    e->accept();
-  }
-  else
-  {
-    e->ignore();
-  }
-}
+// void dbe::ObjectEditor::closeEvent ( QCloseEvent * e )
+// {
+//   if ( not this_editor_is_owned and CanCloseWindow() )
+//   {
+//     e->accept();
+//   }
+//   else if ( this_editor_is_owned )
+//   {
+//     e->accept();
+//   }
+//   else
+//   {
+//     e->ignore();
+//   }
+// }
 
 //------------------------------------------------------------------------------------------
 
@@ -807,6 +780,7 @@ void dbe::ObjectEditor::UpdateActions()
     StatusLabel->setText ( Mex );
 
     ui->ApplyButton->setEnabled ( false );
+
     IsValid = false;
   }
 
@@ -876,7 +850,10 @@ void dbe::ObjectEditor::ParseToSave()
       }
     }
 
+    MainWindow::findthis()->build_file_model();
+
     ui->ApplyButton->setDisabled ( true );
+
     this_editor_values_changed = false;
   }
   else
@@ -956,6 +933,13 @@ void dbe::ObjectEditor::LaunchMoveObject()
 
 //------------------------------------------------------------------------------------------
 
+void dbe::ObjectEditor::save_and_close() {
+  if (ui->ApplyButton->isEnabled() ) {
+    ParseToSave();
+  }
+  close();
+}
+
 //------------------------------------------------------------------------------------------
 void dbe::ObjectEditor::RenameObject()
 {
@@ -965,7 +949,7 @@ void dbe::ObjectEditor::RenameObject()
 }
 
 void dbe::ObjectEditor::slot_external_rename_object ( QString const & src,
-                                                      dref const & obj )
+                                                      dref const & /* obj */)
 {
   // Rename can only occur by undoing a command issued from an ObjectEditor therefore
   // the uuid and src have to be equal. We also check the UID

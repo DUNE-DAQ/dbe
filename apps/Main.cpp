@@ -37,17 +37,18 @@ int main(int argc, char *argv[])
 	options_description.add_options()
 			("help,h", "Provide help message")
 
-            ("version,v", bop::value<std::string>(&configv)->default_value(configv),
-            "OKS version to load (when the GIT back-end is used - valid only in file mode)")
+            // ("version,v", bop::value<std::string>(&configv)->default_value(configv),
+            // "OKS version to load (when the GIT back-end is used - valid only in file mode)")
 
 			("file,f", bop::value<std::string>(&oksfn)->default_value(oksfn),
 			"OKS database file name")
 
-			("rdb,r", bop::value<std::string>(&rdbrl)->default_value(rdbrl),
-			"RDB resource locator (e.g. rdbServerName@partitionName)")
+			// ("rdb,r", bop::value<std::string>(&rdbrl)->default_value(rdbrl),
+			// "RDB resource locator (e.g. rdbServerName@partitionName)")
 
-			("roksrl,o",bop::value<std::string>(&roksrl)->default_value(roksrl),
-			"ROKS resource locator (e.g. oracle://atlas_oks/r:atlas_oks_archive:<schema version>:<data version>)");
+			// ("roksrl,o",bop::value<std::string>(&roksrl)->default_value(roksrl),
+			// "ROKS resource locator (e.g. oracle://atlas_oks/r:atlas_oks_archive:<schema version>:<data version>)")
+    ;
 
 	bop::variables_map options_map;
 
@@ -88,9 +89,9 @@ int main(int argc, char *argv[])
         }
 
         argmap.insert("f", QString::fromStdString(oksfn));
-        argmap.insert("r", QString::fromStdString(rdbrl));
-        argmap.insert("o", QString::fromStdString(roksrl));
-        argmap.insert("v", QString::fromStdString(configv));
+        // argmap.insert("r", QString::fromStdString(rdbrl));
+        // argmap.insert("o", QString::fromStdString(roksrl));
+        // argmap.insert("v", QString::fromStdString(configv));
 
     }
     catch(std::exception const & e) {

@@ -33,7 +33,7 @@ private slots:
 
   void FindObjectSlot();
 
-  void GoToFile();
+  void slot_go_to_object();
   void GoToNext();
 
   void EditedSearchString ( QString Text );
@@ -46,7 +46,7 @@ private:
 
   void referencedBy ( tref obj, bool onlyComposite );
 
-  QMenu * ContextMenu;
+  QMenu * m_context_menu;
   QAction * FindObject;
   QAction * editObject;
   QAction * deleteObjectAc;
@@ -55,7 +55,7 @@ private:
   QAction * copyObjectAc;
 
   /// File Dialog
-  QDialog * FindFileDialog;
+  QDialog * m_find_object_dialog;
   QLineEdit * LineEdit;
   QPushButton * NextButton;
   QPushButton * GoButton;
@@ -64,6 +64,7 @@ private:
   int ListIndex;
   QModelIndexList ListOfMatch;
 
+  int m_last_object_item;
 };
 } // end namespace dbe
 #endif // CUSTOMTABLEVIEW_H

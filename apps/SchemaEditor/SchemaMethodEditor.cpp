@@ -21,6 +21,7 @@ dbse::SchemaMethodEditor::SchemaMethodEditor ( OksClass * ClassInfo, OksMethod *
     UsedNew ( false )
 {
   QWidget::setAttribute(Qt::WA_DeleteOnClose);
+  m_writable = KernelWrapper::GetInstance().IsFileWritable(m_class->get_file()->get_full_file_name());
   ui->setupUi ( this );
   InitialSettings();
   BuildModels();
@@ -36,6 +37,7 @@ dbse::SchemaMethodEditor::SchemaMethodEditor ( OksClass * ClassInfo, QWidget * p
     UsedNew ( true )
 {
   QWidget::setAttribute(Qt::WA_DeleteOnClose);
+  m_writable = KernelWrapper::GetInstance().IsFileWritable(m_class->get_file()->get_full_file_name());
   ui->setupUi ( this );
   InitialSettings();
   SetController();
@@ -86,7 +88,13 @@ void dbse::SchemaMethodEditor::InitialSettings()
   }
   else
   {
-      FillInfo();
+    if (!m_writable) {
+      ui->MethodName->setEnabled (false);
+      ui->DescriptionTextBox->setEnabled (false);
+      ui->AddButton->setEnabled (false);
+      ui->ImplementationsView->setEnabled (false);
+    }
+    FillInfo();
   }
 }
 
@@ -210,7 +218,8 @@ void dbse::SchemaMethodEditor::OpenMethodImplementationEditor ( QModelIndex Inde
 {
   QStringList Row = ImplementationModel->getRowFromIndex ( Index );
   if ( !Row.isEmpty() ) {
-    QString name = QString::fromStdString(m_method->get_name()).append(Row.at ( 0 ));
+    QString name = QString::fromStdString(
+      m_class->get_name()+m_method->get_name()).append(Row.at ( 0 ));
     if (ShouldOpenMethodImplementationEditor ( name )) {
       SchemaMethodImplementationEditor * Editor = new SchemaMethodImplementationEditor (
         m_class, m_method, m_method->find_implementation ( Row.at ( 0 ).toStdString() ) );

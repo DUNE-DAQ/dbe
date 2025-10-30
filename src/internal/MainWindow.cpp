@@ -52,10 +52,7 @@ dbe::MainWindow::MainWindow ( QMap<QString, QString> const & cmdargs, QWidget * 
     this_files ( nullptr ),
     this_filesort ( new QSortFilterProxyModel ( this ) ),
     this_classes ( nullptr ),
-    this_partitions ( nullptr ),
-    this_resources ( nullptr ),
     this_treefilter ( nullptr ),
-    //this_oraclewidget ( nullptr ),
     isArchivedConf ( false )
 {
   //qRegisterMetaType<RDBMap>("RDBMap");
@@ -109,8 +106,7 @@ void dbe::MainWindow::init_tabs()
 void dbe::MainWindow::slot_add_tab()
 {
   tableholder->addTab ( new TableTab ( tableholder ), "Table View" );
-  int cind = tableholder->currentIndex();
-  tableholder->setCurrentIndex ( ++cind );
+  tableholder->setCurrentIndex ( tableholder->count()-1 );
   tableholder->show();
 }
 
@@ -138,13 +134,13 @@ void dbe::MainWindow::init()
   /// Table Settings
   UndoView->setStack ( confaccessor::get_commands().get() );
   SearchLineTable->hide();
+  SearchLineTable->setClearButtonEnabled(true);
+  SearchTreeLine->setClearButtonEnabled(true);
   CaseSensitiveCheckBoxTable->hide();
-  SearchTreeLine->setProperty ( "placeholderText", QVariant ( QString ( "Tree Filter" ) ) );
   tableholder->removeTab ( 1 );
 
   /// Menus Settings
-  ToolsMenu->setEnabled ( false );
-  HelpMenu->setEnabled ( true );
+  HelpMenu->setEnabled ( false );  // Until help is updated to be useful!!!
 
   /// Commands Settings
   Commit->setEnabled ( false );
@@ -153,12 +149,9 @@ void dbe::MainWindow::init()
 
   /// Search Box Settings
   SearchBox->setFocusPolicy ( Qt::ClickFocus );
-  SearchBox->setToolTip ( QString ( "Search mode: %1" ).arg ( SearchBox->currentText() ) );
 
   /// What is this
   TreeView->setWhatsThis ( "This view shows the classes and objects of the database" );
-  PartitionView->setWhatsThis ( "This view shows the partition objects of the database" );
-  ResourceView->setWhatsThis ( "This view shows the resources of the database" );
   FileView->setWhatsThis ( "This view shows the file structure of the database" );
   UndoView->setWhatsThis ( "This view shows the commands in the Undo Command stack" );
 
@@ -169,6 +162,10 @@ void dbe::MainWindow::init()
   CommittedTable->setWordWrap(true);
   CommittedTable->setTextElideMode(Qt::ElideRight);
   CommittedTable->setItemDelegate(new DummyEditorDelegate());
+
+  // Make Files the current tab 
+  InfoWidget->setCurrentIndex (0);
+
 
   /// Color Management
   StyleUtility::InitColorManagement();
@@ -190,10 +187,6 @@ void dbe::MainWindow::attach()
 
   connect ( DisplayClassView, SIGNAL ( triggered ( bool ) ), TreeDockWidget,
             SLOT ( setVisible ( bool ) ) );
-  connect ( DisplayPartitionView, SIGNAL ( triggered ( bool ) ), PartitionDockWidget,
-            SLOT ( setVisible ( bool ) ) );
-  connect ( DisplaySegmentsView, SIGNAL ( triggered ( bool ) ), ResourceDockWidget,
-            SLOT ( setVisible ( bool ) ) );
   connect ( DisplayTableView, SIGNAL ( triggered ( bool ) ), TableGroupBox,
             SLOT ( setVisible ( bool ) ) );
   connect ( DisplayMessages, SIGNAL ( triggered ( bool ) ), InfoDockWidget,
@@ -202,10 +195,6 @@ void dbe::MainWindow::attach()
             SLOT ( setVisible ( bool ) ) );
 
   connect ( TreeDockWidget, SIGNAL ( visibilityChanged ( bool ) ), DisplayTableView,
-            SLOT ( setChecked ( bool ) ) );
-  connect ( PartitionDockWidget, SIGNAL ( visibilityChanged ( bool ) ), DisplayPartitionView,
-            SLOT ( setChecked ( bool ) ) );
-  connect ( ResourceDockWidget, SIGNAL ( visibilityChanged ( bool ) ), DisplaySegmentsView,
             SLOT ( setChecked ( bool ) ) );
   connect ( InfoDockWidget , SIGNAL ( visibilityChanged ( bool ) ), DisplayMessages,
             SLOT ( setChecked ( bool ) ) );
@@ -222,12 +211,8 @@ void dbe::MainWindow::attach()
   connect ( UserGuide, SIGNAL ( triggered() ), this, SLOT ( slot_show_userguide() ) );
   connect ( UserChanges, SIGNAL ( triggered() ), this, SLOT ( slot_show_userchanges() ) );
 
-  connect ( TreeView, SIGNAL ( doubleClicked ( QModelIndex ) ), this,
+  connect ( TreeView, SIGNAL ( activated ( QModelIndex ) ), this,
             SLOT ( slot_edit_object_from_class_view ( QModelIndex ) ) );
-  connect ( PartitionView, SIGNAL ( doubleClicked ( QModelIndex ) ), this,
-            SLOT ( slot_edit_object_from_partition_view ( QModelIndex ) ) );
-  connect ( ResourceView, SIGNAL ( doubleClicked ( QModelIndex ) ), this,
-            SLOT ( slot_edit_object_from_resource_view ( QModelIndex ) ) );
 
   connect( &confaccessor::ref(), SIGNAL(db_committed(const std::list<std::string>&, const std::string&)), this,
            SLOT(slot_update_committed_files(const std::list<std::string>&, const std::string&)));
@@ -264,6 +249,9 @@ void dbe::MainWindow::attach()
   connect ( &confaccessor::ref(), SIGNAL ( ExternalChangesAccepted() ), this,
             SLOT ( slot_process_externalchanges() ) );
 
+
+  connect ( SearchBox, SIGNAL ( currentIndexChanged(int) ), this,
+            SLOT ( slot_filter_query() ) );
   connect ( SearchTreeLine, SIGNAL ( textChanged ( const QString & ) ), this,
             SLOT ( slot_filter_textchange ( const QString & ) ) );
   connect ( SearchTreeLine, SIGNAL ( textEdited ( const QString & ) ), this,
@@ -312,25 +300,18 @@ void dbe::MainWindow::attach()
 void dbe::MainWindow::build_class_tree_model()
 {
   QStringList Headers
-  { "Class Name", "Number Of Instances" };
+  { "Class Name", "# Objects" };
 
-  if ( this_classes == nullptr )
+  if ( this_classes != nullptr )
   {
-    this_classes = new dbe::models::tree ( Headers );
-    /// Creating SelectionModel
-    this_treefilter = new models::treeselection();
-    this_treefilter->setFilterRegExp ( "" );
-  }
-  else
-  {
-    /// Creating new Main Model
     delete this_classes;
-    this_classes = new dbe::models::tree ( Headers );
-    /// Resetting attached models
     delete this_treefilter;
-    this_treefilter = new models::treeselection();
-    this_treefilter->setFilterRegExp ( "" );
   }
+  /// Creating new Main Model
+  this_classes = new dbe::models::tree ( Headers );
+  /// Resetting attached models
+  this_treefilter = new models::treeselection();
+  this_treefilter->setFilterRegExp ( "" );
 
   connect ( this_classes, SIGNAL ( ObjectFile ( QString ) ),
             this, SLOT ( slot_loaded_db_file ( QString ) ) );
@@ -361,7 +342,7 @@ void dbe::MainWindow::build_table_model()
   CaseSensitiveCheckBoxTable->show();
 }
 
-void dbe::MainWindow::edit_object_at ( const QModelIndex Index )
+void dbe::MainWindow::edit_object_at ( const QModelIndex & Index )
 {
   treenode * tree_node = this_classes->getnode ( Index );
 
@@ -372,7 +353,6 @@ void dbe::MainWindow::edit_object_at ( const QModelIndex Index )
 
   if ( dynamic_cast<ObjectNode *> ( tree_node ) )
   {
-
     ObjectNode * NodeObject = dynamic_cast<ObjectNode *> ( tree_node );
     tref ObjectToBeEdited = NodeObject->GetObject();
     slot_launch_object_editor ( ObjectToBeEdited );
@@ -421,51 +401,6 @@ void dbe::MainWindow::edit_object_at ( const QModelIndex Index )
   }
 }
 
-void dbe::MainWindow::build_partition_tree_model()
-{
-  QStringList Headers
-  { "Partition" };
-
-  if ( this_partitions == nullptr )
-  {
-    this_partitions = new models::subtree_proxy ( "Partition", Headers );
-  }
-  else
-  {
-    delete this_partitions;
-    this_partitions = new models::subtree_proxy ( "Partition", Headers );
-  }
-
-  this_partitions->setSourceModel ( this_classes );
-  this_partitions->LoadClasses();
-  PartitionView->setModel ( this_partitions );
-  PartitionView->setSortingEnabled ( true );
-  PartitionView->setColumnHidden ( 1, true );
-  PartitionView->resizeColumnToContents ( 0 );
-}
-
-void dbe::MainWindow::build_resource_tree_model()
-{
-  QStringList Headers
-  { "Segment" };
-
-  if ( this_resources == nullptr )
-  {
-    this_resources = new models::subtree_proxy ( "Control Tree", Headers );
-  }
-  else
-  {
-    delete this_resources;
-    this_resources = new models::subtree_proxy ( "Control Tree", Headers );
-  }
-
-  this_resources->setSourceModel ( this_classes );
-  this_resources->LoadClasses();
-  ResourceView->setModel ( this_resources );
-  ResourceView->setSortingEnabled ( true );
-  ResourceView->setColumnHidden ( 1, true );
-  ResourceView->resizeColumnToContents ( 0 );
-}
 
 void dbe::MainWindow::build_file_model()
 {
@@ -473,18 +408,18 @@ void dbe::MainWindow::build_file_model()
 
   if ( !confaccessor::db_implementation_name().contains ( "roksconflibs" ) )
   {
-    if ( this_files == nullptr )
-    {
-      this_files = new FileModel();
-    }
-    else
-    {
+    if ( this_files != nullptr ) {
       delete this_files;
-      this_files = new FileModel();
     }
+    this_files = new FileModel();
 
     this_filesort.setSourceModel ( this_files );
     FileView->setModel ( &this_filesort );
+
+    FileView->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
+    FileView->horizontalHeader()->setSectionResizeMode(1, QHeaderView::ResizeToContents);
+    FileView->horizontalHeader()->setSectionResizeMode(2, QHeaderView::ResizeToContents);
+    FileView->horizontalHeader()->setSectionResizeMode(3, QHeaderView::ResizeToContents);
   }
 }
 
@@ -523,6 +458,8 @@ void dbe::MainWindow::slot_commit_database ( bool Exit )
     {
       std::list<std::string> const & modified = confaccessor::save ( CommitMessage );
       confaccessor::clear_commands();
+
+      build_file_model();
 
       if ( not modified.empty() )
       {
@@ -737,8 +674,8 @@ void dbe::MainWindow::slot_load_db_from_create_widget ( const QString & Database
         {
           setinternals();
           build_class_tree_model();
-          build_partition_tree_model();
-          build_resource_tree_model();
+          // // build_partition_tree_model();
+          // build_resource_tree_model();
           build_file_model();
         }
       }
@@ -890,9 +827,8 @@ void dbe::MainWindow::load_settings ( bool LoadSettings )
   resize ( Settings->value ( "size" ).toSize() );
   move ( Settings->value ( "pos" ).toPoint() );
   DisplayTableView->setChecked ( Settings->value ( "TableView" ).toBool() );
-  DisplayPartitionView->setChecked ( Settings->value ( "PartitionView" ).toBool() );
   DisplayClassView->setChecked ( Settings->value ( "ClassView" ).toBool() );
-  DisplaySegmentsView->setChecked ( Settings->value ( "SRView" ).toBool() );
+
   DisplayMessages->setChecked ( Settings->value ( "Messages" ).toBool() );
   restoreGeometry ( Settings->value ( "geometry" ).toByteArray() );
   restoreState ( Settings->value ( "state" ).toByteArray() );
@@ -913,9 +849,8 @@ void dbe::MainWindow::WriteSettings()
   Settings.setValue ( "size", size() );
   Settings.setValue ( "pos", pos() );
   Settings.setValue ( "TableView", DisplayTableView->isChecked() );
-  Settings.setValue ( "PartitionView", DisplayPartitionView->isChecked() );
   Settings.setValue ( "ClassView", DisplayClassView->isChecked() );
-  Settings.setValue ( "SRView", DisplaySegmentsView->isChecked() );
+
   Settings.setValue ( "Messages", DisplayMessages->isChecked() );
   Settings.setValue ( "geometry", saveGeometry() );
   Settings.setValue ( "state", saveState() );
@@ -1185,6 +1120,7 @@ void dbe::MainWindow::slot_toggle_casesensitive_for_treeview ( bool )
   {
     this_treefilter->setFilterCaseSensitivity ( Qt::CaseInsensitive );
   }
+  update_total_objects();
 }
 
 void dbe::MainWindow::slot_model_rebuild()
@@ -1205,8 +1141,6 @@ void dbe::MainWindow::slot_model_rebuild()
   FileView->setModel ( NULL );
 
   build_class_tree_model();
-  build_partition_tree_model();
-  build_resource_tree_model();
   build_file_model();
 }
 
@@ -1227,6 +1161,8 @@ void dbe::MainWindow::slot_filter_textchange ( const QString & FilterText )
 
     this_treefilter->setFilterRegExp ( FilterText );
   }
+
+  update_total_objects();
 }
 
 void dbe::MainWindow::slot_filter_query()
@@ -1236,15 +1172,19 @@ void dbe::MainWindow::slot_filter_query()
     return;
   }
 
+  QString Tmp = SearchTreeLine->text();
   if ( SearchBox->currentIndex() == 1 )
   {
-    QString Tmp = SearchTreeLine->text();
-
     this_treefilter->SetFilterType ( models::treeselection::ObjectFilterType );
     std::vector<dbe::tref> Objects = ProcessQuery ( Tmp );
 
     this_treefilter->SetQueryObjects ( Objects );
     this_treefilter->setFilterRegExp ( Tmp );
+    update_total_objects();
+  }
+  else {
+    this_treefilter->ResetQueryObjects ( );
+    slot_filter_textchange( Tmp );
   }
 }
 
@@ -1306,8 +1246,6 @@ void dbe::MainWindow::slot_tree_reset()
 
     // Disconnecting models from views
     build_class_tree_model();
-    build_partition_tree_model();
-    build_resource_tree_model();
 
     // Re-create all the tabs
     for(const auto& idx : idxs) {
@@ -1321,8 +1259,14 @@ void dbe::MainWindow::slot_tree_reset()
 
 void dbe::MainWindow::update_total_objects()
 {
+  int total=0;
+  for (int item=0; item<this_treefilter->rowCount(); item++) {
+    auto index = this_treefilter->index(item, 1);
+    auto data = this_treefilter->data(index);
+    total += data.toInt();
+  }
   TotalObjectsLabel->setText (
-    QString ( "Total Objects: %1" ).arg ( confaccessor::get_total_objects() ) );
+    QString ( "Total Objects: %1" ).arg ( total ) );
 }
 
 void dbe::MainWindow::closeEvent ( QCloseEvent * event )
@@ -1466,17 +1410,6 @@ bool dbe::MainWindow::check_close()
   }
 }
 
-void dbe::MainWindow::slot_edit_object_from_partition_view ( QModelIndex const &
-                                                             ProxyIndex )
-{
-  edit_object_at ( this_partitions->mapToSource ( ProxyIndex ) );
-}
-
-void dbe::MainWindow::slot_edit_object_from_resource_view ( QModelIndex const & ProxyIndex )
-{
-  edit_object_at ( this_resources->mapToSource ( ProxyIndex ) );
-}
-
 void dbe::MainWindow::slot_edit_object_from_class_view ( QModelIndex const & ProxyIndex )
 {
   edit_object_at ( this_treefilter->mapToSource ( ProxyIndex ) );
@@ -1505,8 +1438,8 @@ bool dbe::MainWindow::dbopen ( QString const & dbpath, dbinfo const & loadtype )
       {
         setinternals();
         build_class_tree_model();
-        build_partition_tree_model();
-        build_resource_tree_model();
+        // build_partition_tree_model();
+        // build_resource_tree_model();
         build_file_model();
       }
     }
@@ -1914,8 +1847,6 @@ void dbe::MainWindow::slot_batch_change_stop(const QList<QPair<QString, QString>
   // In order to apply the same policy as in the class tree
   // the subtree_proxy class needs to be completed with proper
   // implementation of slots when objects are modified
-  build_resource_tree_model();
-  build_partition_tree_model();
 
   // Proper "refresh" of table tabs
   for ( int i = 0; i < tableholder->count(); i++ )
@@ -1947,11 +1878,14 @@ void dbe::MainWindow::slot_toggle_commit_button()
 
             std::string l;
             for(const std::string& f : uncommittedFiles) {
-                l += f + "\n";
+                l += "  " + f + "\n";
             }
 
-            Commit->setToolTip(QString::fromStdString("Commit changes.\nHere are the uncommitted files: " + l));
+            Commit->setToolTip(QString::fromStdString("Commit changes.\nHere are the uncommitted files:\n" + l));
         }
+
+        build_file_model();
+
     } else {
         Commit->setEnabled(false);
     }

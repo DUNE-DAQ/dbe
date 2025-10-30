@@ -8,6 +8,7 @@
 #include <QContextMenuEvent>
 #include <QAction>
 #include <QMenu>
+#include <QMessageBox>
 
 /// Including DBE
 #include "dbe/CustomTreeView.hpp"
@@ -43,7 +44,7 @@ void dbe::CustomTreeView::contextMenuEvent ( QContextMenuEvent * Event )
     contextMenu->addAction ( copyObjectAc );
     contextMenu->addAction ( buildTableFromClassAc );
     contextMenu->addAction ( expandAllAc );
-    contextMenu->addAction ( colapseAllAc );
+    contextMenu->addAction ( collapseAllAc );
     contextMenu->addAction ( refByAc );
     contextMenu->addAction ( refByAcOnlyComp );
   }
@@ -113,7 +114,7 @@ void dbe::CustomTreeView::CreateActions()
   connect ( createObjectAc, SIGNAL ( triggered() ), this, SLOT ( slot_create_object() ) );
   addAction ( createObjectAc );
 
-  copyObjectAc = new QAction ( tr ( "Copy This Object Into A &New One" ), this );
+  copyObjectAc = new QAction ( tr ( "&Copy This Object Into A New One" ), this );
   copyObjectAc->setShortcut ( tr ( "Ctrl+Shift+N" ) );
   copyObjectAc->setShortcutContext ( Qt::WidgetShortcut );
   connect ( copyObjectAc, SIGNAL ( triggered() ), this, SLOT ( slot_copy_object() ) );
@@ -136,14 +137,14 @@ void dbe::CustomTreeView::CreateActions()
             SLOT ( expandAll() ) ); // QTreeView slot
   addAction ( expandAllAc );
 
-  colapseAllAc = new QAction ( tr ( "&Collapse All" ), this );
-  colapseAllAc->setShortcut ( tr ( "Ctrl+Shift+C" ) );
-  colapseAllAc->setShortcutContext ( Qt::WidgetShortcut );
-  connect ( colapseAllAc, SIGNAL ( triggered() ), this,
+  collapseAllAc = new QAction ( tr ( "C&ollapse All" ), this );
+  collapseAllAc->setShortcut ( tr ( "Ctrl+Shift+C" ) );
+  collapseAllAc->setShortcutContext ( Qt::WidgetShortcut );
+  connect ( collapseAllAc, SIGNAL ( triggered() ), this,
             SLOT ( collapseAll() ) ); // QTreeView slot
-  addAction ( colapseAllAc );
+  addAction ( collapseAllAc );
 
-  refByAc = new QAction ( tr ( "Referenced B&y (All objects)" ), this );
+  refByAc = new QAction ( tr ( "&Referenced By (All objects)" ), this );
   refByAc->setShortcut ( tr ( "Ctrl+Y" ) );
   refByAc->setShortcutContext ( Qt::WidgetShortcut );
   refByAc->setToolTip ( "Find all objects which reference the selecetd object" );
@@ -386,8 +387,6 @@ void dbe::CustomTreeView::referencedBy ( bool All )
 
       if ( objects.size() > 0 )
       {
-        QStringList ColumnNames;
-        ColumnNames << "Class Name" << "Number of Referencing Instances";
         dbe::models::tree * Source = dynamic_cast<dbe::models::tree *> ( filtermodel
                                                                          ->ReturnSourceModel() );
         models::treeselection * Selection = new models::treeselection();
@@ -446,8 +445,6 @@ void dbe::CustomTreeView::referencedBy ( bool All, tref obj )
 
     if ( objects.size() > 0 )
     {
-      QStringList ColumnNames;
-      ColumnNames << "Class Name"; // << "Number of Referencing Instances";
       dbe::models::tree * Source = dynamic_cast<dbe::models::tree *> ( filtermodel
                                                                        ->ReturnSourceModel() );
       models::treeselection * Selection = new models::treeselection();

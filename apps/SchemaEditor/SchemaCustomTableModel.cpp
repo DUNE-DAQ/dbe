@@ -1,5 +1,6 @@
 #include "dbe/SchemaCustomTableModel.hpp"
 #include "dbe/SchemaKernelWrapper.hpp"
+#include "dbe/SchemaStyle.hpp"
 #include <QIODevice>
 #include <QDataStream>
 
@@ -18,19 +19,19 @@ dbse::CustomTableModel::~CustomTableModel()
 
 int dbse::CustomTableModel::rowCount ( const QModelIndex & parent ) const
 {
-  Q_UNUSED ( parent )
-  return Data.size();
+  Q_UNUSED ( parent );
+  return m_data.size();
 }
 
 int dbse::CustomTableModel::columnCount ( const QModelIndex & parent ) const
 {
-  Q_UNUSED ( parent )
+  Q_UNUSED ( parent );
   return HeaderList.size();
 }
 
 Qt::ItemFlags dbse::CustomTableModel::flags ( const QModelIndex & index ) const
 {
-  Q_UNUSED ( index )
+  Q_UNUSED ( index );
   return Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsDragEnabled;
 }
 
@@ -52,12 +53,22 @@ QVariant dbse::CustomTableModel::headerData ( int section, Qt::Orientation orien
 
 QVariant dbse::CustomTableModel::data ( const QModelIndex & index, int role ) const
 {
-  if ( role != Qt::DisplayRole )
+  if ( role == Qt::DisplayRole )
   {
-    return QVariant();
+    return m_data.value ( index.row() ).value ( index.column() );
+  }
+  if ( role == Qt::ToolTipRole )
+  {
+    return m_tooltips.value ( index.row() ).value ( index.column() );
+  }
+  if (role == Qt::ForegroundRole) {
+    return m_brushes.at(index.row());
+  }
+  if (role == Qt::BackgroundRole) {
+    return m_backgrounds.at(index.row());
   }
 
-  return Data.value ( index.row() ).value ( index.column() );
+  return QVariant();
 }
 
 QStringList dbse::CustomTableModel::getRowFromIndex ( QModelIndex & index )
@@ -67,7 +78,7 @@ QStringList dbse::CustomTableModel::getRowFromIndex ( QModelIndex & index )
     return QStringList();
   }
 
-  return Data.at ( index.row() );
+  return m_data.at ( index.row() );
 }
 
 void dbse::CustomTableModel::setupModel()
@@ -80,7 +91,22 @@ void dbse::CustomTableModel::setupModel()
     QList<QString> Row;
     OksClass * Class = ClassList.at ( i );
     Row.append ( QString ( Class->get_name().c_str() ) );
-    Data.append ( Row );
+    m_data.append ( Row );
+    m_tooltips.append (QStringList {QString ( Class->get_description().c_str() )});
+
+    auto fn = Class->get_file()->get_full_file_name();
+    if (!KernelWrapper::GetInstance().IsFileWritable (fn)) {
+      m_brushes.emplace_back(QBrush(SchemaStyle::get_color("foreground", "readonly")));
+      m_backgrounds.emplace_back(SchemaStyle::get_color("background", "readonly"));
+    }
+    else if (fn == KernelWrapper::GetInstance().GetActiveSchema()) {
+      m_brushes.emplace_back(QBrush(SchemaStyle::get_color("foreground", "active_file")));
+      m_backgrounds.emplace_back(SchemaStyle::get_color("background", "active_file"));
+    }
+    else {
+      m_brushes.emplace_back(QBrush(SchemaStyle::get_color("foreground", "default")));
+      m_backgrounds.emplace_back(SchemaStyle::get_color("background", "default"));
+    }
   }
 }
 

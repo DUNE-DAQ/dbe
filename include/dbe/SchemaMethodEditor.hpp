@@ -39,6 +39,7 @@ private:
   dunedaq::oks::OksMethod * m_method;
   CustomMethodImplementationModel * ImplementationModel;
   bool UsedNew;
+  bool m_writable;
   bool ShouldOpenMethodImplementationEditor ( QString Name );
   bool create();
 private slots:

@@ -3,8 +3,12 @@
 
 /// Including QT Headers
 #include <QAbstractTableModel>
+#include <QBrush>
+#include <QColor>
 #include <QStringList>
 #include <QMimeData>
+
+#include <vector>
 
 namespace dbse
 {
@@ -27,7 +31,10 @@ public:
   QMimeData * mimeData ( const QModelIndexList & indexes ) const;
 private:
   QStringList HeaderList;
-  QList<QList<QString>> Data;
+  QList<QList<QString>> m_data;
+  QList<QList<QString>> m_tooltips;
+  std::vector<QBrush> m_brushes;
+  std::vector<QColor> m_backgrounds;
 };
 
 }  // namespace dbse

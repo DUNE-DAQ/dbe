@@ -1,9 +1,12 @@
 /// Including Schema Editor
 #include "dbe/SchemaCustomFileModel.hpp"
 #include "dbe/SchemaKernelWrapper.hpp"
+#include "dbe/SchemaStyle.hpp"
 /// Including C++ Headers
 #include <vector>
 
+#include <QBrush>
+#include <QColor>
 #include <QSize>
 
 dbse::CustomFileModel::CustomFileModel ( QStringList & Headers, QObject * parent )
@@ -19,25 +22,25 @@ dbse::CustomFileModel::~CustomFileModel()
 
 int dbse::CustomFileModel::rowCount ( const QModelIndex & parent ) const
 {
-  Q_UNUSED ( parent )
+  Q_UNUSED ( parent );
   return Data.size();
 }
 
 int dbse::CustomFileModel::columnCount ( const QModelIndex & parent ) const
 {
-  Q_UNUSED ( parent )
+  Q_UNUSED ( parent );
   return HeaderList.size();
 }
 
-Qt::ItemFlags dbse::CustomFileModel::flags ( const QModelIndex & index ) const
-{
-  if ( Data.value (index.row() ).value ( 1) == "RW" ) {
-    return Qt::ItemIsEnabled | Qt::ItemIsSelectable;
-  }
-  else {
-    return Qt::NoItemFlags;
-  }
-}
+// Qt::ItemFlags dbse::CustomFileModel::flags ( const QModelIndex & index ) const
+// {
+//   // if ( Data.value (index.row() ).value ( 1) == "RW" ) {
+//     return Qt::ItemIsEnabled | Qt::ItemIsSelectable;
+//   // }
+//   // else {
+//   //   return Qt::NoItemFlags;
+//   // }
+// }
 
 QVariant dbse::CustomFileModel::headerData ( int section, Qt::Orientation orientation,
                                              int role ) const
@@ -57,12 +60,32 @@ QVariant dbse::CustomFileModel::headerData ( int section, Qt::Orientation orient
 
 QVariant dbse::CustomFileModel::data ( const QModelIndex & index, int role ) const
 {
-  if ( role != Qt::DisplayRole )
-  {
-    return QVariant();
+  if ( role == Qt::DisplayRole ) {
+    return Data.value(index.row()).value(index.column());
+  }
+  if (role == Qt::ForegroundRole) {
+    if (Data.value(index.row()).value(2).contains("Active")) {
+      return QBrush(QColor (SchemaStyle::get_color("foreground", "active_file")));
+    }
+    if (Data.value(index.row()).value(1) == "RW" ) {
+      return QBrush(QColor (SchemaStyle::get_color("foreground", "default")));
+    }
+    return QBrush(SchemaStyle::get_color("foreground", "readonly"));
+  }
+  if (role == Qt::BackgroundRole) {
+    if (Data.value(index.row()).value(2).contains("Active")) {
+      return QBrush(QColor (SchemaStyle::get_color("background", "active_file")));
+    }
+    if (Data.value(index.row()).value(1) == "RW" ) {
+      return QBrush(QColor (SchemaStyle::get_color("background", "default")));
+    }
+    return QBrush(SchemaStyle::get_color("background", "readonly"));
+  }
+  if (role == Qt::ToolTipRole) {
+    return Data.value(index.row()).value(0);
   }
 
-  return Data.value ( index.row() ).value ( index.column() );
+  return QVariant();
 }
 
 void dbse::CustomFileModel::setupModel()

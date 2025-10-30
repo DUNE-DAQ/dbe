@@ -30,10 +30,12 @@ class ObjectEditor:
   Q_OBJECT
 
 public:
-  ~ObjectEditor();
+  explicit ObjectEditor(QWidget * parent = nullptr);
   ObjectEditor ( std::string const & classname, QWidget * parent = nullptr );
 
   ObjectEditor ( tref const & objref, QWidget * parent = nullptr, bool const iscopy = false );
+
+  ~ObjectEditor();
 
   void HideDetailWidget ( bool Hide );
 
@@ -48,6 +50,8 @@ public:
   void SetUsedForCopy ( bool Used );
 
 private:
+  void keyPressEvent(QKeyEvent* event) override;
+  void init();
   void SetStatusBar();
   void SetController();
   void BuildWidgets();
@@ -62,16 +66,16 @@ private:
 
   void BuildFileInfo();
 
-  void closeEvent ( QCloseEvent * Event );
+  // void closeEvent ( QCloseEvent * Event );
 
   std::unique_ptr<dbe::Ui::ObjectEditor> ui;
 
   std::string classname;
-  std::unique_ptr<dref> object_to_edit;
+  std::unique_ptr<dref> m_object_to_edit;
 
   tref Object()
   {
-    return object_to_edit->ref();
+    return m_object_to_edit->ref();
   }
 
   QStatusBar * StatusBar;
@@ -106,6 +110,7 @@ public slots:
   void ResetObjectChanged();
 
 private slots:
+  void save_and_close();
   void UpdateActions();
   void ObjectChanged();
   void ParseToSave();
@@ -118,7 +123,7 @@ private slots:
   void UpdateObjectEditor ( QString const &, dref );
   void UpdateObjectEditor (const QList<QPair<QString, QString>>&);
   void UpdateObjectEditor ();
-  void ShouldCloseThisWindow ( QString const src, dref const );
+  void ShouldCloseThisWindow ( QString src, dref key );
 
 signals:
   void LoadedInitials();

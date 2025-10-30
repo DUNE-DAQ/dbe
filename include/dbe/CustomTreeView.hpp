@@ -19,7 +19,7 @@ class CustomTreeView: public QTreeView , public view_common_interface
 {
   Q_OBJECT
 public:
-  CustomTreeView ( QWidget * Parent = nullptr );
+  explicit CustomTreeView ( QWidget * Parent = nullptr );
   void contextMenuEvent ( QContextMenuEvent * Event );
 
 protected:
@@ -53,7 +53,7 @@ private:
   QAction * hideShowAc;
   QAction * buildTableFromClassAc;
   QAction * expandAllAc;
-  QAction * colapseAllAc;
+  QAction * collapseAllAc;
   QAction * refByAc;
   QAction * refByAcOnlyComp;
 };

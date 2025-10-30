@@ -56,12 +56,12 @@ dbe::IncludeFileWidget::IncludeFileWidget ( QString FilePath, QWidget * parent )
   QString TDAQ_DB_REPOSITORY = getenv ( "TDAQ_DB_REPOSITORY" );
   if(TDAQ_DB_REPOSITORY.isEmpty() == false) {
       QString TDAQ_DB_USER_REPOSITORY = getenv ( "TDAQ_DB_USER_REPOSITORY" );
-      FolderPathList = TDAQ_DB_USER_REPOSITORY.split ( ":", QString::SkipEmptyParts );
+      FolderPathList = TDAQ_DB_USER_REPOSITORY.split ( ":", Qt::SkipEmptyParts );
 
       FolderPathList.append(dbe::MainWindow::findthis()->find_db_repository_dir());
   } else {
       QString DUNEDAQ_DB_PATH = getenv ( "DUNEDAQ_DB_PATH" );
-      FolderPathList = DUNEDAQ_DB_PATH.split ( ":", QString::SkipEmptyParts );
+      FolderPathList = DUNEDAQ_DB_PATH.split ( ":", Qt::SkipEmptyParts );
   }
 
   for ( QString & PathName : FolderPathList )
@@ -88,7 +88,7 @@ dbe::IncludeFileWidget::IncludeFileWidget ( QString FilePath, QWidget * parent )
   }
 
   SelectFile->setSidebarUrls ( List );
-  SelectFile->setResolveSymlinks ( false );
+  SelectFile->setOption (QFileDialog::DontResolveSymlinks, true );
   ui->AddToIncludeButton->setDisabled ( true );
   ui->RemoveButton->setDisabled ( true );
 
@@ -96,6 +96,15 @@ dbe::IncludeFileWidget::IncludeFileWidget ( QString FilePath, QWidget * parent )
 
   SetController();
 }
+
+
+void dbe::IncludeFileWidget::keyPressEvent(QKeyEvent* event) {
+  if (event->key() == Qt::Key_Escape) {
+    close();
+  }
+  QWidget::keyPressEvent(event);
+}
+
 
 void dbe::IncludeFileWidget::SetRemoveComboBox()
 {

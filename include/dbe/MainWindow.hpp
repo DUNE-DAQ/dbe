@@ -50,11 +50,11 @@ public:
 
   static MainWindow * findthis();
 
-  bool check_ready() const;
+  [[nodiscard]] bool check_ready() const;
 
-  cptr<dbe::CustomTreeView> get_view() const;
+  [[nodiscard]] cptr<dbe::CustomTreeView> get_view() const;
 
-  QString find_db_repository_dir();
+  [[nodiscard]] QString find_db_repository_dir();
 
 private:
   //typedef QMap<QString, bool> RDBMap;
@@ -66,8 +66,6 @@ private:
   QSortFilterProxyModel this_filesort;
 
   dbe::models::tree * this_classes;
-  models::subtree_proxy * this_partitions;
-  models::subtree_proxy * this_resources;
   models::treeselection * this_treefilter;
 
   //OracleWidget * this_oraclewidget;
@@ -95,11 +93,10 @@ private:
   void setinternals();
 
   void build_class_tree_model();
-  void build_partition_tree_model();
-  void build_resource_tree_model();
   void build_table_model();
+public:
   void build_file_model();
-
+private:
   void load_settings ( bool LoadSettings = false );
 
   void WriteSettings();
@@ -108,7 +105,7 @@ private:
   //void lookForRDBServers ( const IPCPartition & p );
   void init_tabs();
 
-  void edit_object_at ( const QModelIndex Index );
+  void edit_object_at ( const QModelIndex & Index );
 
   void update_total_objects();
 
@@ -129,8 +126,6 @@ private slots:
   void slot_abort_external_changes();
 
   void slot_launch_object_editor ( tref );
-  void slot_edit_object_from_partition_view ( QModelIndex const & );
-  void slot_edit_object_from_resource_view ( QModelIndex const & );
   void slot_edit_object_from_class_view ( QModelIndex const & );
 
   void slot_build_graphical_view();

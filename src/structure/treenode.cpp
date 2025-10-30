@@ -5,6 +5,7 @@
 #include "dbe/config_api_get.hpp"
 #include "dbe/config_api_graph.hpp"
 #include "dbe/dbcontroller.hpp"
+#include "dbe/StyleUtility.hpp"
 
 #include <QGraphicsPixmapItem>
 #include <QGraphicsScene>
@@ -150,6 +151,7 @@ dbe::ClassNode::ClassNode ( const dunedaq::conffwk::class_t & Info, treenode * P
 {
     Data.append ( QVariant ( QString::fromStdString ( ClassInfo.p_name ) ) );
     Data.append ( QVariant ( numObjects ) );
+    m_tooltip = QVariant ( QString::fromStdString ( ClassInfo.p_description ) );
 }
 
 dbe::ClassNode::~ClassNode()
@@ -193,6 +195,11 @@ QVariant dbe::ClassNode::GetData ( const int Column, int role ) const
   case Qt::DisplayRole:
     return Data.value ( Column );
 
+  case Qt::ToolTipRole:
+
+    return m_tooltip;
+
+    break;
   case Qt::DecorationRole:
 
     if ( Column == 0 )
@@ -215,7 +222,6 @@ dbe::ObjectNode::ObjectNode ( dref obj, bool acopy, treenode * ParentNode )
   configdata ( obj )
 {
   Data.append ( QVariant ( QString::fromStdString ( configdata.UID() ) ) );
-
   if ( not acopy )
   {
     dunedaq::conffwk::class_t ClassInfo = dbe::config::api::info::onclass::definition (
@@ -259,6 +265,7 @@ QVariant dbe::ObjectNode::GetData ( const int Column, int role ) const
     {
       return QIcon ( ":/Images/TextGeneric.png" );
     }
+    break;
   }
 
   return QVariant();

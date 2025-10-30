@@ -258,7 +258,7 @@ QStringList file::inclusions ( QStringList const & candidates, QStringList files
 
     for ( QString const & fname : candidates )
     {
-      if ( not ( fname.contains ( "schema" ) or files.contains ( fname ) ) )
+      if ( not ( fname.endsWith ( "schema.xml" ) or files.contains ( fname ) ) )
       {
         files.push_back ( fname );
         // Query the current file for other inclusions

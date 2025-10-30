@@ -5,6 +5,7 @@
 /// Include oks
 #include "oks/kernel.hpp"
 #include "oks/class.hpp"
+#include "oks/file.hpp"
 
 using namespace dunedaq;
 using namespace dunedaq::oks;
@@ -27,6 +28,7 @@ void dbse::KernelWrapper::SetActiveSchema ( const std::string & ActiveSchema )
   if ( File && IsFileWritable( ActiveSchema ))
   {
     Kernel->set_active_schema ( File );
+    emit active_updated();
   }
 }
 
@@ -85,9 +87,7 @@ void dbse::KernelWrapper::RemoveInclude( std::string schemaFile, std::string Inc
 {
   auto ParentSchema = Kernel->find_schema_file( schemaFile );
   if (ParentSchema != nullptr) {
-    std::cout << "Calling remove_include_file()\n";
     ParentSchema->remove_include_file( IncludeFile );
-    std::cout << "Called remove_include_file()\n";
   }
 }
 
@@ -100,10 +100,56 @@ void dbse::KernelWrapper::GetSchemaFiles ( std::vector<std::string> & SchemaFile
   }
 }
 
-void dbse::KernelWrapper::GetIncludedList ( const std::string & FileName,
-                                            std::set<std::string> & IncludedFiles )
+void dbse::KernelWrapper::GetSchemaFiles ( std::vector<OksFile*> & SchemaFiles )
 {
-  Kernel->get_includes ( FileName, IncludedFiles );
+  for (auto [name, file]:  Kernel->schema_files())
+  {
+    SchemaFiles.push_back ( file );
+  }
+}
+
+std::vector<OksClass*>
+dbse::KernelWrapper::get_schema_classes (std::string& filename)
+{
+  auto file = Kernel->find_schema_file ( filename );
+  std::vector<OksClass*> list;
+  auto klist = Kernel->create_list_of_schema_classes(file);
+  if (klist != nullptr) {
+    for (auto cls: *klist) {
+      list.push_back(cls/*->get_name()*/);
+    }
+    delete klist;
+  }
+  return list;
+}
+
+void dbse::KernelWrapper::GetIncludedList ( const std::string & filename,
+                                            std::set<std::string> & included_files )
+{
+  Kernel->get_includes ( filename, included_files );
+}
+void dbse::KernelWrapper::get_all_includes ( const std::string & filename,
+                                            std::set<std::string> & included_files )
+{
+  auto parentschema = Kernel->find_schema_file( filename );
+  if ( parentschema != nullptr) {
+    std::set<OksFile*> includes;
+    parentschema->get_all_include_files(Kernel, includes);
+    for (auto file : includes) {
+      included_files.insert(file->get_full_file_name());
+    }
+  }
+}
+
+void dbse::KernelWrapper::get_direct_includes ( const std::string & filename,
+                                            std::set<std::string> & included_files )
+{
+  auto parentschema = Kernel->find_schema_file( filename );
+  if ( parentschema != nullptr) {
+    for (auto file : parentschema->get_include_files()) {
+      included_files.insert(file);
+    }
+  }
 }
 
 bool dbse::KernelWrapper::IsFileWritable (const std::string & FileName ) const
@@ -115,6 +161,15 @@ bool dbse::KernelWrapper::IsFileWritable (const std::string & FileName ) const
     return ( !File->is_read_only() );
   }
 
+  return false;
+}
+
+bool dbse::KernelWrapper::is_file_modified (const std::string & FileName ) const
+{
+  OksFile* file = Kernel->find_schema_file ( FileName );
+  if (file != nullptr) {
+    return file->is_updated();
+  }
   return false;
 }
 
@@ -139,6 +194,17 @@ std::string dbse::KernelWrapper::ModifiedSchemaFiles() const
   for (auto [name, file] : Kernel->schema_files()) {
     if (file->is_updated()) {
       modified += file->get_full_file_name() + "\n\n";
+    }
+  }
+  return modified;
+}
+
+std::vector<std::string> dbse::KernelWrapper::get_modified_schema_files() const
+{
+  std::vector<std::string> modified;
+  for (auto [name, file] : Kernel->schema_files()) {
+    if (file->is_updated()) {
+      modified.push_back(file->get_full_file_name());
     }
   }
   return modified;

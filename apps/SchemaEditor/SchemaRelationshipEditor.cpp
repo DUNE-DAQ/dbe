@@ -19,9 +19,13 @@ dbse::SchemaRelationshipEditor::SchemaRelationshipEditor ( OksClass * Class,
     GraphScene ( false )
 {
   QWidget::setAttribute(Qt::WA_DeleteOnClose);
+
+  m_writable = KernelWrapper::GetInstance().IsFileWritable(Class->get_file()->get_full_file_name());
+
   ui->setupUi ( this );
+  auto title = SchemaClass->get_name() + "::" + SchemaRelationship->get_name();
   setWindowTitle (
-    QString ( "Relationship Editor : %1" ).arg ( SchemaRelationship->get_name().c_str() ) );
+    QString ( "Relationship Editor : %1" ).arg ( title.c_str() ) );
   InitialSettings();
   SetController();
 }
@@ -37,7 +41,10 @@ dbse::SchemaRelationshipEditor::SchemaRelationshipEditor ( OksClass * Class,
 {
   QWidget::setAttribute(Qt::WA_DeleteOnClose);
   ui->setupUi ( this );
-  setWindowTitle ( "New Relationship" );
+  m_writable = true;
+  auto title = SchemaClass->get_name() + "  New Relationship";
+  setWindowTitle (
+    QString ( "Relationship Editor : %1" ).arg ( title.c_str() ) );
   InitialSettings();
   SetController();
 }
@@ -53,6 +60,7 @@ dbse::SchemaRelationshipEditor::SchemaRelationshipEditor ( OksClass * Class,
     GraphScene ( true )
 {
   QWidget::setAttribute(Qt::WA_DeleteOnClose);
+  m_writable = true;
   ui->setupUi ( this );
   setWindowTitle ( "New Relationship" );
   InitialSettings();
@@ -73,7 +81,8 @@ void dbse::SchemaRelationshipEditor::ClassUpdated( QString ClassName )
 
 void dbse::SchemaRelationshipEditor::FillInfo()
 {
-    setObjectName ( QString::fromStdString ( SchemaRelationship->get_name() ) );
+    auto name = SchemaClass->get_name() + "::" + SchemaRelationship->get_name();
+    setObjectName ( QString::fromStdString ( name ) );
     ui->RelationshipNameLineEdit->setText (
       QString::fromStdString ( SchemaRelationship->get_name() ) );
     ui->RelationshipTypeComboBox->setCurrentIndex (
@@ -135,12 +144,33 @@ void dbse::SchemaRelationshipEditor::FillInfo()
       ui->HighCcCombo->setCurrentIndex ( 2 );
     }
 }
+
+void dbse::SchemaRelationshipEditor::keyPressEvent(QKeyEvent* event) {
+  if (event->key() == Qt::Key_Escape) {
+    close();
+  }
+  QWidget::keyPressEvent(event);
+}
+
+
 void dbse::SchemaRelationshipEditor::InitialSettings()
 {
   QStringList ClassList;
   KernelWrapper::GetInstance().GetClassListString ( ClassList );
   ui->RelationshipTypeComboBox->addItems ( ClassList );
-  setObjectName ( "NEW" );
+  auto name = SchemaClass->get_name() + "::";
+  setObjectName ( QString::fromStdString(name) );
+
+  if (!m_writable) {
+    ui->RelationshipTypeComboBox->setEnabled(false);
+    ui->IsCompositeCombo->setEnabled(false);
+    ui->IsExclusiveCombo->setEnabled(false);
+    ui->IsDependentCombo->setEnabled(false);
+    ui->LowCcCombo->setEnabled(false);
+    ui->HighCcCombo->setEnabled(false);
+    ui->RelationshipDescriptionTextEdit->setEnabled(false);
+    ui->RelationshipNameLineEdit->setEnabled(false);
+  }
 
   if ( !UsedNew )
   {
@@ -150,9 +180,14 @@ void dbse::SchemaRelationshipEditor::InitialSettings()
 
 void dbse::SchemaRelationshipEditor::SetController()
 {
-  connect ( ui->buttonBox, SIGNAL ( accepted() ), this, SLOT ( ProxySlot() ) );
+  if (m_writable) {
+    connect ( ui->buttonBox, SIGNAL ( accepted() ), this, SLOT ( ProxySlot() ) );
+  }
+  else {
+    connect ( ui->buttonBox, SIGNAL ( accepted() ), this, SLOT ( close() ) );
+  }
   connect ( ui->buttonBox, SIGNAL ( rejected() ), this, SLOT ( close() ) );
-  connect ( &KernelWrapper::GetInstance(), SIGNAL ( ClassCreated() ), this,
+  connect ( &KernelWrapper::GetInstance(), SIGNAL ( ClassCreated(QString) ), this,
             SLOT ( UpdateClassCombo() ) );
   connect ( &KernelWrapper::GetInstance(), SIGNAL ( ClassUpdated ( QString ) ), this,
             SLOT ( ClassUpdated ( QString ) ) );

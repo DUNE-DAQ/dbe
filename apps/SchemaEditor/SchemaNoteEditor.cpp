@@ -1,4 +1,5 @@
-
+#include <QDialog>
+#include <QWidget>
 
 #include "dbe/SchemaNoteEditor.hpp"
 #include "dbe/SchemaGraphicNote.hpp"

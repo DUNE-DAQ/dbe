@@ -1,7 +1,12 @@
 /// Including Qt
 #include <QMessageBox>
+#include <QLineEdit>
 #include <QListWidget>
+#include <QListWidgetItem>
 #include <QInputDialog>
+#include <QString>
+#include <QStringList>
+
 /// Including Schema
 #include "dbe/SchemaClassEditor.hpp"
 #include "dbe/SchemaAttributeEditor.hpp"
@@ -10,6 +15,10 @@
 #include "dbe/SchemaKernelWrapper.hpp"
 /// Including Ui file
 #include "ui_SchemaClassEditor.h"
+
+#include "oks/file.hpp"
+
+#include <map>
 
 using namespace dunedaq::oks;
 
@@ -44,23 +53,31 @@ dbse::SchemaClassEditor::SchemaClassEditor ( OksClass * ClassInfo, QWidget * par
 
 dbse::SchemaClassEditor::~SchemaClassEditor() = default;
 
+void dbse::SchemaClassEditor::keyPressEvent(QKeyEvent* event) {
+  if (event->key() == Qt::Key_Escape) {
+    close();
+  }
+  QWidget::keyPressEvent(event);
+}
 void dbse::SchemaClassEditor::SetController()
 {
-  connect ( ui->SaveButton, SIGNAL ( clicked() ), this, SLOT ( ProxySlot() ) );
+  connect ( ui->buttonBox, SIGNAL ( accepted() ), this, SLOT ( ParseToSave() ) );
+  connect ( ui->buttonBox, SIGNAL ( rejected() ), this, SLOT ( close_slot() ) );
+  connect ( ui->moveButton, SIGNAL(clicked()), this, SLOT (move_class()));
   connect ( ui->AddButtonAttribute, SIGNAL ( clicked() ), this, SLOT ( AddNewAttribute() ) );
   connect ( ui->AddButtonSuperClass, SIGNAL ( clicked() ), this, SLOT ( AddNewSuperClass() ) );
   connect ( ui->AddButtonRelationship, SIGNAL ( clicked() ), this,
             SLOT ( AddNewRelationship() ) );
   connect ( ui->AddButtonMethod, SIGNAL ( clicked() ), this, SLOT ( AddNewMethod() ) );
-  connect ( ui->RelationshipView, SIGNAL ( doubleClicked ( QModelIndex ) ), this,
+  connect ( ui->RelationshipView, SIGNAL ( activated ( QModelIndex ) ), this,
             SLOT ( OpenRelationshipEditor ( QModelIndex ) ) );
-  connect ( ui->MethodsView, SIGNAL ( doubleClicked ( QModelIndex ) ), this,
+  connect ( ui->MethodsView, SIGNAL ( activated ( QModelIndex ) ), this,
             SLOT ( OpenMethodEditor ( QModelIndex ) ) );
-  connect ( ui->AttributeView, SIGNAL ( doubleClicked ( QModelIndex ) ), this,
+  connect ( ui->AttributeView, SIGNAL ( activated ( QModelIndex ) ), this,
             SLOT ( OpenAttributeEditor ( QModelIndex ) ) );
-  connect ( ui->SuperClassView, SIGNAL ( doubleClicked ( QModelIndex ) ), this,
+  connect ( ui->SuperClassView, SIGNAL ( activated ( QModelIndex ) ), this,
             SLOT ( OpenSuperClass ( QModelIndex ) ) );
-  connect ( ui->SubClassView, SIGNAL ( doubleClicked ( QModelIndex ) ), this,
+  connect ( ui->SubClassView, SIGNAL ( activated ( QModelIndex ) ), this,
             SLOT ( OpenSubClass ( QModelIndex ) ) );
   connect ( ui->AttributeView, SIGNAL ( customContextMenuRequested ( QPoint ) ), this,
             SLOT ( CustomMenuAttributeView ( QPoint ) ) );
@@ -114,13 +131,35 @@ void dbse::SchemaClassEditor::InitialSettings()
 
   /// Class Name
   ui->ClassNameLineEdit->setText ( QString::fromStdString ( SchemaClass->get_name() ) );
-  ui->ClassNameLineEdit->setEnabled ( false );
+  //ui->ClassNameLineEdit->setEnabled ( false );
   /// Schema File
   ui->SchemaFileLineEdit->setText ( QString::fromStdString ( SchemaClass->get_file()->get_short_file_name() ) );
-  ui->SchemaFileLineEdit->setEnabled ( false );
+  //ui->SchemaFileLineEdit->setEnabled ( false );
+
+  if (KernelWrapper::GetInstance().IsFileWritable(
+        SchemaClass->get_file()->get_full_file_name())) {
+    ui->AddButtonAttribute->setEnabled (true);
+    ui->AddButtonSuperClass->setEnabled (true);
+    ui->AddButtonRelationship->setEnabled (true);
+    ui->AddButtonMethod->setEnabled (true);
+    ui->moveButton->setEnabled (true);
+  }
+  else {
+    ui->SchemaFileLineEdit->setStyleSheet("color:rgb(128,0,0);");
+    // ui->DescriptionTextEdit->setEnabled(false);
+    ui->DescriptionTextEdit->setReadOnly(true);
+
+    ui->AddButtonAttribute->setEnabled (false);
+    ui->AddButtonSuperClass->setEnabled (false);
+    ui->AddButtonRelationship->setEnabled (false);
+    ui->AddButtonMethod->setEnabled (false);
+    ui->moveButton->setEnabled (false);
+    ui->AbstractComboBox->setEnabled(false);
+  }
+
   /// Description
   ui->DescriptionTextEdit->setPlainText ( QString::fromStdString ( SchemaClass->get_description() ) );
-
+  ui->DescriptionTextEdit->setTabChangesFocus (true);
   /// Abstract
   if ( SchemaClass->get_is_abstract() )
   {
@@ -132,50 +171,127 @@ void dbse::SchemaClassEditor::InitialSettings()
   }
 }
 
-bool dbse::SchemaClassEditor::ShouldOpenAttributeEditor ( QString Name )
-{
-  bool WidgetFound = false;
-
-  for ( QWidget * Editor : QApplication::allWidgets() )
-  {
-    SchemaAttributeEditor * Widget = dynamic_cast<SchemaAttributeEditor *> ( Editor );
-
-    if ( Widget != nullptr )
-    {
-      if ( ( Widget->objectName() ).compare ( Name ) == 0 )
-      {
-        Widget->raise();
-        Widget->setVisible ( true );
-        Widget->activateWindow();
-        WidgetFound = true;
-      }
-    }
-  }
-
-  return !WidgetFound;
+void dbse::SchemaClassEditor::move_class() {
+  move_class(SchemaClass, this);
 }
 
-bool dbse::SchemaClassEditor::ShouldOpenRelationshipEditor ( QString Name )
+
+void dbse::SchemaClassEditor::move_class(dunedaq::oks::OksClass* schema_class,
+  QWidget* pwidget) {
+  std::string current_file = schema_class->get_file()->get_full_file_name();
+  std::vector<OksFile*> files;
+  KernelWrapper::GetInstance().GetSchemaFiles(files);
+  QStringList writable_files;
+  std::map<QString, OksFile*> file_map;
+  int current_row = -1;
+  for (auto file: files) {
+    auto fn = file->get_full_file_name();
+    if (KernelWrapper::GetInstance().IsFileWritable(fn)) {
+      if (fn == current_file) {
+        current_row = writable_files.size();
+      }
+      writable_files.append(QString::fromStdString(fn));
+      file_map[QString::fromStdString(fn)] = file;
+    }
+  }
+  if (writable_files.empty()) {
+    QMessageBox::warning ( 0, "Schema editor",
+                           QString ( "No writable schema files to move class to." ) );
+    return;
+  }
+
+  QWidget* widget = new QWidget();
+  QString text = "Select file to hold class " +
+    QString::fromStdString(schema_class->get_name());
+  QLabel* label = new QLabel(text);
+  QListWidget* qlw = new QListWidget();
+  qlw->addItems(writable_files);
+  if (current_row != -1) {
+    qlw->setCurrentRow(current_row);
+  }
+
+  connect (qlw, &QListWidget::itemActivated,
+           pwidget, [=] () {
+             QListWidgetItem* it = qlw->currentItem();
+             auto fn = it->text();
+             if (fn.toStdString() != current_file) {
+               schema_class->set_file(file_map.at(fn));
+               emit KernelWrapper::GetInstance().ClassUpdated ( QString::fromStdString(schema_class->get_name()) );
+             }
+             delete widget;
+           }
+    );
+
+  auto bb = new QDialogButtonBox(QDialogButtonBox::Ok|QDialogButtonBox::Cancel);
+  connect (bb, &QDialogButtonBox::accepted, pwidget, [=] () {
+    auto it = qlw->currentItem();
+    if (it != nullptr) {
+      auto fn = it->text();
+      if (fn.toStdString() != current_file) {
+        schema_class->set_file(file_map.at(fn));
+        emit KernelWrapper::GetInstance().ClassUpdated ( QString::fromStdString(schema_class->get_name()) );
+      }
+      delete widget;
+    }
+    else {
+      QMessageBox::warning ( 0, "Schema editor",
+                             QString ( "No schema file selected to move class to." ) );
+      return;
+    }
+  });
+  connect ( bb, &QDialogButtonBox::rejected, pwidget,  [=] () {delete widget;} );
+
+  QVBoxLayout* layout = new QVBoxLayout();
+  layout->addWidget(label);
+  layout->addWidget(qlw);
+  layout->addWidget(bb);
+  widget->setWindowTitle("Select new file for class");
+  widget->setLayout(layout);
+  widget->setParent(pwidget, Qt::Dialog);
+  widget->show();
+}
+
+bool dbse::SchemaClassEditor::ShouldOpenAttributeEditor ( QString attrName )
 {
-  bool WidgetFound = false;
-
-  for ( QWidget * Editor : QApplication::allWidgets() )
+  QString name = QString::fromStdString(SchemaClass->get_name() + "::") +
+    attrName;
+  for (QWidget* widget : QApplication::allWidgets())
   {
-    SchemaRelationshipEditor * Widget = dynamic_cast<SchemaRelationshipEditor *> ( Editor );
-
-    if ( Widget != nullptr )
+    if (dynamic_cast<SchemaAttributeEditor *> (widget) != nullptr)
     {
-      if ( ( Widget->objectName() ).compare ( Name ) == 0 )
+      if ( (widget->objectName()).compare (name) == 0 )
       {
-        Widget->raise();
-        Widget->setVisible ( true );
-        Widget->activateWindow();
-        WidgetFound = true;
+        widget->raise();
+        widget->setVisible ( true );
+        widget->activateWindow();
+        return false;
       }
     }
   }
 
-  return !WidgetFound;
+  return true;
+}
+
+bool dbse::SchemaClassEditor::ShouldOpenRelationshipEditor ( QString relName )
+{
+  QString name = QString::fromStdString(SchemaClass->get_name() + "::") +
+    relName;
+
+  for ( QWidget* widget : QApplication::allWidgets() )
+  {
+    if (dynamic_cast<SchemaRelationshipEditor *> (widget) != nullptr)
+    {
+      if ( ( widget->objectName() ).compare ( name ) == 0 )
+      {
+        widget->raise();
+        widget->setVisible ( true );
+        widget->activateWindow();
+        return false;
+      }
+    }
+  }
+
+  return true;
 }
 
 bool dbse::SchemaClassEditor::ShouldOpenMethodEditor ( QString Name )
@@ -268,11 +384,6 @@ void dbse::SchemaClassEditor::RemoveSuperClass()
 }
 
 
-void dbse::SchemaClassEditor::ProxySlot()
-{
-  ParseToSave();
-}
-
 void dbse::SchemaClassEditor::ParseToSave()
 {
   std::string NewDescription = ui->DescriptionTextEdit->toPlainText().toStdString();
@@ -303,50 +414,85 @@ void dbse::SchemaClassEditor::ParseToSave()
 
 void dbse::SchemaClassEditor::AddNewSuperClass()
 {
-    QWidget* w = new QWidget();
+  bool widgetFound=false;
+  QString class_name = QString::fromStdString(SchemaClass->get_name());
 
-    QLabel* label = new QLabel("Double click on a list item to add the corresponding super-class");
+  QString wname = "add_sc_"+class_name;
+  for ( QWidget* widget : QApplication::allWidgets() ) {
+    if (widget->objectName().compare(wname) == 0 ) {
+      widget->raise();
+      widget->setVisible ( true );
+      widget->activateWindow();
+      widgetFound = true;
+      break;
+    }
+  }
+
+  if (!widgetFound) {
+    QWidget* widget = new QWidget();
+    widget->setObjectName(wname);
+    QLabel* label = new QLabel("Select a super-class to add to " + class_name);
     label->setWordWrap(true);
 
-    QLabel* status = new QLabel();
-    status->setStyleSheet("QLabel { color : green; }");
+    // QLabel* status = new QLabel();
+    // status->setStyleSheet("QLabel { color : green; }");
 
-    QListWidget* qlw = new QListWidget();
+    auto search = new QLineEdit(widget);
+    search->setPlaceholderText("Search classes");
+    search->setClearButtonEnabled(true);
+
+    QListWidget* qlwidget = new QListWidget();
     QStringList allClasses;
     KernelWrapper::GetInstance().GetClassListString(allClasses);
-    qlw->addItems(allClasses);
+    qlwidget->addItems(allClasses);
 
-    connect ( qlw, &QListWidget::itemDoubleClicked,
+    connect ( qlwidget, &QListWidget::itemActivated,
               this, [=] () {
-                                const std::string& className = qlw->currentItem()->text().toStdString();
+                                const std::string& className = qlwidget->currentItem()->text().toStdString();
                                 KernelWrapper::GetInstance().PushAddSuperClassCommand(SchemaClass, className);
                                 BuildModels();
-                                status->setText(QString::fromStdString(className + " added as a super-class of " + SchemaClass->get_name()));
+                                // status->setText(QString::fromStdString(className + " added as a super-class of " + SchemaClass->get_name()));
                            });
 
-    QVBoxLayout* l = new QVBoxLayout();
-    l->addWidget(label);
-    l->addWidget(qlw);
-    l->addWidget(status);
+    connect (search, &QLineEdit::textChanged, this, [search, qlwidget] () {
+      auto items = qlwidget->findItems(search->text(), Qt::MatchRegularExpression);
+      if (!items.empty()) {
+        qlwidget->setCurrentItem(items[0]);
+      }
+    });
 
-    w->setWindowTitle("Select super-classe(s)");
-    w->setLayout(l);
-    w->setParent(this, Qt::Dialog);
-    w->show();
+    auto close_button = new QPushButton("Close");
+    connect (close_button, SIGNAL (clicked()), widget, SLOT(close()));
+    QVBoxLayout* lout = new QVBoxLayout();
+    lout->addWidget(label);
+    lout->addWidget(qlwidget);
+    lout->addWidget(search);
+    lout->addWidget(close_button);
+    // l->addWidget(status);
+
+    widget->setWindowTitle("Select super-class(es) for " + class_name);
+    widget->setLayout(lout);
+    widget->setParent(this, Qt::Dialog);
+    widget->show();
+  }
 }
 
 void dbse::SchemaClassEditor::AddNewAttribute()
 {
-  SchemaAttributeEditor * Editor = new SchemaAttributeEditor ( SchemaClass );
-  connect ( Editor, SIGNAL ( RebuildModel() ), this, SLOT ( BuildAttributeModelSlot() ) );
-  Editor->show();
+  if (ShouldOpenAttributeEditor("")) {
+    SchemaAttributeEditor * Editor = new SchemaAttributeEditor ( SchemaClass );
+    connect ( Editor, SIGNAL ( RebuildModel() ), this, SLOT ( BuildAttributeModelSlot() ) );
+    Editor->show();
+  }
 }
 
 void dbse::SchemaClassEditor::AddNewRelationship()
 {
-  SchemaRelationshipEditor * Editor = new SchemaRelationshipEditor ( SchemaClass );
-  connect ( Editor, SIGNAL ( RebuildModel() ), this, SLOT ( BuildRelationshipModelSlot() ) );
-  Editor->show();
+  if (ShouldOpenRelationshipEditor("")) {
+    SchemaRelationshipEditor * Editor = new SchemaRelationshipEditor ( SchemaClass );
+    connect ( Editor, SIGNAL ( RebuildModel() ), this, SLOT ( BuildRelationshipModelSlot() ) );
+    Editor->show();
+  }
 }
 
 void dbse::SchemaClassEditor::AddNewMethod()
@@ -387,12 +533,23 @@ void dbse::SchemaClassEditor::OpenRelationshipEditor ( QModelIndex Index )
 void dbse::SchemaClassEditor::OpenMethodEditor ( QModelIndex Index )
 {
   QStringList Row = MethodModel->getRowFromIndex ( Index );
+  auto method = Row.at(0).toStdString();
+  if (SchemaClass->find_direct_method(method) == nullptr) {
+    std::string message{"Method '" + method + "' is not a direct method of " +
+      SchemaClass->get_name() +
+". Please open the method editor from the base class or add a local implementation to overrride it."};
+    QMessageBox::warning (0,
+                          "Schema editor",
+                          QString::fromStdString(message));
+    return;
+  }
+
   bool ShouldOpen = ShouldOpenMethodEditor ( Row.at ( 0 ) );
 
   if ( !Row.isEmpty() && ShouldOpen )
   {
     SchemaMethodEditor * Editor = new SchemaMethodEditor (
-      SchemaClass, SchemaClass->find_method ( Row.at ( 0 ).toStdString() ) );
+      SchemaClass, SchemaClass->find_method ( method ) );
     connect ( Editor, SIGNAL ( RebuildModel() ), this, SLOT ( BuildMethodModelSlot() ) );
     Editor->show();
   }
@@ -453,14 +610,13 @@ void dbse::SchemaClassEditor::BuildAttributeModelSlot()
   QStringList AttributeHeaders
   { "Name", "Type" };
 
-  if ( AttributeModel == nullptr ) AttributeModel = new CustomAttributeModel ( SchemaClass,
-                                                                               AttributeHeaders,
-                                                                               ui->ShowDerivedAttributes->isChecked());
-  else
-  {
+  if ( AttributeModel != nullptr ) {
     delete AttributeModel;
-    AttributeModel = new CustomAttributeModel ( SchemaClass, AttributeHeaders, ui->ShowDerivedAttributes->isChecked() );
   }
+  AttributeModel = new CustomAttributeModel (
+    SchemaClass,
+    AttributeHeaders,
+    ui->ShowDerivedAttributes->isChecked());
 
   ui->AttributeView->setModel ( AttributeModel );
   ui->AttributeView->horizontalHeader()->setSectionResizeMode ( QHeaderView::Stretch );
@@ -661,7 +817,7 @@ void dbse::SchemaClassEditor::CustomMenuMethodView ( QPoint pos )
   }
 }
 
-void dbse::SchemaClassEditor::createNewClass ()
+QString dbse::SchemaClassEditor::createNewClass ()
 {
     auto createNewClass = [] (const std::string& className) -> bool {
         if ( !KernelWrapper::GetInstance().IsActive() )
@@ -701,4 +857,29 @@ void dbse::SchemaClassEditor::createNewClass ()
            Editor->show();
         }
     }
+    return text;
 }
+
+void dbse::SchemaClassEditor::launch(QString class_name) {
+  bool widgetFound=false;
+  dunedaq::oks::OksClass* class_info =
+    KernelWrapper::GetInstance().FindClass (class_name.toStdString());
+  for ( QWidget* widget : QApplication::allWidgets() ) {
+    SchemaClassEditor* editor = dynamic_cast<SchemaClassEditor *> (widget);
+    if (editor != nullptr) {
+      if ((editor->objectName()).compare(class_name) == 0 ) {
+          widget->raise();
+          widget->setVisible ( true );
+          widget->activateWindow();
+          widgetFound = true;
+          break;
+        }
+      }
+    }
+
+    if ( !widgetFound ) {
+      SchemaClassEditor* editor = new SchemaClassEditor (class_info);
+      editor->show();
+    }
+}
+

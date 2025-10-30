@@ -31,6 +31,12 @@
         <property name="acceptDrops">
          <bool>false</bool>
         </property>
+        <property name="toolTip">
+         <string/>
+        </property>
+        <property name="toolTipDuration">
+         <number>1</number>
+        </property>
         <property name="title">
          <string>TableView</string>
         </property>
@@ -42,6 +48,12 @@
            </property>
            <property name="acceptDrops">
             <bool>false</bool>
+           </property>
+           <property name="toolTip">
+            <string/>
+           </property>
+           <property name="toolTipDuration">
+            <number>-1</number>
            </property>
            <property name="currentIndex">
             <number>0</number>
@@ -60,6 +72,9 @@
             <layout class="QHBoxLayout" name="HorizontalLayout8">
              <item>
               <widget class="QLineEdit" name="SearchLineTable">
+               <property name="toolTip">
+                <string>Class name to search for regex</string>
+               </property>
                <property name="text">
                 <string/>
                </property>
@@ -73,6 +88,9 @@
                  <bold>false</bold>
                 </font>
                </property>
+               <property name="toolTip">
+                <string>Respect case of expression in search</string>
+               </property>
                <property name="text">
                 <string>Case Sensitive</string>
                </property>
@@ -81,13 +99,6 @@
             </layout>
            </item>
           </layout>
-         </item>
-         <item>
-          <widget class="QCheckBox" name="ShowDerivedObjects">
-           <property name="text">
-            <string>Show objects from derived class</string>
-           </property>
-          </widget>
          </item>
         </layout>
        </widget>
@@ -109,14 +120,7 @@
     <property name="title">
      <string>&amp;File</string>
     </property>
-    <widget class="QMenu" name="ConnectToRdb">
-     <property name="title">
-      <string>Load from RDB</string>
-     </property>
-    </widget>
     <addaction name="OpenDB"/>
-    <addaction name="OpenOracleDB"/>
-    <addaction name="ConnectToRdb"/>
     <addaction name="separator"/>
     <addaction name="CreateDatabase"/>
     <addaction name="separator"/>
@@ -150,11 +154,6 @@
     <addaction name="separator"/>
     <addaction name="LaunchGraphicalView"/>
    </widget>
-   <widget class="QMenu" name="ToolsMenu">
-    <property name="title">
-     <string>Tools</string>
-    </property>
-   </widget>
    <widget class="QMenu" name="HelpMenu">
     <property name="title">
      <string>Help</string>
@@ -165,10 +164,12 @@
    <addaction name="FileMenu"/>
    <addaction name="EditMenu"/>
    <addaction name="ViewMenu"/>
-   <addaction name="ToolsMenu"/>
    <addaction name="HelpMenu"/>
   </widget>
   <widget class="QToolBar" name="MainToolBar">
+   <property name="toolTipDuration">
+    <number>1</number>
+   </property>
    <attribute name="toolBarArea">
     <enum>TopToolBarArea</enum>
    </attribute>
@@ -206,46 +207,59 @@
      <item>
       <layout class="QVBoxLayout" name="VerticalLayout">
        <item>
-        <layout class="QHBoxLayout" name="HorizontalLayout4">
-         <item>
-          <widget class="QCheckBox" name="HideCheckBox">
-           <property name="font">
-            <font>
-             <weight>50</weight>
-             <bold>false</bold>
-            </font>
-           </property>
-           <property name="text">
-            <string>Hide Empty Classes</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QLabel" name="TotalObjectsLabel">
-           <property name="font">
-            <font>
-             <weight>50</weight>
-             <bold>false</bold>
-            </font>
-           </property>
-           <property name="text">
-            <string>Total Objects : 0</string>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </item>
-       <item>
-        <widget class="CustomTreeView" name="TreeView"/>
+        <widget class="CustomTreeView" name="TreeView">
+         <property name="toolTip">
+          <string/>
+         </property>
+        </widget>
        </item>
       </layout>
+     </item>
+     <item>
+      <widget class="QCheckBox" name="HideCheckBox">
+       <property name="font">
+        <font>
+         <weight>50</weight>
+         <bold>false</bold>
+         <kerning>true</kerning>
+        </font>
+       </property>
+       <property name="toolTip">
+        <string>Don't display classes that have no instances in the database</string>
+       </property>
+       <property name="text">
+        <string>Hide Empty Classes</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QCheckBox" name="ShowDerivedObjects">
+       <property name="toolTip">
+        <string>Allow selecting by abstract base classes</string>
+       </property>
+       <property name="text">
+        <string>Enable abstract classes</string>
+       </property>
+      </widget>
      </item>
      <item>
       <layout class="QHBoxLayout" name="HorizontalLayout3">
        <item>
         <widget class="SearchComboBox" name="SearchBox">
+         <property name="mouseTracking">
+          <bool>true</bool>
+         </property>
+         <property name="toolTip">
+          <string>Set search mode: by class name, object name or both</string>
+         </property>
+         <property name="toolTipDuration">
+          <number>-1</number>
+         </property>
          <property name="editable">
           <bool>false</bool>
+         </property>
+         <property name="currentText">
+          <string>Search by Class</string>
          </property>
          <property name="iconSize">
           <size>
@@ -255,7 +269,7 @@
          </property>
          <item>
           <property name="text">
-           <string>Search Only Classes</string>
+           <string>Search by Class</string>
           </property>
           <property name="icon">
            <iconset resource="../icons/resource.qrc">
@@ -264,7 +278,7 @@
          </item>
          <item>
           <property name="text">
-           <string>Query Only Objects</string>
+           <string>Search by Object</string>
           </property>
           <property name="icon">
            <iconset resource="../icons/resource.qrc">
@@ -283,76 +297,67 @@
         </widget>
        </item>
        <item>
-        <widget class="QLineEdit" name="SearchTreeLine"/>
+        <widget class="QCheckBox" name="CaseSensitiveCheckBoxTree">
+         <property name="font">
+          <font>
+           <weight>50</weight>
+           <bold>false</bold>
+           <kerning>true</kerning>
+          </font>
+         </property>
+         <property name="toolTip">
+          <string>Respect case of expression in search</string>
+         </property>
+         <property name="text">
+          <string>Case
+Sensitive</string>
+         </property>
+        </widget>
        </item>
       </layout>
      </item>
      <item>
-      <widget class="QCheckBox" name="CaseSensitiveCheckBoxTree">
-       <property name="font">
-        <font>
-         <weight>50</weight>
-         <bold>false</bold>
-        </font>
-       </property>
-       <property name="text">
-        <string>Case Sensitive</string>
-       </property>
-      </widget>
-     </item>
-    </layout>
-   </widget>
-  </widget>
-  <widget class="QDockWidget" name="PartitionDockWidget">
-   <property name="font">
-    <font>
-     <weight>50</weight>
-     <bold>false</bold>
-     <kerning>true</kerning>
-    </font>
-   </property>
-   <property name="windowTitle">
-    <string>Partition View</string>
-   </property>
-   <attribute name="dockWidgetArea">
-    <number>1</number>
-   </attribute>
-   <widget class="QWidget" name="PartitionDockWidgetContents">
-    <layout class="QHBoxLayout" name="horizontalLayout">
-     <item>
-      <widget class="CustomTreeView" name="PartitionView"/>
-     </item>
-    </layout>
-   </widget>
-  </widget>
-  <widget class="QDockWidget" name="ResourceDockWidget">
-   <property name="font">
-    <font>
-     <weight>50</weight>
-     <bold>false</bold>
-     <kerning>true</kerning>
-    </font>
-   </property>
-   <property name="windowTitle">
-    <string>Resource View</string>
-   </property>
-   <attribute name="dockWidgetArea">
-    <number>1</number>
-   </attribute>
-   <widget class="QWidget" name="ResourceDockWidgetContents">
-    <layout class="QVBoxLayout" name="verticalLayout">
-     <item>
-      <widget class="CustomTreeView" name="ResourceView">
-       <property name="whatsThis">
-        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This view shows the database resources objects&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-       </property>
-      </widget>
+      <layout class="QHBoxLayout" name="HorizontalLayout4">
+       <item>
+        <widget class="QLineEdit" name="SearchTreeLine">
+         <property name="toolTip">
+          <string>Regular expression to match with class or object names</string>
+         </property>
+         <property name="toolTipDuration">
+          <number>-1</number>
+         </property>
+         <property name="placeholderText">
+          <string>class/object name regex</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="TotalObjectsLabel">
+         <property name="font">
+          <font>
+           <weight>50</weight>
+           <bold>false</bold>
+           <kerning>true</kerning>
+          </font>
+         </property>
+         <property name="toolTip">
+          <string>Number of objects matching search expression</string>
+         </property>
+         <property name="text">
+          <string>Objects : 0</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
      </item>
     </layout>
    </widget>
   </widget>
   <widget class="QStatusBar" name="StatusBar"/>
   <widget class="QDockWidget" name="InfoDockWidget">
+   <property name="toolTipDuration">
+    <number>1</number>
+   </property>
    <property name="windowTitle">
     <string>Info Tabs</string>
    </property>
@@ -363,8 +368,14 @@
     <layout class="QHBoxLayout" name="horizontalLayout_2">
      <item>
       <widget class="QTabWidget" name="InfoWidget">
+       <property name="toolTip">
+        <string/>
+       </property>
+       <property name="toolTipDuration">
+        <number>1</number>
+       </property>
        <property name="currentIndex">
-        <number>2</number>
+        <number>0</number>
        </property>
        <property name="movable">
         <bool>true</bool>
@@ -376,6 +387,9 @@
         <layout class="QHBoxLayout" name="horizontalLayout_5">
          <item>
           <widget class="CustomFileView" name="FileView">
+           <property name="toolTip">
+            <string>Use context menu to update</string>
+           </property>
            <property name="sortingEnabled">
             <bool>true</bool>
            </property>
@@ -389,7 +403,11 @@
         </attribute>
         <layout class="QHBoxLayout" name="horizontalLayout_7">
          <item>
-          <widget class="QUndoView" name="UndoView"/>
+          <widget class="QUndoView" name="UndoView">
+           <property name="toolTip">
+            <string>Select point in undo list to revert to</string>
+           </property>
+          </widget>
          </item>
         </layout>
        </widget>
@@ -402,6 +420,12 @@
           <widget class="QTableWidget" name="CommittedTable">
            <property name="mouseTracking">
             <bool>true</bool>
+           </property>
+           <property name="toolTip">
+            <string/>
+           </property>
+           <property name="toolTipDuration">
+            <number>1</number>
            </property>
            <property name="editTriggers">
             <set>QAbstractItemView::DoubleClicked|QAbstractItemView::SelectedClicked</set>
@@ -491,9 +515,6 @@
    <property name="statusTip">
     <string>Create New Database</string>
    </property>
-   <property name="shortcut">
-    <string>Ctrl+N</string>
-   </property>
   </action>
   <action name="DirectStructure">
    <property name="text">
@@ -526,7 +547,7 @@
     <string>E&amp;xit</string>
    </property>
    <property name="shortcut">
-    <string>Ctrl+X</string>
+    <string>Ctrl+Q</string>
    </property>
   </action>
   <action name="PythonScript">
@@ -697,11 +718,6 @@
    <class>CustomFileView</class>
    <extends>QTableView</extends>
    <header>dbe/CustomFileView.hpp</header>
-  </customwidget>
-  <customwidget>
-   <class>QUndoView</class>
-   <extends>QListView</extends>
-   <header>qundoview.h</header>
   </customwidget>
   <customwidget>
    <class>CustomTreeView</class>

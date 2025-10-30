@@ -59,8 +59,10 @@ class ClassNode: public treenode
 public:
   ClassNode ( const dunedaq::conffwk::class_t & Info, treenode * ParentNode );
   ~ClassNode();
-  virtual QVariant GetData ( const int Column, int role = Qt::DisplayRole ) const;
-  dunedaq::conffwk::class_t GetClassInfo() const;
+  [[nodiscard]] virtual QVariant GetData (
+     int Column, int role = Qt::DisplayRole ) const;
+  [[nodiscard]] dunedaq::conffwk::class_t GetClassInfo() const;
+  [[nodiscard]] const QVariant& get_tooltip() const {return m_tooltip;};
   void AddChild ( treenode * Child ) override;
   void RemoveChild ( treenode * Child ) override;
 
@@ -70,6 +72,7 @@ protected:
 private:
   dunedaq::conffwk::class_t ClassInfo;
   unsigned int numObjects;
+  QVariant m_tooltip;
 };
 
 class ObjectNode: public treenode

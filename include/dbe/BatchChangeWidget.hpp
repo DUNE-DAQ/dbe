@@ -24,7 +24,7 @@ class BatchChangeWidget: public QWidget
 public:
   ~BatchChangeWidget();
 
-  BatchChangeWidget ( QWidget * parent = nullptr );
+  explicit BatchChangeWidget ( QWidget * parent = nullptr );
 
   BatchChangeWidget ( bool ObjectsFromTable, QString ClassName,
                       std::vector<dref> & Objects, QWidget * parent = nullptr );
@@ -40,6 +40,7 @@ private:
 
   void SetController();
   void filter ( std::vector<dref> & Objects, const QString & ClassName );
+  void keyPressEvent(QKeyEvent* event) override;
 
 private slots:
   void FillInfo ( const QString & Name );

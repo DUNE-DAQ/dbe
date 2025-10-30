@@ -144,6 +144,13 @@ QVariant dbe::models::tree::data ( type_index const & index, int role ) const
 
       break;
 
+    case Qt::ToolTipRole:
+      if ( auto cnode = dynamic_cast<ClassNode *> ( getnode ( index ) ) )
+      {
+        return cnode->GetData ( index.column(), role );
+      }
+      break;
+
     case Qt::DisplayRole:
     case Qt::DecorationRole:
       return getnode ( index )->GetData ( index.column(), role );

@@ -26,6 +26,7 @@ private:
   QAction * LaunchIncludeEditor;
   QAction * HideReadOnlyFiles;
   QAction * FindFile;
+  QAction* m_file_info_action;
   /// File Dialog
   QDialog * FindFileDialog;
   QLineEdit * LineEdit;
@@ -45,6 +46,8 @@ private slots:
   void EditedSearchString ( QString Text );
   void EditedSearchString();
   void ChangeSelection ( QModelIndex Index );
+  void file_info_slot ();
+  void file_info_slot (QModelIndex index);
 signals:
   void stateChanged ( const QString & FileName );
 };
