@@ -74,7 +74,7 @@ void dbse::SchemaMethodImplementationEditor::FillInfo()
 
 void dbse::SchemaMethodImplementationEditor::InitialSettings()
 {
-  std::string title = "Method Implementation for " + m_class->get_name() + "::" + m_method->get_name(); ;
+  std::string title = "Method Implementation for " + m_class->get_name() + "::" + m_method->get_name();
   setWindowTitle (QString::fromStdString(title));
 
   if ( UsedNew ) {
