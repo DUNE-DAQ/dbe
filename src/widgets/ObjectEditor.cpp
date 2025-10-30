@@ -21,7 +21,7 @@ namespace {
            explicit NoScrollingTable(QWidget* parent = nullptr)
              : QTableWidget(parent) {}
 
-      void scrollTo(const QModelIndex& /*index*/, ScrollHint /*hint = EnsureVisible*/) override {
+      void scrollTo(const QModelIndex& /*index*/, ScrollHint /*hint*/) override {
                 // NOTE: for the reason why this is an empty implementation, see ATLASDBE-202
             }
     };

@@ -129,7 +129,7 @@ cross on the top corner of the tab or with the short cut Ctl-W.
 ### Highlighting classes
 
 Classes may be highlighted in different colors/fonts. The colors and
-fonts can be set from the `Color/font Settings` item on the `File`
+fonts can be set from the `Color/font Settings` item on the `Edit`
 menu.
 
 #### Highlighting classes from the active schema file
