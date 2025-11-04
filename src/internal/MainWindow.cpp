@@ -416,7 +416,7 @@ void dbe::MainWindow::build_file_model()
     this_filesort.setSourceModel ( this_files );
     FileView->setModel ( &this_filesort );
 
-    FileView->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
+    FileView->horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
     FileView->horizontalHeader()->setSectionResizeMode(1, QHeaderView::ResizeToContents);
     FileView->horizontalHeader()->setSectionResizeMode(2, QHeaderView::ResizeToContents);
     FileView->horizontalHeader()->setSectionResizeMode(3, QHeaderView::ResizeToContents);
