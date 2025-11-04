@@ -246,6 +246,8 @@ MODEL_COMMON_INTERFACE_LOOKUP_IMPL ( dbe::models::subtree_proxy )
 MODEL_COMMON_INTERFACE_CREATE_THAT_OBJ_IMPL ( dbe::models::subtree_proxy )
 {
 // TODO implement create object from signal for Subtreeproxymodel
+  Q_UNUSED(index);
+  Q_UNUSED(obj);
 }
 
 MODEL_COMMON_INTERFACE_DELETE_THAT_OBJ_IMPL ( dbe::models::subtree_proxy )
@@ -259,11 +261,15 @@ MODEL_COMMON_INTERFACE_DELETE_THAT_OBJ_IMPL ( dbe::models::subtree_proxy )
 MODEL_COMMON_INTERFACE_RENAME_THAT_OBJ_IMPL ( dbe::models::subtree_proxy )
 {
   //TODO implement rename object
+  Q_UNUSED(index);
+  Q_UNUSED(obj);
 }
 
 MODEL_COMMON_INTERFACE_UPDATE_THAT_OBJ_IMPL ( dbe::models::subtree_proxy )
 {
 // TODO implement update object from signal for Subtreeproxymodel
+  Q_UNUSED(index);
+  Q_UNUSED(obj);
 }
 
 TREEMODEL_REMOVE_ROWS_DEF ( dbe::models::subtree_proxy )

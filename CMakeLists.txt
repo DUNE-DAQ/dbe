@@ -261,7 +261,6 @@ qt5_wrap_ui(schema_core_ui_header ${schema_core_ui})
 set(schema_core_src
                     SchemaEditor/SchemaAttributeEditor.cpp
                     SchemaEditor/SchemaCustomMethodImplementationModel.cpp
-                    SchemaEditor/SchemaGraphicArrow.cpp
                     SchemaEditor/SchemaGraphicSegmentedArrow.cpp
                     SchemaEditor/SchemaMainWindow.cpp
                     SchemaEditor/SchemaClassEditor.cpp

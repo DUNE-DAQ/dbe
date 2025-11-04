@@ -418,6 +418,7 @@ MODEL_COMMON_INTERFACE_LOOKUP_IMPL ( dbe::models::tree )
 
 MODEL_COMMON_INTERFACE_CREATE_THAT_OBJ_IMPL ( dbe::models::tree )
 {
+  Q_UNUSED(index);
   if ( treenode * classnode = confaccessor::gethandler()->getnode ( obj.class_name() ) )
   {
     if ( not dbe::datahandler::findchild ( classnode, QString::fromStdString ( obj.UID() ) ) )

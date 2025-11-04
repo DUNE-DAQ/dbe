@@ -47,8 +47,8 @@ int segregated_graph_write::operator () ( gtool const & tool ) const
   for ( t_int vector_i = 0; vector_i != compindices.size(); ++vector_i )
   {
     t_int component_j = compindices[vector_i];
-    std::string const & oname = boost::get ( &gtool::vertex_label::uid, G ) [vector_i];
-    std::string const & cname = boost::get ( &gtool::vertex_label::cname, G ) [vector_i];
+    std::string oname = boost::get ( &gtool::vertex_label::uid, G ) [vector_i];
+    std::string cname = boost::get ( &gtool::vertex_label::cname, G ) [vector_i];
     gtool::add_object_and_friends (
       components[component_j],
       dbe::inner::dbcontroller::get (
@@ -60,7 +60,6 @@ int segregated_graph_write::operator () ( gtool const & tool ) const
 
   int max_punits = GTOOL_MAX_THREADS;
 
-  typedef std::future<void> t_futuwrite;
   std::vector<std::future<void>> punits;
 
   unsigned long long int c = 0;

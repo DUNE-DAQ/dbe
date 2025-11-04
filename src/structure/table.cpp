@@ -522,6 +522,7 @@ void dbe::models::table::objectsUpdated(const std::vector<dbe::dref>& objects) {
 //-----------------------------------------------------------------------------------------------------
 MODEL_COMMON_INTERFACE_CREATE_THAT_OBJ_IMPL ( dbe::models::table )
 {
+  Q_UNUSED(index);
   if ( treenode * handlerclass = confaccessor::gethandler()->getnode ( obj.class_name() ) )
   {
     if ( obj.class_name() == this_class_name.toStdString()

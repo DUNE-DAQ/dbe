@@ -61,7 +61,7 @@ void newobj ( std::string const & fn, std::string const & cn, std::string const 
   { "Object created : " + name + "@" + cn };
 
   config_internal_change request
-  { config_internal_change::CREATED, description, name, cn };
+    { config_internal_change::CREATED, description, name, cn, "" };
 
   confaccessor::get_commands()->push (
     new dbe::actions::object::create ( { attributes, relations, { name, cn}, fn }, src ) );
@@ -79,7 +79,7 @@ bool delobj ( tref obj, QUuid const & src )
     { "Object deleted : " + obj.UID() + "@" + obj.class_name()
     };
     config_internal_change request
-    { config_internal_change::DELETED, description, obj.UID(), obj.class_name() };
+      { config_internal_change::DELETED, description, obj.UID(), obj.class_name(), "" };
     confaccessor::get_commands()->push ( new dbe::actions::object::remove ( obj, src ) );
     confaccessor::get_internal_change_stack()->push ( request );
   }
@@ -105,7 +105,7 @@ bool renobj ( tref obj, std::string const & newuuid, QUuid const & src )
     };
 
     config_internal_change request
-    { config_internal_change::RENAMED, description, obj.UID(), obj.class_name() };
+      { config_internal_change::RENAMED, description, obj.UID(), obj.class_name(), "" };
 
     confaccessor::get_commands()->push (
       new dbe::actions::object::rename ( obj, newuuid, src ) );
@@ -134,7 +134,7 @@ bool movobj ( tref obj, std::string const & destination, QUuid const & src )
     };
 
     config_internal_change request
-    { config_internal_change::MOVED, description, obj.UID(), obj.class_name() };
+      { config_internal_change::MOVED, description, obj.UID(), obj.class_name(), "" };
 
     confaccessor::get_commands()->push (
       new dbe::actions::object::move ( obj, destination, src ) );
@@ -166,7 +166,7 @@ void modobj ( tref object, const dunedaq::conffwk::relationship_t & linkinfo,
 
     config_internal_change const change
     {
-      config_internal_change::MODIFIED, description, object.UID(), object.class_name()
+      config_internal_change::MODIFIED, description, object.UID(), object.class_name(), ""
     };
 
     confaccessor::get_internal_change_stack()->push ( change );
