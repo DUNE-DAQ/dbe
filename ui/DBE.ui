@@ -145,14 +145,11 @@
     </property>
     <addaction name="DisplayTableView"/>
     <addaction name="DisplayClassView"/>
-    <addaction name="DisplayPartitionView"/>
-    <addaction name="DisplaySegmentsView"/>
     <addaction name="DisplayMessages"/>
     <addaction name="DisplayToolbar"/>
     <addaction name="separator"/>
     <addaction name="LoadDefaultSettings"/>
     <addaction name="separator"/>
-    <addaction name="LaunchGraphicalView"/>
    </widget>
    <widget class="QMenu" name="HelpMenu">
     <property name="title">
