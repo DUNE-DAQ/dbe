@@ -287,12 +287,17 @@ void SchemaFileInfo::update_class_list() {
   //     std::cout << "Failed to add button\n";
   //   }
   // }
-  if (!m_missing_includes.empty()) {
+  if (m_missing_includes.empty()) {
+    m_ui->missing_button->setEnabled(false);
+    m_ui->missing_button->hide();
+  }
+  else {
     m_ui->missing_button->setEnabled(true);
     m_ui->missing_button->show();
   }
 }
-  void SchemaFileInfo::class_updated(QString /*class_name*/) {
+
+void SchemaFileInfo::class_updated(QString /*class_name*/) {
   // auto cls = KernelWrapper::GetInstance().FindClass(class_name.toStdString());
   // auto file = cls->get_file()->get_full_file_name();
   // if (file == m_filename) {
@@ -363,19 +368,14 @@ void SchemaFileInfo::add_include() {
 void SchemaFileInfo::add_missing_includes() {
   std::cout << "\nAdding missing include files:\n";
 
-  QStringList files;
   for (auto file: m_missing_includes) {
     add_file(file);
   }
+  m_missing_includes.clear();
+
   get_includes();
   m_ui->textBrowser->clear();
   m_ui->textBrowser->hide();
-  // m_ui->buttonBox->removeButton(m_missing_button);
-  // delete m_missing_button;
-  // m_missing_button = nullptr;
-
-  m_ui->missing_button->setEnabled(false);
-  m_ui->missing_button->hide();
 
   get_includes();
   update_class_list();
