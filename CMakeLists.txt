@@ -151,7 +151,6 @@ set(dbe_core_ui
                     ui/CreateDatabaseWidget.ui
                     ui/DBE.ui
                     ui/EditCombo.ui
-                    ui/GraphView.ui
                     ui/IncludeFileWidget.ui
                     ui/NumericAttributeWidgetForm.ui
                     ui/ObjectCreator.ui
@@ -167,7 +166,6 @@ qt5_wrap_cpp(dbe_core_moc_src
                     include/dbe/TableTab.hpp
                     include/dbe/MyApplication.hpp
                     include/dbe/GraphicalClass.hpp
-                    include/dbe/GraphView.hpp
                     include/dbe/MainWindow.hpp
                     include/dbe/CustomLineEdit.hpp
                     include/dbe/string_attr_text_edit.hpp
@@ -200,7 +198,6 @@ set(dbe_core_src
                     widgets/ObjectEditor.cpp
                     widgets/OracleWidget.cpp
                     graphical/GraphicalClass.cpp
-                    graphical/GraphView.cpp
                     MyApplication.cpp
                     TableTab.cpp
   )
@@ -261,7 +258,6 @@ qt5_wrap_ui(schema_core_ui_header ${schema_core_ui})
 set(schema_core_src
                     SchemaEditor/SchemaAttributeEditor.cpp
                     SchemaEditor/SchemaCustomMethodImplementationModel.cpp
-                    SchemaEditor/SchemaGraphicArrow.cpp
                     SchemaEditor/SchemaGraphicSegmentedArrow.cpp
                     SchemaEditor/SchemaMainWindow.cpp
                     SchemaEditor/SchemaClassEditor.cpp

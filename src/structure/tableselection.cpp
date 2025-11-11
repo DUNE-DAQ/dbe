@@ -200,18 +200,25 @@ QAbstractItemModel * dbe::models::tableselection::ReturnSourceModel() const
 //-----------------------------------------------------------------------------------------------------
 MODEL_COMMON_INTERFACE_CREATE_THAT_OBJ_IMPL ( dbe::models::tableselection )
 {
+  Q_UNUSED(index);
+  Q_UNUSED(obj);
 }
 
 MODEL_COMMON_INTERFACE_DELETE_THAT_OBJ_IMPL ( dbe::models::tableselection )
 {
+  Q_UNUSED(index);
 }
 
 MODEL_COMMON_INTERFACE_RENAME_THAT_OBJ_IMPL ( dbe::models::tableselection )
 {
+  Q_UNUSED(index);
+  Q_UNUSED(obj);
 }
 
 MODEL_COMMON_INTERFACE_UPDATE_THAT_OBJ_IMPL ( dbe::models::tableselection )
 {
+  Q_UNUSED(index);
+  Q_UNUSED(obj);
 }
 
 //-----------------------------------------------------------------------------------------------------
@@ -219,6 +226,7 @@ MODEL_COMMON_INTERFACE_UPDATE_THAT_OBJ_IMPL ( dbe::models::tableselection )
 //-----------------------------------------------------------------------------------------------------
 MODEL_COMMON_INTERFACE_LOOKUP_IMPL ( dbe::models::tableselection )
 {
+  Q_UNUSED(obj);
   return QModelIndex();
 }
 //-----------------------------------------------------------------------------------------------------
@@ -226,6 +234,9 @@ MODEL_COMMON_INTERFACE_LOOKUP_IMPL ( dbe::models::tableselection )
 //-----------------------------------------------------------------------------------------------------
 MODEL_REMOVE_ROWS_DEF ( dbe::models::tableselection )
 {
+  Q_UNUSED(row);
+  Q_UNUSED(count);
+  Q_UNUSED(parent);
   return true;
 }
 

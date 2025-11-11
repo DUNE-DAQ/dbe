@@ -124,7 +124,7 @@ qt::post_ret_type qt::merge_post ( t_str const & m, t_str const & l )
 {
   auto codeit = codes.find ( l );
   assert ( codeit != codes.end() );
-  m_batches[static_cast<int const> ( codeit->second )].insert ( m );
+  m_batches[static_cast<int> ( codeit->second )].insert ( m );
 }
 //------------------------------------------------------------------------------------------
 

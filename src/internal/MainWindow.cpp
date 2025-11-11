@@ -1,7 +1,6 @@
 ﻿#include "dbe/MainWindow.hpp"
 #include "dbe/ObjectEditor.hpp"
 #include "dbe/ObjectCreator.hpp"
-#include "dbe/GraphView.hpp"
 #include "dbe/BatchChangeWidget.hpp"
 #include "dbe/BuildingBlockEditors.hpp"
 #include "dbe/CommitDialog.hpp"
@@ -175,8 +174,6 @@ void dbe::MainWindow::attach()
 {
   connect ( OpenDB, SIGNAL ( triggered() ), this, SLOT ( slot_open_database_from_file() ) );
   connect ( Commit, SIGNAL ( triggered() ), this, SLOT ( slot_commit_database() ) );
-  connect ( LaunchGraphicalView, SIGNAL ( triggered() ), this,
-            SLOT ( slot_build_graphical_view() ) );
   connect ( Exit, SIGNAL ( triggered() ), this, SLOT ( close() ) );
   connect ( UndoAction, SIGNAL ( triggered() ), UndoView->stack(), SLOT ( undo() ) );
   connect ( RedoAction, SIGNAL ( triggered() ), UndoView->stack(), SLOT ( redo() ) );
@@ -416,25 +413,13 @@ void dbe::MainWindow::build_file_model()
     this_filesort.setSourceModel ( this_files );
     FileView->setModel ( &this_filesort );
 
-    FileView->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
+    FileView->horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
     FileView->horizontalHeader()->setSectionResizeMode(1, QHeaderView::ResizeToContents);
     FileView->horizontalHeader()->setSectionResizeMode(2, QHeaderView::ResizeToContents);
     FileView->horizontalHeader()->setSectionResizeMode(3, QHeaderView::ResizeToContents);
   }
 }
 
-void dbe::MainWindow::slot_build_graphical_view()
-{
-  if ( confaccessor::is_database_loaded() )
-  {
-    GraphView * GraphicalView = new GraphView();
-    GraphicalView->showMaximized();
-  }
-  else
-  {
-    ERROR ( "Could not build database view", "No database has been loaded" );
-  }
-}
 
 void dbe::MainWindow::slot_fetch_data ( const treenode * ClassNode )
 {

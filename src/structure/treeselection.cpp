@@ -215,7 +215,7 @@ bool dbe::models::treeselection::AcceptItem ( type_index const & SourceIndex,
 
   for ( int i = 0; i < sourceModel()->rowCount ( SourceIndex ); ++i )
   {
-    if ( AcceptItem ( SourceIndex.child ( i, 0 ), --LevelRestriction ) )
+    if ( AcceptItem ( sourceModel()->index ( i, 0 ), --LevelRestriction ) )
     {
       return true;
     }
@@ -323,22 +323,27 @@ MODEL_COMMON_INTERFACE_CREATE_THAT_OBJ_IMPL ( dbe::models::treeselection )
 {
 // This is a stub and nothing needs to be done since
 // the real job happens in the slot defined in dbe::models::tree object from signal for treeselectionmodel
+  Q_UNUSED(index);
+  Q_UNUSED(obj);
 }
 
 MODEL_COMMON_INTERFACE_DELETE_THAT_OBJ_IMPL ( dbe::models::treeselection )
 {
 // This is a stub and nothing needs to be done since
 // the real job happens in the slot defined in dbe::models::tree
+  Q_UNUSED(index);
 }
 
 MODEL_COMMON_INTERFACE_UPDATE_THAT_OBJ_IMPL ( dbe::models::treeselection )
 {
+  Q_UNUSED(obj);
   type_index const mapped_index = this->mapFromSource ( index );
   emit dataChanged ( mapped_index, mapped_index );
 }
 
 MODEL_COMMON_INTERFACE_RENAME_THAT_OBJ_IMPL ( dbe::models::treeselection )
 {
+  Q_UNUSED(obj);
   type_index const mapped_index = this->mapFromSource ( index );
   emit dataChanged ( mapped_index, mapped_index );
 }

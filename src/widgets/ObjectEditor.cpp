@@ -120,11 +120,18 @@ void dbe::ObjectEditor::init() {
   WidgetTable->setVerticalHeaderLabels ( HorizontalHeaders );
   WidgetTable->setSelectionMode ( QAbstractItemView::NoSelection );
 
-  if (!this_is_in_creation_mode) {
+  if ( this_is_in_creation_mode )
+  {
+    ui->RenameButton->setDisabled ( true );
+    ui->MoveButton->setDisabled ( true );
+  }
+  else {
     bool rw = confaccessor::check_file_rw (
       QString::fromStdString ( Object().contained_in() ));
     if (!rw) {
       WidgetTable->setDisabled(true);
+      ui->RenameButton->setDisabled(true);
+      ui->MoveButton->setDisabled(true);
     }
   }
   ui->TableLayout->addWidget ( WidgetTable );
@@ -133,11 +140,6 @@ void dbe::ObjectEditor::init() {
 
   ui->RenameButton->setToolTip ( "Rename object" );
 
-  if ( this_is_in_creation_mode )
-  {
-    ui->RenameButton->setDisabled ( true );
-    ui->MoveButton->setDisabled ( true );
-  }
 
   this->show();
 }

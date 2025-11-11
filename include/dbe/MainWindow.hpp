@@ -128,8 +128,6 @@ private slots:
   void slot_launch_object_editor ( tref );
   void slot_edit_object_from_class_view ( QModelIndex const & );
 
-  void slot_build_graphical_view();
-
   void slot_fetch_data ( treenode const * );
 
   void slot_launch_batchchange();

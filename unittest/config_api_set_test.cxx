@@ -65,7 +65,7 @@ BOOST_AUTO_TEST_CASE(unset_multi_relation)
 		try {
 		  set::noactions::relation(oref, relation, empty);
 		} catch (const ers::Issue& e) {
-		  ers:error(e);
+		  ers::error(e);
 		  BOOST_FAIL("Error: ERS exception thrown from relation function");
 		}
 	}
