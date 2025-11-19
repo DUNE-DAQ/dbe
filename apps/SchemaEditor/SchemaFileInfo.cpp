@@ -126,7 +126,21 @@ bool SchemaFileInfo::check_relationships(dunedaq::oks::OksClass* cls) {
   auto relationships = cls->direct_relationships();
   if (relationships != nullptr) {
     for (auto rel: *relationships) {
-      auto file = rel->get_class_type()->get_file()->get_full_file_name();
+      auto rel_class = rel->get_class_type();
+      if (rel_class == nullptr) {
+        QString warning = "<b>Warning</b> class <i>"
+          + QString::fromStdString(cls->get_name())
+          + "</i> has relationship "
+          + QString::fromStdString(rel->get_name())
+          + " referring to class <i>"
+          + QString::fromStdString(rel->get_type())
+          + "</i> which is not loaded<br>";
+        m_ui->textBrowser->insertHtml(warning);
+        m_ui->textBrowser->show();
+        ok = false;
+        continue;
+      }
+      auto file = rel_class->get_file()->get_full_file_name();
       if (file != m_filename && !m_all_includes.contains(file)) {
         m_missing_includes.insert(file);
         QString warning = "<b>Warning</b> class <i>"
@@ -152,6 +166,16 @@ bool SchemaFileInfo::check_superclasses(dunedaq::oks::OksClass* cls) {
   if (super_classes != nullptr) {
     for (auto sc: *super_classes) {
       auto sclass = KernelWrapper::GetInstance().FindClass(*sc);
+      if (sclass == nullptr) {
+        QString warning = "<b>Warning</b> class <i>"
+          + QString::fromStdString(cls->get_name())
+          + "</i> refers to super class <i>" + QString::fromStdString(*sc)
+          + "</i> which is not known<br>";
+        m_ui->textBrowser->insertHtml(warning);
+        m_ui->textBrowser->show();
+        ok = false;
+        continue;
+      }
       auto file = sclass->get_file()->get_full_file_name();
       if (file != m_filename && !m_all_includes.contains(file)) {
         m_missing_includes.insert(file);
