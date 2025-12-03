@@ -53,6 +53,7 @@ private:
   void write_view_file(const QString& fn, SchemaTab* tab);
   [[nodiscard]] int ShouldSaveChanges() const;
   [[nodiscard]] int ShouldSaveViewChanges() const;
+  bool check_schema_file(QString file);
   bool save_schema_file(QString file);
 protected:
   void closeEvent ( QCloseEvent * event );
@@ -73,7 +74,7 @@ private slots:
   void SaveSchema();
   // From FileView 
   void SaveSchemaFile();
-  void SaveModifiedSchema();
+  bool SaveModifiedSchema();
   void ChangeCursorRelationship ( bool State );
   void ChangeCursorInheritance ( bool State );
   void add_tab();

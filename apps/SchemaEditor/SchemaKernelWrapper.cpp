@@ -178,9 +178,9 @@ OksClass * dbse::KernelWrapper::FindClass ( std::string ClassName ) const
   return Kernel->find_class ( ClassName );
 }
 
-void dbse::KernelWrapper::LoadSchema ( const std::string & SchemaName ) const
+OksFile* dbse::KernelWrapper::LoadSchema ( const std::string & SchemaName ) const
 {
-  Kernel->load_schema ( SchemaName );
+  return Kernel->load_schema ( SchemaName );
 }
 
 void dbse::KernelWrapper::SaveAllSchema() const
