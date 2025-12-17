@@ -81,6 +81,7 @@ qt5_wrap_cpp(dbe_structure_moc_src
                     include/dbe/tableselection.hpp
                     include/dbe/tree.hpp
                     include/dbe/treeselection.hpp
+                    include/dbe/FileInfo.hpp
 )
 
 set(dbe_structure_src
@@ -97,6 +98,7 @@ set(dbe_structure_src
                     structure/tree.cpp
                     structure/treeselection.cpp
                     structure/model_common_interface.cpp
+                    structure/FileInfo.cpp
   )
 
 #====================================================================================#
@@ -158,6 +160,7 @@ set(dbe_core_ui
                     ui/OracleWidget.ui
                     ui/RelationshipWidgetForm.ui
                     ui/StringAttributeWidgetForm.ui
+                    ui/FileInfo.ui
                     )
                     
 qt5_wrap_ui(dbe_core_ui_header ${dbe_core_ui})

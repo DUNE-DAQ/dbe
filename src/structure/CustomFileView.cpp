@@ -1,5 +1,6 @@
 /// Including QT Headers
 #include "dbe/confaccessor.hpp"
+#include "dbe/FileInfo.hpp"
 #include "dbe/ui_constants.hpp"
 
 #include <QAction>
@@ -247,29 +248,7 @@ void dbe::CustomFileView::file_info_slot(QModelIndex index) {
                                                   index.parent() ) ).toString();
   auto full_name = path + "/" + file;
 
-  QStringList includes ( dbe::config::api::get::file::inclusions_singlefile (
-                           full_name ) );
-  QString message{"Files included by " + file + "\n"};
-  bool schema=false;
-  for (auto inc: includes) {
-    if (schema && !inc.endsWith(".schema.xml")) {
-      message.append("\nData files:");
-      schema = false;
-    }
-    if (inc.endsWith(".schema.xml")) {
-      if (!schema) {
-        message.append("\nSchema files:");
-        schema = true;
-      }
-    }
-    message.append("\n   " + inc);
-  }
-
-  QMessageBox mbox(this);
-  mbox.setWindowTitle(QString{"File information for  " + file});
-  mbox.setStandardButtons(QMessageBox::Ok);
-  mbox.setText(message);
-  mbox.exec();
+  FileInfo::show_file_info(full_name);
 }
 
 void dbe::CustomFileView::LaunchIncludeEditorSlot()
