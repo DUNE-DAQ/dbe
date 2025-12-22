@@ -4,10 +4,10 @@
 #include "dbe/tref.hpp"
 #include "dbe/dbcontroller.hpp"
 
-#include <QDialog>
 #include <QKeyEvent>
 #include <QString>
 #include <QListWidgetItem>
+#include <QWidget>
 
 #include <map>
 
