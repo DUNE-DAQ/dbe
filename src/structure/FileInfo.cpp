@@ -2,6 +2,7 @@
 #include "dbe/config_api.hpp"
 #include "dbe/FileInfo.hpp"
 #include "dbe/ObjectEditor.hpp"
+#include "dbe/StyleUtility.hpp"
 
 #include "ui_FileInfo.h"
 
@@ -32,6 +33,10 @@ FileInfo::FileInfo(QString filename, QWidget* /*parent*/)
                          filename));
   for (auto inc: includes) {
     auto item = new QListWidgetItem(inc);
+    if (!confaccessor::check_file_rw(inc)) {
+      item->setForeground(QBrush(StyleUtility::FileReadOnlyForeground));
+      item->setBackground(QBrush(StyleUtility::FileReadOnlyBackground));
+    }
     if (inc.endsWith(".schema.xml")) {
       m_ui->schema_list->addItem(item);
     }
