@@ -15,6 +15,9 @@
 
 namespace dbe {
 
+QString FileInfo::s_schema_path{"."};
+QString FileInfo::s_data_path{"."};
+
 FileInfo::FileInfo(QString filename, QWidget* /*parent*/)
   : m_ui(new Ui::FileInfo), m_filename(filename), m_uuid(QUuid::createUuid()) {
 
@@ -170,32 +173,45 @@ void FileInfo::rename_object_slot() {
 }
 
 void FileInfo::add_datafile() {
-  auto fd = new QFileDialog ( this, tr ( "Open Data File" ), ".",
+  if (s_data_path == ".") {
+    s_data_path = s_schema_path;
+  }
+  auto fd = new QFileDialog ( this, tr ( "Open Data File" ), s_data_path,
                               tr ( "XML data files (*.data.xml)" ) );
   add_includefile(fd);
+  if (fd->result() == QDialog::Accepted) {
+    s_data_path = fd->directory().path();
+  }
 }
 void FileInfo::add_schemafile() {
-  auto fd = new QFileDialog ( this, tr ( "Open Schema File" ), ".",
+  if (s_schema_path == ".") {
+    s_schema_path = s_data_path;
+  }
+  auto fd = new QFileDialog ( this, tr ( "Open Schema File" ), s_schema_path,
                               tr ( "XML schema files (*.schema.xml)" ) );
   add_includefile(fd);
+  if (fd->result() == QDialog::Accepted) {
+    s_schema_path = fd->directory().path();
+  }
 }
 void FileInfo::add_includefile(QFileDialog* fd) {
   fd->setFileMode ( QFileDialog::ExistingFiles );
   fd->setViewMode ( QFileDialog::Detail );
   fd->setAcceptMode ( QFileDialog::AcceptOpen );
   fd->setSidebarUrls(m_path_urls);
-  fd->exec();
-  auto files = fd->selectedFiles();
-  for (auto file: files) {
-    for (const QString& element : m_path_list) {
-      if (file.startsWith(element)) {
-        file = file.remove(element);
-        break;
+  if (fd->exec() == QDialog::Accepted) {
+    auto files = fd->selectedFiles();
+    for (auto file: files) {
+      for (const QString& element : m_path_list) {
+        if (file.startsWith(element)) {
+          file = file.remove(element);
+          break;
+        }
       }
+      config::api::commands::file::add(m_filename, file);
     }
-    config::api::commands::file::add(m_filename, file);
+    parse_includes();
   }
-  parse_includes();
 }
 
 

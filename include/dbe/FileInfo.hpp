@@ -61,6 +61,9 @@ namespace dbe
     QStringList m_path_list;
     QList<QUrl> m_path_urls;
     QUuid const m_uuid;
+
+    static QString s_schema_path;
+    static QString s_data_path;
   };
 } //namespace dbe
 #endif // DBE_FILEINFO_H
