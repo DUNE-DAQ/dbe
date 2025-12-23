@@ -29,7 +29,10 @@ namespace dbe
     void keyPressEvent(QKeyEvent* event) override;
 
     static void show_file_info(QString filename);
-
+    static void setup_paths();
+    static QList<QUrl> get_path_urls();
+    static QStringList get_path_list();
+    static QString prune_path(QString file);
   private slots:
     void accept();
     void reject();
@@ -58,10 +61,10 @@ namespace dbe
     QMenu* m_schema_menu{nullptr};
     QMenu* m_data_menu{nullptr};
     QMenu* m_object_menu{nullptr};
-    QStringList m_path_list;
-    QList<QUrl> m_path_urls;
     QUuid const m_uuid;
 
+    static QStringList s_path_list;
+    static QList<QUrl> s_path_urls;
     static QString s_schema_path;
     static QString s_data_path;
   };

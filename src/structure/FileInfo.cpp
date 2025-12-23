@@ -17,6 +17,45 @@ namespace dbe {
 
 QString FileInfo::s_schema_path{"."};
 QString FileInfo::s_data_path{"."};
+QStringList FileInfo::s_path_list{};
+QList<QUrl> FileInfo::s_path_urls{};
+
+void FileInfo::setup_paths() {
+  QString DUNEDAQ_DB_PATH = getenv ( "DUNEDAQ_DB_PATH" );
+  s_path_list = DUNEDAQ_DB_PATH.split (QLatin1Char(':'), Qt::SkipEmptyParts );
+  for ( QString & path : s_path_list ) {
+    if ( !path.endsWith ( "/" ) ) {
+      path.append ( "/" );
+    }
+    s_path_urls.append(QUrl::fromLocalFile(path));
+  }
+}
+
+QString FileInfo::prune_path(QString file) {
+  if (s_path_list.isEmpty()) {
+    setup_paths();
+  }
+  for (const QString& element : s_path_list) {
+    if (file.startsWith(element)) {
+      file = file.remove(element);
+      break;
+    }
+  }
+  return file;
+}
+
+QList<QUrl>  FileInfo::get_path_urls(){
+  if (s_path_urls.isEmpty()) {
+    setup_paths();
+  }
+  return s_path_urls;
+}
+QStringList FileInfo::get_path_list(){
+  if (s_path_list.isEmpty()) {
+    setup_paths();
+  }
+  return s_path_list;
+}
 
 FileInfo::FileInfo(QString filename, QWidget* /*parent*/)
   : m_ui(new Ui::FileInfo), m_filename(filename), m_uuid(QUuid::createUuid()) {
@@ -37,6 +76,7 @@ FileInfo::FileInfo(QString filename, QWidget* /*parent*/)
   setObjectName(filename);
   setWindowTitle("File:  " + filename.section('/',-1));
 
+  setup_paths();
   parse_includes();
   parse_objects();
 
@@ -60,14 +100,6 @@ FileInfo::FileInfo(QString filename, QWidget* /*parent*/)
   connect (m_ui->object_list, SIGNAL (customContextMenuRequested(QPoint)),
            this, SLOT (activate_object_context_menu(QPoint)));
 
-  QString DUNEDAQ_DB_PATH = getenv ( "DUNEDAQ_DB_PATH" );
-  m_path_list = DUNEDAQ_DB_PATH.split (QLatin1Char(':'), Qt::SkipEmptyParts );
-  for ( QString & path : m_path_list ) {
-    if ( !path.endsWith ( "/" ) ) {
-      path.append ( "/" );
-    }
-    m_path_urls.append(QUrl::fromLocalFile(path));
-  }
 }
 
 void FileInfo::parse_objects() {
@@ -198,16 +230,11 @@ void FileInfo::add_includefile(QFileDialog* fd) {
   fd->setFileMode ( QFileDialog::ExistingFiles );
   fd->setViewMode ( QFileDialog::Detail );
   fd->setAcceptMode ( QFileDialog::AcceptOpen );
-  fd->setSidebarUrls(m_path_urls);
+  fd->setSidebarUrls(s_path_urls);
   if (fd->exec() == QDialog::Accepted) {
     auto files = fd->selectedFiles();
     for (auto file: files) {
-      for (const QString& element : m_path_list) {
-        if (file.startsWith(element)) {
-          file = file.remove(element);
-          break;
-        }
-      }
+      file = prune_path(file);
       config::api::commands::file::add(m_filename, file);
     }
     parse_includes();
