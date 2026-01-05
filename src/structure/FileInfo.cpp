@@ -2,6 +2,7 @@
 #include "dbe/config_api.hpp"
 #include "dbe/config_api_commands.hpp"
 #include "dbe/FileInfo.hpp"
+#include "dbe/MainWindow.hpp"
 #include "dbe/ObjectEditor.hpp"
 #include "dbe/StyleUtility.hpp"
 
@@ -102,6 +103,13 @@ FileInfo::FileInfo(QString filename, QWidget* /*parent*/)
   connect (m_ui->object_list, SIGNAL (customContextMenuRequested(QPoint)),
            this, SLOT (activate_object_context_menu(QPoint)));
 
+  connect (MainWindow::findthis(), SIGNAL(signal_new_file_model()),
+           this, SLOT (filemodel_updated()));
+}
+
+void FileInfo::filemodel_updated() {
+  parse_includes();
+  parse_objects();
 }
 
 void FileInfo::parse_objects() {

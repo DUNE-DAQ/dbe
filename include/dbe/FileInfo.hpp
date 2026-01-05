@@ -50,6 +50,8 @@ namespace dbe
     void add_datafile();
     void add_schemafile();
     void add_includefile(QFileDialog* fd);
+
+    void filemodel_updated();
   private:
     void parse_objects();
     void parse_includes();

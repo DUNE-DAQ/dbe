@@ -176,6 +176,7 @@ signals:
   void signal_batch_change_stopped(const QList<QPair<QString, QString>>&);
   void signal_db_loaded();
   void signal_externalchanges_processed();
+  void signal_new_file_model();
 };
 
 }  // namespace dbe

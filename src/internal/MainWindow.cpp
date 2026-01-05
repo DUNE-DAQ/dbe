@@ -417,6 +417,8 @@ void dbe::MainWindow::build_file_model()
     FileView->horizontalHeader()->setSectionResizeMode(1, QHeaderView::ResizeToContents);
     FileView->horizontalHeader()->setSectionResizeMode(2, QHeaderView::ResizeToContents);
     FileView->horizontalHeader()->setSectionResizeMode(3, QHeaderView::ResizeToContents);
+
+    emit signal_new_file_model();
   }
 }
 
