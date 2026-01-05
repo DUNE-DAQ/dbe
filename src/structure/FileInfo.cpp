@@ -13,6 +13,8 @@
 #include <QString>
 #include <QWidget>
 
+namespace dbegraph = dbe::config::api::graph;
+
 namespace dbe {
 
 QString FileInfo::s_schema_path{"."};
@@ -117,6 +119,57 @@ void FileInfo::parse_objects() {
     }
   }
   m_ui->object_list->update();
+
+  m_ui->warningBox->setVisible(!check_includes());
+}
+
+bool FileInfo::check_includes() {
+  bool status = true;
+  QString message{};
+  m_ui->message->setText(message);
+  QStringList includes(config::api::get::file::inclusions_singlefile (
+                         m_filename));
+  for (auto [id, obj] : m_obj_map) {
+    dunedaq::conffwk::class_t const & classdef =
+      dbe::config::api::info::onclass::definition (obj.class_name(), false);
+
+    auto schema_file = QString::fromStdString(classdef.p_schema_path);
+    if (!includes.contains(prune_path(schema_file))) {
+      message += QString("Object <i>" + id + "</i> is of class <i>"
+                             + QString::fromStdString(obj.class_name())
+                             + "</i> defined in file <b>" + schema_file
+                             + "</b> which is not included<br>");
+          status = false;
+    }
+    std::vector<tref> relobjs;
+    for (auto rel: classdef.p_relationships) {
+      if (config::api::info::relation::is_simple(rel)) {
+        try {
+          relobjs.push_back(dbegraph::linked::through::relation<tref> (obj, rel));
+        }
+        catch ( daq::dbe::config_object_retrieval_result_is_null const & e ) {
+          // nothing needs be done to handle cases that a relation has not been set
+        }
+      }
+      else {
+        relobjs = dbegraph::linked::through::relation<std::vector<tref>> (obj, rel);
+      }
+
+      for (auto relobj : relobjs) {
+        auto file = QString::fromStdString(relobj.contained_in());
+        file = prune_path(file);
+        if (!(prune_path(m_filename)==file || includes.contains(file))) {
+          message += QString("Object <i>" + id + "</i> has relationship to <i>"
+                             + QString::fromStdString(relobj.full_name())
+                             + "</i> in file <b>" + file
+                             + "</b> which is not included<br>");
+          status = false;
+        }
+      }
+    }
+  }
+  m_ui->message->setText(message);
+  return status;
 }
 
 void FileInfo::parse_includes() {
@@ -238,6 +291,7 @@ void FileInfo::add_includefile(QFileDialog* fd) {
       config::api::commands::file::add(m_filename, file);
     }
     parse_includes();
+    parse_objects();
   }
 }
 

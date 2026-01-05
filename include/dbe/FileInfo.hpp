@@ -53,7 +53,7 @@ namespace dbe
   private:
     void parse_objects();
     void parse_includes();
-
+    bool check_includes();
     Ui::FileInfo* m_ui;
     std::map<QString, const tref> m_obj_map;
     QString m_filename;
