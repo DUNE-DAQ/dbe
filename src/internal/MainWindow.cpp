@@ -432,7 +432,7 @@ void dbe::MainWindow::slot_fetch_data ( const treenode * ClassNode )
   }
 }
 
-void dbe::MainWindow::slot_commit_database ( bool Exit )
+bool dbe::MainWindow::slot_commit_database ( bool Exit )
 {
   CommitDialog * SaveDialog = new CommitDialog();
   int DialogResult = SaveDialog->exec();
@@ -469,8 +469,28 @@ void dbe::MainWindow::slot_commit_database ( bool Exit )
     }
     catch ( dunedaq::conffwk::Exception const & e )
     {
+      std::cout << "Caught Exception: " << e.what() << "\n";
       WARN ( "The changes could not be committed", dbe::config::errors::parse ( e ).c_str() )
       ers::error ( e );
+      return false;
+    }
+    // Gaahhh confaccessor catches dunedaq::conffwk::Exception and
+    // rethrows it as daq::dbe::CouldNotCommitChanges!!
+    catch (daq::dbe::CouldNotCommitChanges const& exc)
+    {
+      std::cout << "Caught daq::dbe::CouldNotCommitChanges: " << exc.what() << "\n";
+      std::string reason{exc.what()};
+      auto cause = exc.cause();
+      while (cause != nullptr) {
+        reason = cause->what();
+        cause = cause->cause();
+      }
+      WARN ("The changes could not be committed",
+            // dbe::config::errors::parse(exc).c_str(),
+            reason,
+            "\n\nTry fixing includes from File Info window")
+      ers::error (exc);
+      return false;
     }
   }
   else
@@ -480,6 +500,7 @@ void dbe::MainWindow::slot_commit_database ( bool Exit )
       slot_abort_changes();
     }
   }
+  return true;
 }
 
 void dbe::MainWindow::slot_abort_changes()
@@ -1382,8 +1403,7 @@ bool dbe::MainWindow::check_close()
       }
       else if ( ret == QMessageBox::Save )
       {
-        slot_commit_database ( true );
-        return true;
+        return slot_commit_database ( true );
       }
       else if ( ret == QMessageBox::Cancel )
       {
