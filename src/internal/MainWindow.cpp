@@ -469,7 +469,6 @@ bool dbe::MainWindow::slot_commit_database ( bool Exit )
     }
     catch ( dunedaq::conffwk::Exception const & e )
     {
-      std::cout << "Caught Exception: " << e.what() << "\n";
       WARN ( "The changes could not be committed", dbe::config::errors::parse ( e ).c_str() )
       ers::error ( e );
       return false;
@@ -478,7 +477,6 @@ bool dbe::MainWindow::slot_commit_database ( bool Exit )
     // rethrows it as daq::dbe::CouldNotCommitChanges!!
     catch (daq::dbe::CouldNotCommitChanges const& exc)
     {
-      std::cout << "Caught daq::dbe::CouldNotCommitChanges: " << exc.what() << "\n";
       std::string reason{exc.what()};
       auto cause = exc.cause();
       while (cause != nullptr) {
