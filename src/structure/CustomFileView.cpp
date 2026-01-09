@@ -38,20 +38,16 @@ dbe::CustomFileView::CustomFileView ( QWidget * parent )
 
 void dbe::CustomFileView::CreateActions()
 {
-
-
-  FindFile = new QAction ( tr ( "Find File" ), this );
-  FindFile->setShortcut ( QKeySequence ( tr ( "Ctrl+F" ) ) );
-  FindFile->setShortcutContext ( Qt::WidgetShortcut );
-  connect ( FindFile, SIGNAL ( triggered() ), this, SLOT ( FindFileSlot() ) );
-//  connect ( Shortcut, SIGNAL ( activated() ), this, SLOT ( FindFileSlot() ) );
-  ContextMenu->addAction ( FindFile );
-
   LaunchIncludeEditor = new QAction ( tr ( "Add/Remove Files" ), this );
   LaunchIncludeEditor->setShortcutContext ( Qt::WidgetShortcut );
   connect ( LaunchIncludeEditor, SIGNAL ( triggered() ), this,
             SLOT ( LaunchIncludeEditorSlot() ) );
   ContextMenu->addAction ( LaunchIncludeEditor );
+
+  m_file_info_action = new QAction (tr ("File &information"));
+  connect ( m_file_info_action, SIGNAL(triggered()),
+            this, SLOT(file_info_slot()) );
+  ContextMenu->addAction ( m_file_info_action );
 
   HideReadOnlyFiles = new QAction ( tr ( "Hide Read Only Files" ), this );
   HideReadOnlyFiles->setShortcutContext ( Qt::WidgetShortcut );
@@ -61,10 +57,13 @@ void dbe::CustomFileView::CreateActions()
             SLOT ( HideReadOnlyFilesSlot ( bool ) ) );
   ContextMenu->addAction ( HideReadOnlyFiles );
 
-  m_file_info_action = new QAction (tr ("File &information"));
-  connect ( m_file_info_action, SIGNAL(triggered()),
-            this, SLOT(file_info_slot()) );
-  ContextMenu->addAction ( m_file_info_action );
+
+  FindFile = new QAction ( tr ( "Find File" ), this );
+  FindFile->setShortcut ( QKeySequence ( tr ( "Ctrl+F" ) ) );
+  FindFile->setShortcutContext ( Qt::WidgetShortcut );
+  connect ( FindFile, SIGNAL ( triggered() ), this, SLOT ( FindFileSlot() ) );
+//  connect ( Shortcut, SIGNAL ( activated() ), this, SLOT ( FindFileSlot() ) );
+  ContextMenu->addAction ( FindFile );
 }
 
 void dbe::CustomFileView::ConnectActions()
@@ -89,16 +88,21 @@ void dbe::CustomFileView::contextMenuEvent ( QContextMenuEvent * Event )
   if ( index.isValid() )
   {
     if ( model()->data ( model()->index ( index.row(), 2 ) ).toString() == "RO" ) {
-      ContextMenu->actions().at ( 1 )->setVisible ( false );
+      ContextMenu->actions().at ( 0 )->setVisible ( false );
     }
     else {
-      ContextMenu->actions().at ( 1 )->setVisible ( true );
+      ContextMenu->actions().at ( 0 )->setVisible ( true );
     }
+    ContextMenu->actions().at ( 1 )->setVisible ( true );
 
     setCurrentIndex ( index );
     selectionModel()->setCurrentIndex ( index, QItemSelectionModel::NoUpdate );
-    ContextMenu->exec ( Event->globalPos() );
   }
+  else {
+      ContextMenu->actions().at(0)->setVisible(false);
+      ContextMenu->actions().at(1)->setVisible(false);
+  }
+  ContextMenu->exec ( Event->globalPos() );
 }
 
 void dbe::CustomFileView::GoToFile()
