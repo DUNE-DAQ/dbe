@@ -1,5 +1,4 @@
 /// Including QT Headers
-#include "dbe/confaccessor.hpp"
 #include "dbe/FileInfo.hpp"
 #include "dbe/ui_constants.hpp"
 

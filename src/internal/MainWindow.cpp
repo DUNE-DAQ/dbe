@@ -7,6 +7,7 @@
 #include "dbe/StyleUtility.hpp"
 #include "dbe/CreateDatabaseWidget.hpp"
 #include "dbe/Command.hpp"
+#include "dbe/FileInfo.hpp"
 #include "dbe/messenger.hpp"
 #include "dbe/messenger_proxy.hpp"
 #include "dbe/config_api.hpp"
@@ -439,6 +440,16 @@ bool dbe::MainWindow::slot_commit_database ( bool Exit )
 
   if ( DialogResult )
   {
+    FileInfo::parse_all_objects();
+    for (auto file : dbe::confaccessor::uncommitted_files()) {
+      auto message = FileInfo::check_file_includes(QString::fromStdString(file));
+      if (!message.isEmpty()) {
+        QMessageBox::warning ( 0, "Save database", message );
+        FileInfo::show_file_info(QString::fromStdString(file));
+        return false;
+      }
+    }
+
     QString CommitMessage = SaveDialog->GetCommitMessage();
 
     try

@@ -33,6 +33,8 @@ namespace dbe
     static QList<QUrl> get_path_urls();
     static QStringList get_path_list();
     static QString prune_path(QString file);
+    static void parse_all_objects();
+    static QString check_file_includes(const QString& file);
   private slots:
     void accept();
     void reject();
@@ -64,6 +66,8 @@ namespace dbe
     QMenu* m_data_menu{nullptr};
     QMenu* m_object_menu{nullptr};
     QUuid const m_uuid;
+
+    static std::map<QString, std::map<QString, const tref>> s_obj_map;
 
     static QStringList s_path_list;
     static QList<QUrl> s_path_urls;
