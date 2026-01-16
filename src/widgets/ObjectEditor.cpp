@@ -40,7 +40,8 @@ dbe::ObjectEditor::ObjectEditor(QWidget * parent)
   this_editor_values_changed ( false ),
   CurrentRow ( 0 ),
   MainLayout ( new QHBoxLayout() ),
-  WidgetTable ( new NoScrollingTable() ),
+  // WidgetTable ( new NoScrollingTable() ),
+  WidgetTable ( new QTableWidget() ),
   RenameWidget ( nullptr ),
   LineEdit ( nullptr ),
   GoButton ( nullptr ),
@@ -98,6 +99,12 @@ dbe::ObjectEditor::ObjectEditor ( tref const & object, QWidget * parent, bool is
 
 //------------------------------------------------------------------------------------------
 void dbe::ObjectEditor::init() {
+
+  if (m_object_to_edit and not Object().is_null()) {
+    m_readonly = !confaccessor::check_file_rw (
+      QString::fromStdString ( Object().contained_in() ));
+  }
+
   dunedaq::conffwk::class_t const & Class =
     dbe::config::api::info::onclass::definition ( classname, false );
   int NumberOfRows = Class.p_attributes.size() + Class.p_relationships.size();
@@ -126,12 +133,11 @@ void dbe::ObjectEditor::init() {
     ui->MoveButton->setDisabled ( true );
   }
   else {
-    bool rw = confaccessor::check_file_rw (
-      QString::fromStdString ( Object().contained_in() ));
-    if (!rw) {
-      WidgetTable->setDisabled(true);
+    if (m_readonly) {
+      // WidgetTable->setDisabled(true);
       ui->RenameButton->setDisabled(true);
       ui->MoveButton->setDisabled(true);
+      ui->ApplyButton->hide();
     }
   }
   ui->TableLayout->addWidget ( WidgetTable );
@@ -400,7 +406,7 @@ void dbe::ObjectEditor::BuildWidgets()
     if ( attr.p_is_multi_value )
     {
       widgets::editors::multiattr * widget = new widgets::editors::multiattr ( attr, this,
-                                                                               true );
+                                                                               true, m_readonly );
       set_attribute_widget ( attr, widget );
 
       set_tooltip ( attr, widget );
@@ -452,8 +458,8 @@ void dbe::ObjectEditor::BuildWidgets()
 
       case dunedaq::conffwk::u64_type:
       {
-        widgets::editors::numericattr * Widget = new widgets::editors::numericattr ( attr, this,
-                                                                                     true );
+        widgets::editors::numericattr * Widget =
+          new widgets::editors::numericattr ( attr, this, true, m_readonly );
         set_attribute_widget ( attr, Widget );
         set_tooltip ( attr, Widget );
         register_attribute_widget ( name, Widget );
@@ -471,8 +477,8 @@ void dbe::ObjectEditor::BuildWidgets()
 
       case dunedaq::conffwk::time_type:
       {
-        widgets::editors::stringattr * Widget = new widgets::editors::stringattr ( attr, this,
-                                                                                   true );
+        widgets::editors::stringattr * Widget =
+          new widgets::editors::stringattr ( attr, this, true, m_readonly );
         set_attribute_widget ( attr, Widget );
         set_tooltip ( attr, Widget );
         register_attribute_widget ( name, Widget );
@@ -505,7 +511,7 @@ void dbe::ObjectEditor::BuildWidgets()
         relations ) // Build widgets for relations ( relationships )
   {
     widgets::editors::relation * widget = new widgets::editors::relation ( arelation, this,
-                                                                           true );
+                                                                           true, m_readonly );
     QString name = QString::fromStdString ( arelation.p_name );
     QStringList Data;
 
@@ -541,6 +547,7 @@ void dbe::ObjectEditor::BuildWidgets()
 
     widget->setdata ( Data );
     widget->SetEditor();
+
     set_tooltip ( arelation, widget );
     register_relation_widget ( name, widget );
     connect ( widget, SIGNAL ( signal_value_change() ), this, SLOT ( UpdateActions() ),
