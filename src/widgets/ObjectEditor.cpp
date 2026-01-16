@@ -353,7 +353,7 @@ void dbe::ObjectEditor::UpdateObjectEditor ( QString const & src, dref updated_o
           std::transform ( connected.begin(), connected.end(), std::back_inserter ( relvalues ),
                            [] ( decltype ( connected ) ::value_type const & x )
           {
-            return QString::fromStdString ( x.UID() );
+            return QString::fromStdString ( x.full_name() );
           }
 
                          );
@@ -540,7 +540,7 @@ void dbe::ObjectEditor::BuildWidgets()
       {
         if ( not i.is_null() )
         {
-          Data.push_back ( QString::fromStdString ( i.UID() ) );
+          Data.push_back ( QString::fromStdString ( i.full_name() ) );
         }
       }
     }

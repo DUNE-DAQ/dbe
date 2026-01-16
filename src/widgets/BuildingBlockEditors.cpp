@@ -310,7 +310,7 @@ void relation::FetchData()
 
   for ( tref const & o : related )
   {
-    result.append ( QString::fromStdString ( o.UID() ) );
+    result.append ( QString::fromStdString ( o.full_name() ) );
   }
 
   emit FetchDataDone ( result );
