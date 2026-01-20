@@ -169,7 +169,7 @@ dbe::actions::file::remove::remove ( std::string & db_file, std::string & includ
     m_include_file ( include_file )
 {
   setText (
-    QObject::tr ( "Remove Include File %1 to %2" ).arg (
+    QObject::tr ( "Remove Include File %1 from %2" ).arg (
       QFileInfo ( QString ( m_include_file.c_str() ) ).fileName() ).arg (
       QFileInfo ( QString ( m_db_file.c_str() ) ).fileName() ) );
 }

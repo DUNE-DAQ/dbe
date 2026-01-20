@@ -28,12 +28,12 @@ signals:
   void CanIncludeDatabase ( const QString & DatabasePath );
 
 private:
-  QStatusBar * StatusBar;
   QFileInfo DatabaseFile;
   QFileInfo SchemaFile;
   QString DirToCreate;
   bool CreateToInclude;
   std::list<std::string> get_includes();
+  bool create_database_file(std::string extra_text);
 private slots:
   void DefineSchema();
   void DefineDatabaseFile();
