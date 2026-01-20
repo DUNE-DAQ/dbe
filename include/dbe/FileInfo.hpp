@@ -28,18 +28,19 @@ namespace dbe
 
     void keyPressEvent(QKeyEvent* event) override;
 
-    static void show_file_info(QString filename);
+    static void show_file_info(const QString& filename);
     static void setup_paths();
     static QList<QUrl> get_path_urls();
     static QStringList get_path_list();
     static QString prune_path(QString file);
     static void parse_all_objects();
     static QString check_file_includes(const QString& file);
+
   private slots:
     void accept();
     void reject();
     void file_info_slot ();
-    void file_info_slot (QString fn);
+    void file_info_slot (const QString& fn);
     void file_info_slot(QListWidgetItem*);
     void edit_object_slot();
     void edit_object_slot(QListWidgetItem*);
@@ -52,6 +53,10 @@ namespace dbe
     void add_datafile();
     void add_schemafile();
     void add_includefile(QFileDialog* fd);
+
+    void remove_datafile_slot();
+    void remove_schemafile_slot();
+    void remove_includefile(const QString& file);
 
     void filemodel_updated();
   private:

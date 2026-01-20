@@ -334,6 +334,18 @@ void FileInfo::add_includefile(QFileDialog* fd) {
   }
 }
 
+void FileInfo::remove_schemafile_slot() {
+  remove_includefile(m_ui->schema_list->currentItem()->text());
+}
+void FileInfo::remove_datafile_slot() {
+  remove_includefile(m_ui->data_list->currentItem()->text());
+}
+void FileInfo::remove_includefile(const QString& file) {
+  config::api::commands::file::remove(m_filename, file);
+  parse_includes();
+  parse_objects();
+}
+
 
 void FileInfo::file_info_slot() {
   show_file_info(m_ui->data_list->currentItem()->text());
@@ -343,11 +355,11 @@ void FileInfo::file_info_slot(QListWidgetItem* item) {
   show_file_info(item->text());
 }
 
-void FileInfo::file_info_slot(QString filename) {
+void FileInfo::file_info_slot(const QString& filename) {
   show_file_info(filename);
 }
 
-void FileInfo::show_file_info(QString filename) {
+void FileInfo::show_file_info(const QString& filename) {
   for ( QWidget * widget : QApplication::allWidgets() ) {
     auto fi = dynamic_cast<FileInfo *> ( widget );
     if ( fi != nullptr ) {
@@ -372,9 +384,16 @@ void FileInfo::activate_schema_context_menu (QPoint pos) {
       auto add = new QAction("Add include file", this);
       connect (add, SIGNAL(triggered()), this, SLOT (add_schemafile()));
       m_schema_menu->addAction(add);
+
+      auto remove = new QAction("Remove include file", this);
+      connect (remove, SIGNAL(triggered()), this, SLOT (remove_schemafile_slot()));
+      m_schema_menu->addAction(remove);
     }
   }
 
+  if (m_ui->schema_list->currentIndex().isValid()) {
+    m_schema_menu->actions().at(1)->setVisible (true);
+  }
   m_schema_menu->exec (m_ui->schema_list->mapToGlobal(pos));
 }
 
@@ -390,14 +409,20 @@ void FileInfo::activate_data_context_menu (QPoint pos) {
       auto add = new QAction("Add include file", this);
       connect (add, SIGNAL(triggered()), this, SLOT (add_datafile()));
       m_data_menu->addAction(add);
+
+      auto remove = new QAction("Remove include file", this);
+      connect (remove, SIGNAL(triggered()), this, SLOT (remove_datafile_slot()));
+      m_data_menu->addAction(remove);
     }
   }
 
   if (m_ui->data_list->currentIndex().isValid()) {
     m_data_menu->actions().at(0)->setVisible (true);
+    m_data_menu->actions().at(2)->setVisible (true);
   }
   else {
     m_data_menu->actions().at(0)->setVisible (false);
+    m_data_menu->actions().at(2)->setVisible (false);
   }
   m_data_menu->exec (m_ui->data_list->mapToGlobal(pos));
 }
