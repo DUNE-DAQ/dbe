@@ -104,14 +104,10 @@
        <height>80</height>
       </size>
      </property>
+     <property name="title">
+      <string>WARNING</string>
+     </property>
      <layout class="QVBoxLayout" name="verticalLayout_3">
-      <item>
-       <widget class="QLabel" name="warningLabel">
-        <property name="text">
-         <string>WARNING:</string>
-        </property>
-       </widget>
-      </item>
       <item>
        <widget class="QTextEdit" name="message"/>
       </item>
@@ -141,14 +137,10 @@
           <height>200</height>
          </size>
         </property>
+        <property name="title">
+         <string>Objects</string>
+        </property>
         <layout class="QVBoxLayout" name="verticalLayout_8">
-         <item>
-          <widget class="QLabel" name="label_16">
-           <property name="text">
-            <string>Objects:</string>
-           </property>
-          </widget>
-         </item>
          <item>
           <widget class="QListWidget" name="object_list">
            <property name="sizePolicy">
@@ -184,14 +176,10 @@
             <height>80</height>
            </size>
           </property>
+          <property name="title">
+           <string>Schema files</string>
+          </property>
           <layout class="QVBoxLayout" name="verticalLayout_3">
-           <item>
-            <widget class="QLabel" name="label_19">
-             <property name="text">
-              <string>Schema files:</string>
-             </property>
-            </widget>
-           </item>
            <item>
             <widget class="QListWidget" name="schema_list"/>
            </item>
@@ -236,14 +224,10 @@
             <height>120</height>
            </size>
           </property>
+          <property name="title">
+           <string>Data files</string>
+          </property>
           <layout class="QVBoxLayout" name="verticalLayout_2">
-           <item>
-            <widget class="QLabel" name="label_21">
-             <property name="text">
-              <string>Data files:</string>
-             </property>
-            </widget>
-           </item>
            <item>
             <widget class="QListWidget" name="data_list">
              <property name="sizePolicy">
