@@ -108,7 +108,8 @@ private:
   void edit_object_at ( const QModelIndex & Index );
 
   void update_total_objects();
-
+  void display_message_box(const QString& title, const QString& msg,
+                           const QMessageBox::Icon& icon);
 private slots:
   void slot_create_newdb();
   void slot_open_database_from_file();
@@ -164,12 +165,10 @@ private slots:
 public slots:
   void slot_batch_change_start();
   void slot_batch_change_stop(const QList<QPair<QString, QString>>&);
-  void slot_debuginfo_message ( QString const, QString const );
+
   void slot_information_message ( QString const, QString const );
-  void slot_notice_message ( QString const, QString const );
   void slot_warning_message ( QString const, QString const );
   void slot_error_message ( QString const, QString const );
-  void slot_failure_message ( QString const, QString const );
 
 signals:
   //void signal_rdb_found (const QString& p, const RDBMap& rdbs);

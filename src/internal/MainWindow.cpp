@@ -269,7 +269,7 @@ void dbe::MainWindow::attach()
 
   connect ( &dbe::interface::messenger_proxy::ref(),
             SIGNAL ( signal_debug ( QString const, QString const ) ), this,
-            SLOT ( slot_debuginfo_message ( QString , QString ) ), Qt::QueuedConnection );
+            SLOT ( slot_information_message ( QString , QString ) ), Qt::QueuedConnection );
 
   connect ( &dbe::interface::messenger_proxy::ref(),
             SIGNAL ( signal_info ( QString const, QString const ) ), this,
@@ -277,7 +277,7 @@ void dbe::MainWindow::attach()
 
   connect ( &dbe::interface::messenger_proxy::ref(),
             SIGNAL ( signal_note ( QString const, QString const ) ), this,
-            SLOT ( slot_notice_message ( QString , QString ) ), Qt::QueuedConnection );
+            SLOT ( slot_information_message ( QString , QString ) ), Qt::QueuedConnection );
 
   connect ( &dbe::interface::messenger_proxy::ref(),
             SIGNAL ( signal_warn ( QString const, QString const ) ), this,
@@ -289,7 +289,7 @@ void dbe::MainWindow::attach()
 
   connect ( &dbe::interface::messenger_proxy::ref(),
             SIGNAL ( signal_fail ( QString const, QString const ) ), this,
-            SLOT ( slot_failure_message ( QString , QString ) ), Qt::QueuedConnection );
+            SLOT ( slot_error_message ( QString, QString ) ), Qt::QueuedConnection );
 
   // connect ( this, SIGNAL ( signal_rdb_found(const QString&, const RDBMap& ) ),
   //           this, SLOT ( slot_rdb_found(const QString&, const RDBMap&) ), Qt::AutoConnection );
@@ -1688,17 +1688,17 @@ namespace {
     const int MAX_MESSAGE_LENGTH = 500;
 }
 
-void dbe::MainWindow::slot_failure_message ( QString const title, QString const msg )
-{
+void dbe::MainWindow::display_message_box(const QString& title, const QString& msg,
+                                          const QMessageBox::Icon& icon) {
     QMessageBox mb(this);
-    mb.setIcon(QMessageBox::Icon::Critical);
+    mb.setIcon(icon);
     mb.setWindowTitle(title);
     mb.setStandardButtons(QMessageBox::Ok);
     if(msg.length() > MAX_MESSAGE_LENGTH) {
-        QString&& m = msg.left(MAX_MESSAGE_LENGTH);
-        m.append("...");
-        mb.setText("<b>The message has been truncated because too long, look at the details for the full message</b>");
-        mb.setInformativeText(m);
+        QString&& truncated_msg = msg.left(MAX_MESSAGE_LENGTH);
+        truncated_msg.append("...");
+        mb.setText("<b>The message has been truncated because it is too long, look at the details for the full message</b>");
+        mb.setInformativeText(truncated_msg);
         mb.setDetailedText(msg);
     } else {
         mb.setText(msg);
@@ -1706,6 +1706,7 @@ void dbe::MainWindow::slot_failure_message ( QString const title, QString const 
 
     mb.exec();
 }
+
 
 /**
  * This method permits to propagate and display messages from the messaging subsytem.
@@ -1716,73 +1717,7 @@ void dbe::MainWindow::slot_failure_message ( QString const title, QString const 
  */
 void dbe::MainWindow::slot_information_message ( QString const title, QString const msg )
 {
-    QMessageBox mb(this);
-    mb.setIcon(QMessageBox::Icon::Information);
-    mb.setWindowTitle(title);
-    mb.setStandardButtons(QMessageBox::Ok);
-    if(msg.length() > MAX_MESSAGE_LENGTH) {
-        QString&& m = msg.left(MAX_MESSAGE_LENGTH);
-        m.append("...");
-        mb.setText("<b>The message has been truncated because too long, look at the details for the full message</b>");
-        mb.setInformativeText(m);
-        mb.setDetailedText(msg);
-    } else {
-        mb.setText(msg);
-    }
-
-    mb.exec();
-}
-
-/**
- * This method permits to propagate and display messages from the messaging subsytem.
- *
- * It is important that the arguments are pass-by-copy because references will become invalid,
- * even if they are bound to consted temporaries, once the deleter from the other thread is called.
- *
- */
-void dbe::MainWindow::slot_debuginfo_message ( QString const title, QString const msg )
-{
-    QMessageBox mb(this);
-    mb.setIcon(QMessageBox::Icon::Information);
-    mb.setWindowTitle(title);
-    mb.setStandardButtons(QMessageBox::Ok);
-    if(msg.length() > MAX_MESSAGE_LENGTH) {
-        QString&& m = msg.left(MAX_MESSAGE_LENGTH);
-        m.append("...");
-        mb.setText("<b>The message has been truncated because too long, look at the details for the full message</b>");
-        mb.setInformativeText(m);
-        mb.setDetailedText(msg);
-    } else {
-        mb.setText(msg);
-    }
-
-    mb.exec();
-}
-
-/**
- * This method permits to propagate and display messages from the messaging subsytem.
- *
- * It is important that the arguments are pass-by-copy because references will become invalid,
- * even if they are bound to consted temporaries, once the deleter from the other thread is called.
- *
- */
-void dbe::MainWindow::slot_notice_message ( QString const title, QString const msg )
-{
-    QMessageBox mb(this);
-    mb.setIcon(QMessageBox::Icon::Information);
-    mb.setWindowTitle(title);
-    mb.setStandardButtons(QMessageBox::Ok);
-    if(msg.length() > MAX_MESSAGE_LENGTH) {
-        QString&& m = msg.left(MAX_MESSAGE_LENGTH);
-        m.append("...");
-        mb.setText("<b>The message has been truncated because too long, look at the details for the full message</b>");
-        mb.setInformativeText(m);
-        mb.setDetailedText(msg);
-    } else {
-        mb.setText(msg);
-    }
-
-    mb.exec();
+    display_message_box(title, msg, QMessageBox::Icon::Information);
 }
 
 /**
@@ -1794,21 +1729,7 @@ void dbe::MainWindow::slot_notice_message ( QString const title, QString const m
  */
 void dbe::MainWindow::slot_error_message ( QString const title, QString const msg )
 {
-    QMessageBox mb(this);
-    mb.setIcon(QMessageBox::Icon::Critical);
-    mb.setWindowTitle(title);
-    mb.setStandardButtons(QMessageBox::Ok);
-    if(msg.length() > MAX_MESSAGE_LENGTH) {
-        QString&& m = msg.left(MAX_MESSAGE_LENGTH);
-        m.append("...");
-        mb.setText("<b>The message has been truncated because too long, look at the details for the full message</b>");
-        mb.setInformativeText(m);
-        mb.setDetailedText(msg);
-    } else {
-        mb.setText(msg);
-    }
-
-    mb.exec();
+    display_message_box(title, msg, QMessageBox::Icon::Critical);
 }
 
 /**
@@ -1820,21 +1741,7 @@ void dbe::MainWindow::slot_error_message ( QString const title, QString const ms
  */
 void dbe::MainWindow::slot_warning_message ( QString const title, QString const msg )
 {
-    QMessageBox mb(this);
-    mb.setIcon(QMessageBox::Icon::Warning);
-    mb.setWindowTitle(title);
-    mb.setStandardButtons(QMessageBox::Ok);
-    if(msg.length() > MAX_MESSAGE_LENGTH) {
-        QString&& m = msg.left(MAX_MESSAGE_LENGTH);
-        m.append("...");
-        mb.setText("<b>The message has been truncated because too long, look at the details for the full message</b>");
-        mb.setInformativeText(m);
-        mb.setDetailedText(msg);
-    } else {
-        mb.setText(msg);
-    }
-
-    mb.exec();
+    display_message_box(title, msg, QMessageBox::Icon::Warning);
 }
 
 //-----------------------------------------------------------------------------------------------------------------------------

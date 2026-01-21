@@ -27,14 +27,6 @@ namespace config
 namespace errors
 {
 
-namespace
-{
-inline std::string const trendl ( std::string s )
-{
-  s.erase ( std::remove ( s.begin(), s.end(), '\n' ), s.end() );
-  return s;
-}
-}
 
 /**
  * Unwind all causes linked to this exception
@@ -51,7 +43,7 @@ std::string const unwind ( ers::Issue const & exception )
 
     while ( cause != nullptr )
     {
-      s << trendl ( cause->what() ) << "\n";
+      s << cause->what() << "\n";
       cause = cause->cause();
     }
 
