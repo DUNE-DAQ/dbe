@@ -42,6 +42,18 @@ void FileInfo::setup_paths() {
       s_path_list.append(path);
     }
   }
+  auto dbpath = confaccessor::dbfullname();
+  dbpath.truncate(dbpath.lastIndexOf("/")+1);
+  if (!s_path_list.contains(dbpath)) {
+    s_path_urls.append(QUrl::fromLocalFile(dbpath));
+    s_path_list.append(dbpath);
+  }
+  char* rpath_cd = realpath(".", NULL);
+  auto path_cd = QString(rpath_cd);
+  free(rpath_cd);
+  if (!s_path_list.contains(path_cd)) {
+    s_path_urls.append(QUrl::fromLocalFile(path_cd));
+  }
 }
 
 QString FileInfo::prune_path(QString file) {
