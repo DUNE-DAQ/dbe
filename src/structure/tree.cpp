@@ -1,3 +1,4 @@
+#include "dbe/StyleUtility.hpp"
 #include "dbe/config_api.hpp"
 #include "dbe/confaccessor.hpp"
 #include "dbe/config_reference.hpp"
@@ -128,11 +129,36 @@ QVariant dbe::models::tree::data ( type_index const & index, int role ) const
 
           if ( confaccessor::check_file_rw ( QString::fromStdString ( obj.contained_in() ) ) )
           {
-            return QVariant ( QColor ( Qt::blue ) );
+            return QVariant ( StyleUtility::ObjectForeground );
           }
           else
           {
-            return QVariant ( QColor ( Qt::darkGray ) );
+            return QVariant ( StyleUtility::FileReadOnlyForeground );
+          }
+        }
+        catch ( daq::dbe::config_object_retrieval_result_is_null const & e )
+        {
+          // nothing to do the onode refers to a removed object and has not yet been removed
+          return QVariant();
+        }
+      }
+
+      break;
+
+    case Qt::BackgroundRole:
+      if ( ObjectNode * onode = dynamic_cast<ObjectNode *> ( getnode ( index ) ) )
+      {
+        try
+        {
+          tref const & obj = onode->GetObject();
+
+          if ( confaccessor::check_file_rw ( QString::fromStdString ( obj.contained_in() ) ) )
+          {
+            return QVariant ( StyleUtility::ObjectBackground );
+          }
+          else
+          {
+            return QVariant ( StyleUtility::FileReadOnlyBackground );
           }
         }
         catch ( daq::dbe::config_object_retrieval_result_is_null const & e )

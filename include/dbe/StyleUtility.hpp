@@ -25,6 +25,9 @@ public:
   static QColor FileReadOnlyForeground;
   static QColor FileReadOnlyBackground;
 
+  static QColor ObjectForeground;
+  static QColor ObjectBackground;
+
   static QPalette AlertStatusBarPallete;
   static QPalette AlertStatusBarPalleteWindow;
   static QPalette WarningStatusBarPallete;

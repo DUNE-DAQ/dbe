@@ -10,6 +10,9 @@ QColor dbe::StyleUtility::FileReadOnlyBackground;
 QColor dbe::StyleUtility::TableColorRelationship;
 QColor dbe::StyleUtility::TableRelationshipBackground;
 
+QColor dbe::StyleUtility::ObjectForeground;
+QColor dbe::StyleUtility::ObjectBackground;
+
 QColor dbe::StyleUtility::DefaultValueBackground;
 
 QPalette dbe::StyleUtility::AlertStatusBarPallete;
@@ -61,6 +64,17 @@ void dbe::StyleUtility::InitColorManagement()
   }
   FileReadOnlyForeground = settings.value("foreground").value<QColor>();
   FileReadOnlyBackground = settings.value("background").value<QColor>();
+  settings.endGroup();
+
+  settings.beginGroup("object");
+  if (!settings.contains("foreground")) {
+    settings.setValue("foreground", QColor(Qt::blue));
+  }
+  if (!settings.contains("background")) {
+    settings.setValue("background", QColor(Qt::white));
+  }
+  ObjectForeground =  settings.value("foreground").value<QColor>();
+  ObjectBackground =  settings.value("background").value<QColor>();
   settings.endGroup();
 
 

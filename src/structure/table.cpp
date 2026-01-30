@@ -94,6 +94,11 @@ QVariant dbe::models::table::data ( const QModelIndex & index, int role ) const
                  StyleUtility::TableColorRelationship );
       else
       {
+        dref obj_desc = this_objects[index.row()];
+        tref Object = dbe::inner::dbcontroller::get ( { obj_desc.UID(), obj_desc.class_name() } );
+        if ( !confaccessor::check_file_rw ( QString::fromStdString ( Object.contained_in() ) ) ) {
+          return QBrush ( StyleUtility::FileReadOnlyForeground );
+        }
         return QVariant();
       }
     }
@@ -112,6 +117,14 @@ QVariant dbe::models::table::data ( const QModelIndex & index, int role ) const
       else if ( dynamic_cast<TableRelationshipNode *> ( TableItem ) ) {
         return QBrush (
                  StyleUtility::TableRelationshipBackground );
+      }
+      else
+      {
+        dref obj_desc = this_objects[index.row()];
+        tref Object = dbe::inner::dbcontroller::get ( { obj_desc.UID(), obj_desc.class_name() } );
+        if ( !confaccessor::check_file_rw ( QString::fromStdString ( Object.contained_in() ) ) ) {
+          return QBrush ( StyleUtility::FileReadOnlyBackground );
+        }
       }
     }
   }
