@@ -4,6 +4,7 @@
 /// Including DBE
 #include <QColor>
 #include <QPalette>
+#include <QSettings>
 
 namespace dbe
 {
@@ -15,8 +16,11 @@ public:
   static void InitColorManagement();
   static QColor TableColorAttribute;
   static QColor TableAttributeBackground;
-  static QColor TableAttributeHighlightBackground;
+
   static QColor TableColorRelationship;
+  static QColor TableRelationshipBackground;
+
+  static QColor DefaultValueBackground;
 
   static QColor FileReadOnlyForeground;
   static QColor FileReadOnlyBackground;

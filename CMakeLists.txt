@@ -161,6 +161,7 @@ set(dbe_core_ui
                     ui/RelationshipWidgetForm.ui
                     ui/StringAttributeWidgetForm.ui
                     ui/FileInfo.ui
+                    ui/Preferences.ui
                     )
                     
 qt5_wrap_ui(dbe_core_ui_header ${dbe_core_ui})
@@ -182,12 +183,14 @@ qt5_wrap_cpp(dbe_core_moc_src
                     include/dbe/ObjectCreator.hpp
                     include/dbe/ObjectEditor.hpp
                     include/dbe/OracleWidget.hpp
+                    include/dbe/Preferences.hpp
 )
 
 set(dbe_core_src
                     internal/MainWindow.cpp
                     internal/StyleUtility.cpp
                     internal/Validator.cpp
+                    internal/Preferences.cpp
                     object/CustomLineEdit.cpp
                     object/string_attr_text_edit.cpp
                     object/SearchComboBox.cpp

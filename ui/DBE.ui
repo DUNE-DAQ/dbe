@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>909</width>
+    <width>1249</width>
     <height>848</height>
    </rect>
   </property>
@@ -112,7 +112,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>909</width>
+     <width>1249</width>
      <height>23</height>
     </rect>
    </property>
@@ -132,6 +132,8 @@
     </property>
     <addaction name="BatchChange"/>
     <addaction name="BatchChangeTable"/>
+    <addaction name="separator"/>
+    <addaction name="actionPreferences"/>
     <addaction name="separator"/>
     <addaction name="Commit"/>
     <addaction name="separator"/>
@@ -600,7 +602,7 @@ Sensitive</string>
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Messages</string>
+    <string>Info Tabs</string>
    </property>
   </action>
   <action name="DisplayToolbar">
@@ -706,6 +708,11 @@ Sensitive</string>
   <action name="information_about_dbe">
    <property name="text">
     <string>About</string>
+   </property>
+  </action>
+  <action name="actionPreferences">
+   <property name="text">
+    <string>Preferences</string>
    </property>
   </action>
  </widget>

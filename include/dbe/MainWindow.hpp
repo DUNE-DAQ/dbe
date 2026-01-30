@@ -4,6 +4,7 @@
 /// Including QT Headers
 #include <QMap>
 #include <QSet>
+#include <QSettings>
 #include <QString>
 #include <QMessageBox>
 #include <QMainWindow>
@@ -97,7 +98,7 @@ private:
 public:
   void build_file_model();
 private:
-  void load_settings ( bool LoadSettings = false );
+  void apply_settings (QSettings& setting);
 
   void WriteSettings();
   void argsparse ( QMap<QString, QString> const & );
@@ -110,6 +111,7 @@ private:
   void update_total_objects();
   void display_message_box(const QString& title, const QString& msg,
                            const QMessageBox::Icon& icon);
+  void load_default_settings();
 private slots:
   void slot_create_newdb();
   void slot_open_database_from_file();
@@ -134,7 +136,7 @@ private slots:
   void slot_launch_batchchange();
   void slot_launch_batchchange_on_table();
 
-  void LoadDefaultSetting();
+  void reload_default_settings();
 
   void slot_filter_query();
   void slot_filter_textchange ( const QString & );
@@ -162,6 +164,7 @@ private slots:
 
   void slot_loaded_db_file ( QString );
 
+  void slot_launch_preferences();
 public slots:
   void slot_batch_change_start();
   void slot_batch_change_stop(const QList<QPair<QString, QString>>&);

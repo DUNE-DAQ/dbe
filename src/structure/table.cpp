@@ -105,15 +105,16 @@ QVariant dbe::models::table::data ( const QModelIndex & index, int role ) const
         auto val = attr_node->GetData();
         if (val.size() == 1 &&
             val[0].toStdString() == attr_node->GetAttribute().p_default_value) {
-          return QBrush (
-            StyleUtility::TableAttributeHighlightBackground );
+          return QBrush (StyleUtility::DefaultValueBackground );
         }
+        return QBrush (StyleUtility::TableAttributeBackground );
       }
-      return QBrush (
-        StyleUtility::TableAttributeBackground );
+      else if ( dynamic_cast<TableRelationshipNode *> ( TableItem ) ) {
+        return QBrush (
+                 StyleUtility::TableRelationshipBackground );
+      }
     }
   }
-
   return QVariant();
 }
 
