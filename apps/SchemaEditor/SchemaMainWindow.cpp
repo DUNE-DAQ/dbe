@@ -339,7 +339,92 @@ void dbse::SchemaMainWindow::SetSchemaFileActive()
   BuildFileModel();
 }
 
+bool dbse::SchemaMainWindow::check_schema_file(QString qfilename){
+  std::string filename = qfilename.toStdString();
+  std::set<std::string> includes;
+  KernelWrapper::GetInstance().get_all_includes(filename, includes);
+
+  QString advice{"<br><br>Use the File info window to fix the problem."};
+  for (auto cls: KernelWrapper::GetInstance().get_schema_classes(filename)) {
+    auto relationships = cls->direct_relationships();
+    if (relationships != nullptr) {
+      for (auto rel: *relationships) {
+        auto rel_class = rel->get_class_type();
+        if (rel_class == nullptr) {
+          QString warning = "<b>Warning</b> class <i>"
+            + QString::fromStdString(cls->get_name())
+            + "</i> has relationship "
+            + QString::fromStdString(rel->get_name())
+            + " referring to class <i>"
+            + QString::fromStdString(rel->get_type())
+            + "</i> which is not loaded<br>";
+          QMessageBox::warning(0,
+                               "Check Schema",
+                               warning+advice,
+                               QMessageBox::Ok);
+          show_file_info(qfilename);
+          return false;
+        }
+        auto file = rel_class->get_file()->get_full_file_name();
+        if (file != filename && !includes.contains(file)) {
+          QString warning = "<b>Warning</b> class <i>"
+            + QString::fromStdString(cls->get_name())
+            + "</i> has relationship "
+            + QString::fromStdString(rel->get_name())
+            + " referring to class <i>"
+            + QString::fromStdString(rel->get_class_type()->get_name())
+            + "</i> from " + QString::fromStdString(file)
+            + " which is not included by " + qfilename;
+          QMessageBox::warning(0,
+                               "Check Schema",
+                               warning+advice,
+                               QMessageBox::Ok);
+          show_file_info(qfilename);
+          return false;
+        }
+      }
+    }
+
+    auto super_classes = cls->direct_super_classes();
+    if (super_classes != nullptr) {
+      for (auto sc: *super_classes) {
+        auto sclass = KernelWrapper::GetInstance().FindClass(*sc);
+        if (sclass == nullptr) {
+          QString warning = "<b>Warning</b> class <i>"
+            + QString::fromStdString(cls->get_name())
+            + "</i> refers to super class <i>" + QString::fromStdString(*sc)
+            + "</i> which is not known<br>";
+          QMessageBox::warning(0,
+                               "Check Schema",
+                               warning+advice,
+                               QMessageBox::Ok);
+          show_file_info(qfilename);
+          return false;
+        }
+        auto file = sclass->get_file()->get_full_file_name();
+        if (file != filename && !includes.contains(file)) {
+          QString warning = "<b>Warning</b> class <i>"
+            + QString::fromStdString(cls->get_name())
+            + "</i> refers to super class <i>" + QString::fromStdString(*sc)
+            + "</i> from " + QString::fromStdString(file)
+            + " which is not included by" + qfilename;
+          QMessageBox::warning(0,
+                               "Check Schema",
+                               warning+advice,
+                               QMessageBox::Ok);
+          show_file_info(qfilename);
+          return false;
+        }
+      }
+    }
+  }
+  return true;
+}
+
 bool dbse::SchemaMainWindow::save_schema_file(QString filename){
+  if (!check_schema_file(filename)) {
+    return false;
+  }
   bool status;
   QString message;
   try {
@@ -417,7 +502,10 @@ void dbse::SchemaMainWindow::closeEvent ( QCloseEvent * event )
 
   if ( UserChoice == QMessageBox::Save )
   {
-    SaveModifiedSchema();
+    if (!SaveModifiedSchema()) {
+      event->ignore();
+      return;
+    }
   }
   else if ( UserChoice == QMessageBox::Cancel )
   {
@@ -448,9 +536,10 @@ void dbse::SchemaMainWindow::update_models() {
 }
 
 void dbse::SchemaMainWindow::OpenSchemaFile(QString SchemaFile) {
+  OksFile* file{nullptr};
   if(!SchemaFile.isEmpty()) {
     try {
-      KernelWrapper::GetInstance().LoadSchema(SchemaFile.toStdString());
+      file = KernelWrapper::GetInstance().LoadSchema(SchemaFile.toStdString());
 
       if (m_schema_directory == QString(".")) {
         std::vector<std::string> fnames; 
@@ -488,6 +577,9 @@ void dbse::SchemaMainWindow::OpenSchemaFile(QString SchemaFile) {
     update_window_title(QFileInfo(SchemaFile).fileName());
     //ui->CreateNewSchema->setDisabled (true );
     //ui->OpenFileSchema->setDisabled (true );
+    if (file != nullptr) {
+      check_schema_file(QString::fromStdString(file->get_full_file_name()));
+    }
   }
 }
 
@@ -521,12 +613,17 @@ void dbse::SchemaMainWindow::OpenSchemaFile()
 
   OpenSchemaFile(SchemaPath);
 }
-void dbse::SchemaMainWindow::SaveModifiedSchema()
+
+bool dbse::SchemaMainWindow::SaveModifiedSchema()
 {
+  bool result = true;
   for (auto file: KernelWrapper::GetInstance().get_modified_schema_files()) {
-    save_schema_file(QString::fromStdString(file));
+    if (!save_schema_file(QString::fromStdString(file))) {
+      result = false;
+    }
   }
   BuildFileModel();
+  return result;
 }
 
 void dbse::SchemaMainWindow::SaveSchema()

@@ -16,6 +16,7 @@ namespace dunedaq {
   namespace oks {
     class OksKernel;
     class OksClass;
+    class OksFile;
   }
 }
 
@@ -52,7 +53,7 @@ public:
   bool is_file_modified ( const std::string & FileName ) const;
   bool IsActive() const;
   dunedaq::oks::OksClass * FindClass ( std::string ClassName ) const;
-  void LoadSchema ( const std::string & SchemaName ) const;
+  dunedaq::oks::OksFile* LoadSchema ( const std::string & SchemaName ) const;
   void SaveAllSchema() const;
   void SaveSchema ( const std::string& file ) const;
   std::vector<std::string> get_modified_schema_files() const;

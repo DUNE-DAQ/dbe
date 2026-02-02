@@ -104,9 +104,11 @@ void SchemaFileInfo::get_includes() {
   KernelWrapper::GetInstance().get_direct_includes(m_filename, direct_includes);
 
   for (auto inc: m_all_includes) {
-    auto item = new QListWidgetItem(QString::fromStdString(inc));
+    auto file = prune_path(inc);
+    auto item = new QListWidgetItem(QString::fromStdString(file));
+    item->setToolTip(QString::fromStdString(inc));
     m_ui->include_list->addItem(item);
-    if (!direct_includes.contains(prune_path(inc))) {
+    if (!direct_includes.contains(file)) {
       item->setForeground(QBrush(SchemaStyle::get_color("foreground", "inherited")));
     }
     else if (!KernelWrapper::GetInstance().IsFileWritable (inc)) {
@@ -356,7 +358,12 @@ void SchemaFileInfo::show_status() {
   }
   if (KernelWrapper::GetInstance().is_file_modified ( m_filename )) {
     status.append("  Modified");
-    m_ui->save_button->setEnabled(true);
+    if (m_missing_includes.empty()) {
+      m_ui->save_button->setEnabled(true);
+    }
+    else {
+      m_ui->save_button->setEnabled(false);
+    }
   }
   else {
     m_ui->save_button->setEnabled(false);
