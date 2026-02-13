@@ -33,6 +33,7 @@ namespace dbe
     static QList<QUrl> get_path_urls();
     static QStringList get_path_list();
     static QString prune_path(QString file);
+    static bool match_path(QString& file, QStringList& includes);
     static void parse_all_objects();
     static QString check_file_includes(const QString& file);
 

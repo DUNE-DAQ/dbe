@@ -50,11 +50,32 @@ QString FileInfo::prune_path(QString file) {
   }
   for (const QString& element : s_path_list) {
     if (file.startsWith(element)) {
-      file = file.remove(element);
+      file.remove(element);
       break;
     }
   }
   return file;
+}
+
+bool FileInfo::match_path(QString& file, QStringList& includes) {
+  if (s_path_list.isEmpty()) {
+    setup_paths();
+  }
+
+  QStringList candidates{file};
+  // element is a copy here, not a reference
+  for (const QString element : s_path_list) {
+    if (file.startsWith(element)) {
+      candidates.append(file.remove(element));
+    }
+  }
+
+  for (auto cand : candidates) {
+    if (includes.contains(cand)) {
+      return true;
+    }
+  }
+  return false;
 }
 
 QList<QUrl>  FileInfo::get_path_urls(){
@@ -96,7 +117,7 @@ QString FileInfo::check_file_includes(const QString& filename) {
         dbe::config::api::info::onclass::definition (obj.class_name(), false);
 
       auto schema_file = QString::fromStdString(classdef.p_schema_path);
-      if (!includes.contains(prune_path(schema_file))) {
+      if (!match_path(schema_file, includes)) {
         message += QString("Object <i>" + id + "</i> is of class <i>"
                            + QString::fromStdString(obj.class_name())
                            + "</i> defined in file <b>" + schema_file
@@ -116,10 +137,10 @@ QString FileInfo::check_file_includes(const QString& filename) {
           relobjs = dbegraph::linked::through::relation<std::vector<tref>> (obj, rel);
         }
 
+        includes.append(prune_path(filename));
         for (auto relobj : relobjs) {
           auto file = QString::fromStdString(relobj.contained_in());
-          file = prune_path(file);
-          if (!(prune_path(filename)==file || includes.contains(file))) {
+          if (!(match_path(file, includes))) {
             message += QString("Object <i>" + id + "</i> has relationship to <i>"
                                + QString::fromStdString(relobj.full_name())
                                + "</i> in file <b>" + file
