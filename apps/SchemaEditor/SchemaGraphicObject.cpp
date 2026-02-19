@@ -521,6 +521,7 @@ void dbse::SchemaGraphicObject::set_font()
     m_font.setStyle(SchemaStyle::get_font("abstract").style());
   }
 }
+
 void dbse::SchemaGraphicObject::toggle_highlight_class()
 {
   m_highlight_class = !m_highlight_class;

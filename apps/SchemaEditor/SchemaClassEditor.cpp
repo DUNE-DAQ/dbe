@@ -666,15 +666,11 @@ void dbse::SchemaClassEditor::BuildSuperClassModelSlot()
   QStringList SuperClassHeaders
   { "Class Name" };
 
-  if ( SuperClassModel == nullptr )
-  {
-    SuperClassModel = new CustomSuperClassModel ( SchemaClass, SuperClassHeaders, ui->ShowAllSuperClasses->isChecked() );
-  }
-  else
+  if ( SuperClassModel != nullptr )
   {
     delete SuperClassModel;
-    SuperClassModel = new CustomSuperClassModel ( SchemaClass, SuperClassHeaders, ui->ShowAllSuperClasses->isChecked() );
   }
+  SuperClassModel = new CustomSuperClassModel ( SchemaClass, SuperClassHeaders, ui->ShowAllSuperClasses->isChecked() );
 
   ui->SuperClassView->setModel ( SuperClassModel );
   ui->SuperClassView->horizontalHeader()->setSectionResizeMode ( QHeaderView::Stretch );
@@ -686,15 +682,11 @@ void dbse::SchemaClassEditor::BuildSubClassModelSlot()
   QStringList SubClassHeaders
   { "Class Name" };
 
-  if ( SubClassModel == nullptr )
-  {
-    SubClassModel = new CustomSubClassModel ( SchemaClass, SubClassHeaders );
-  }
-  else
+  if ( SubClassModel != nullptr )
   {
     delete SubClassModel;
-    SubClassModel = new CustomSubClassModel ( SchemaClass, SubClassHeaders );
   }
+  SubClassModel = new CustomSubClassModel ( SchemaClass, SubClassHeaders );
 
   ui->SubClassView->setModel ( SubClassModel );
   ui->SubClassView->horizontalHeader()->setSectionResizeMode ( QHeaderView::Stretch );
@@ -813,6 +805,15 @@ void dbse::SchemaClassEditor::CustomMenuMethodView ( QPoint pos )
   if ( Index.isValid() )
   {
     CurrentRow = MethodModel->getRowFromIndex ( Index );
+    const std::string& methodName = CurrentRow.at ( 0 ).toStdString();
+    OksMethod * SchemaMethod = SchemaClass->find_direct_method ( methodName );
+    if(SchemaMethod == nullptr) {
+      // Can't remove inherited method
+      ContextMenuMethod->actions().at ( 1 )->setVisible ( false );
+    }
+    else {
+      ContextMenuMethod->actions().at ( 1 )->setVisible ( true );
+    }
     ContextMenuMethod->exec ( ui->MethodsView->mapToGlobal ( pos ) );
   }
 }

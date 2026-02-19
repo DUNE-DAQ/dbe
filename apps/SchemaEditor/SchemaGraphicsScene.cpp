@@ -49,22 +49,31 @@ void dbse::SchemaGraphicsScene::CreateActions()
 
   // Toggle inherited properties of all classes in view
   m_toggle_indirect_infos = new QAction ( "Toggle &inherited properties", this );
+  m_toggle_indirect_infos->setCheckable(true);
+  m_toggle_indirect_infos->setChecked(false);
   connect ( m_toggle_indirect_infos, SIGNAL ( triggered() ), this, SLOT ( ToggleIndirectInfos() ) );
 
   // Toggle highlighting of all classes in active schema
   m_toggle_highlight_active = new QAction ( "Toggle &highlighting of classes in active schema", this );
+  m_toggle_highlight_active->setCheckable(true);
+  m_toggle_highlight_active->setChecked(false);
   connect ( m_toggle_highlight_active, SIGNAL ( triggered() ), this, SLOT ( ToggleHighlightActive() ) );
 
   // Toggle highlighting of all abstract classes in view
   m_toggle_highlight_abstract = new QAction ( "Toggle &highlighting of abstract classes in view", this );
+  m_toggle_highlight_abstract->setCheckable(true);
+  m_toggle_highlight_abstract->setChecked(false);
   connect ( m_toggle_highlight_abstract, SIGNAL ( triggered() ), this, SLOT ( ToggleHighlightAbstract() ) );
 
   // Toggle displaying default values of attributes
   m_toggle_default = new QAction ( "Toggle showing of &default values of attributes", this );
+  m_toggle_default->setCheckable(true);
+  m_toggle_default->setChecked(false);
   connect ( m_toggle_default, SIGNAL ( triggered() ), this, SLOT ( ToggleDefault() ) );
 
   // Toggle highlighting of current class
   m_toggle_highlight_class = new QAction ( "Toggle &highlighting of this class", this );
+  m_toggle_highlight_class->setCheckable(true);
   connect ( m_toggle_highlight_class, SIGNAL ( triggered() ), this, SLOT ( ToggleHighlightClass() ) );
 
   m_add_note = new QAction ( "&Add note to view", this );
@@ -207,6 +216,8 @@ void dbse::SchemaGraphicsScene::contextMenuEvent ( QGraphicsSceneContextMenuEven
 
     if ( object != nullptr) {
       CurrentObject = object;
+      m_toggle_highlight_class->setChecked(CurrentObject->highlighted());
+
       auto filename =
         CurrentObject->GetClass()->get_file()->get_full_file_name();
       bool writable = KernelWrapper::GetInstance().IsFileWritable ( filename );
@@ -215,6 +226,9 @@ void dbse::SchemaGraphicsScene::contextMenuEvent ( QGraphicsSceneContextMenuEven
       for (int item=m_class_pos+1; item<m_arrow_pos; item++) {
         m_context_menu->actions().at ( item )->setVisible ( true );
       }
+
+
+
     }
     else if ( arrow != nullptr ) {
       m_context_menu->actions().at ( m_arrow_pos )->setVisible ( true );

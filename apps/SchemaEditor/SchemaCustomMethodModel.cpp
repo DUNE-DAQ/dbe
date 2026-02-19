@@ -15,7 +15,10 @@ void dbse::CustomMethodModel::setupModel()
 {
   Data.clear();
   const std::list<OksMethod *> * MethodList;
-
+  std::set<std::string> direct_methods;
+  for (auto method : *SchemaClass->direct_methods()) {
+    direct_methods.insert(method->get_name());
+  }
   if ( SchemaDerived )
   {
     MethodList = SchemaClass->all_methods();
@@ -29,9 +32,16 @@ void dbse::CustomMethodModel::setupModel()
   {
     for ( OksMethod * Method : *MethodList )
     {
-      QStringList Row;
-      Row.append ( QString::fromStdString ( Method->get_name() ) );
-      Data.append ( Row );
+      QStringList row;
+      auto name = Method->get_name();
+      row.append ( QString::fromStdString ( name ) );
+      if (direct_methods.contains(name)) {
+        row.append("D");
+      }
+      else {
+        row.append("I");
+      }
+      Data.append ( row );
     }
   }
 }
