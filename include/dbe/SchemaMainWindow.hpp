@@ -43,6 +43,8 @@ private:
   QString m_view_dir{"."};
   QString m_export_path{"."};
   QDir m_schema_directory{"."};
+  QList<QUrl> m_path_urls;
+
   void InitialSettings();
   void InitialTab();
   void InitialTabCorner();

@@ -70,6 +70,16 @@ void dbse::SchemaMainWindow::InitialSettings()
                                           QVariant ( QString ( "Search for classes regex" ) ) );
   ui->ClassTableSearchLine->setClearButtonEnabled(true);
   m_proxyModel->setFilterCaseSensitivity (Qt::CaseInsensitive);
+
+  QString DUNEDAQ_DB_PATH = getenv ( "DUNEDAQ_DB_PATH" );
+  auto path_list = DUNEDAQ_DB_PATH.split (QLatin1Char(':'), Qt::SkipEmptyParts );
+  for ( QString & path : path_list ) {
+    if ( !path.endsWith ( "/" ) ) {
+      path.append ( "/" );
+    }
+    m_path_urls.append(QUrl::fromLocalFile(path));
+  }
+
 }
 
 void dbse::SchemaMainWindow::InitialTab()
@@ -591,12 +601,13 @@ void dbse:: SchemaMainWindow::update_window_title(QString text) {
 
 void dbse::SchemaMainWindow::OpenSchemaFile()
 {
-  QFileDialog FileDialog ( this, tr ( "Open File" ), ".",
+  QFileDialog FileDialog ( this, tr ( "Open Schema File" ), ".",
                            tr ( "XML schema files (*.schema.xml);;All files (*)" ) );
   FileDialog.setAcceptMode ( QFileDialog::AcceptOpen );
   FileDialog.setFileMode ( QFileDialog::AnyFile );
   FileDialog.setViewMode ( QFileDialog::Detail );
   FileDialog.setDirectory ( m_schema_directory );
+  FileDialog.setSidebarUrls(m_path_urls);
   QStringList FilesSelected;
   QString SchemaPath;
 
@@ -643,17 +654,29 @@ void dbse::SchemaMainWindow::SaveSchema()
 
 void dbse::SchemaMainWindow::CreateNewSchema()
 {
-  QString FileName = QFileDialog::getSaveFileName (
-    this, tr ( "New schema File" ), ".",
+  QFileDialog FileDialog (
+    this, tr ( "Create New schema File" ), ".",
     tr ( "XML schema files (*.schema.xml);;All files (*)" ) );
+  FileDialog.setAcceptMode ( QFileDialog::AcceptSave );
+  FileDialog.setFileMode ( QFileDialog::AnyFile );
+  FileDialog.setViewMode ( QFileDialog::Detail );
+  FileDialog.setDirectory ( m_schema_directory );
+  FileDialog.setSidebarUrls(m_path_urls);
+  FileDialog.setLabelText(QFileDialog::Accept, "Create");
+  if ( !FileDialog.exec() )
+  {
+    return;
+  }
 
-  if ( FileName.isEmpty() )
+  QStringList FilesSelected = FileDialog.selectedFiles();
+  if ( FilesSelected.isEmpty() )
   {
     QMessageBox::warning ( 0, "Schema editor",
                            QString ( "Please provide a name for the schema !" ) );
     return;
   }
 
+  QString FileName = FilesSelected.at(0);
   if ( !FileName.endsWith ( ".schema.xml" ) )
   {
     FileName.append ( ".schema.xml" );
