@@ -1,7 +1,9 @@
 /// Including QT Headers
 #include <QGraphicsSceneDragDropEvent>
 #include <QEvent>
+#include <QSettings>
 #include <QMimeData>
+
 #include <QWidget>
 
 #include <QMenu>
@@ -24,13 +26,19 @@ dbse::SchemaGraphicsScene::SchemaGraphicsScene ( QObject * parent )
     m_context_menu ( nullptr ),
     CurrentObject ( nullptr ),
     m_current_arrow ( nullptr ),
-    m_inherited_properties_visible(false),
-    m_highlight_abstract(false),
-    m_highlight_active(false),
     m_modified(false)
 {
-  CreateActions();
   setSceneRect ( QRectF ( 0, 0, 10000, 10000 ) );
+
+  QSettings settings("dunedaq", "dbse");
+  settings.beginGroup("view defaults");
+
+  m_inherited_properties_visible = settings.value("show_inherited", false).toBool();
+  m_highlight_abstract = settings.value("highlight_abstract", false).toBool();
+  m_highlight_active = settings.value("highlight_active", false).toBool();
+  m_show_defaults = settings.value("show_default", false).toBool();
+
+  CreateActions();
 }
 
 dbse::SchemaGraphicsScene::~SchemaGraphicsScene()
@@ -50,25 +58,25 @@ void dbse::SchemaGraphicsScene::CreateActions()
   // Toggle inherited properties of all classes in view
   m_toggle_indirect_infos = new QAction ( "Toggle &inherited properties", this );
   m_toggle_indirect_infos->setCheckable(true);
-  m_toggle_indirect_infos->setChecked(false);
+  m_toggle_indirect_infos->setChecked(m_inherited_properties_visible);
   connect ( m_toggle_indirect_infos, SIGNAL ( triggered() ), this, SLOT ( ToggleIndirectInfos() ) );
 
   // Toggle highlighting of all classes in active schema
   m_toggle_highlight_active = new QAction ( "Toggle &highlighting of classes in active schema", this );
   m_toggle_highlight_active->setCheckable(true);
-  m_toggle_highlight_active->setChecked(false);
+  m_toggle_highlight_active->setChecked(m_highlight_active);
   connect ( m_toggle_highlight_active, SIGNAL ( triggered() ), this, SLOT ( ToggleHighlightActive() ) );
 
   // Toggle highlighting of all abstract classes in view
   m_toggle_highlight_abstract = new QAction ( "Toggle &highlighting of abstract classes in view", this );
   m_toggle_highlight_abstract->setCheckable(true);
-  m_toggle_highlight_abstract->setChecked(false);
+  m_toggle_highlight_abstract->setChecked(m_highlight_abstract);
   connect ( m_toggle_highlight_abstract, SIGNAL ( triggered() ), this, SLOT ( ToggleHighlightAbstract() ) );
 
   // Toggle displaying default values of attributes
   m_toggle_default = new QAction ( "Toggle showing of &default values of attributes", this );
   m_toggle_default->setCheckable(true);
-  m_toggle_default->setChecked(false);
+  m_toggle_default->setChecked(m_show_defaults);
   connect ( m_toggle_default, SIGNAL ( triggered() ), this, SLOT ( ToggleDefault() ) );
 
   // Toggle highlighting of current class

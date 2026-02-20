@@ -1,3 +1,4 @@
+#include <QSettings>
 #include <QStringList>
 
 #include "dbe/SchemaSettings.hpp"
@@ -30,7 +31,43 @@ SchemaSettings::SchemaSettings(QWidget* parent)
   connect (m_ui->font_list, SIGNAL(itemActivated(QListWidgetItem*)),
            this, SLOT(set_font(QListWidgetItem*)));
 
+  QSettings settings("dunedaq", "dbse");
+  settings.beginGroup("view defaults");
+  m_ui->abstract_button->setChecked(settings.value("highlight_abstract", false).toBool());
+  connect (m_ui->abstract_button, SIGNAL(stateChanged(int)),
+           this, SLOT(toggle_abstract(int)));
+  m_ui->active_button->setChecked(settings.value("highlight_active", false).toBool());
+  connect (m_ui->active_button, SIGNAL(stateChanged(int)),
+           this, SLOT(toggle_active(int)));
+  m_ui->inherited_button->setChecked(settings.value("show_inherited", false).toBool());
+  connect (m_ui->inherited_button, SIGNAL(stateChanged(int)),
+           this, SLOT(toggle_inherited(int)));
+  m_ui->default_value_button->setChecked(settings.value("show_default", false).toBool());
+  connect (m_ui->default_value_button, SIGNAL(stateChanged(int)),
+           this, SLOT(toggle_default(int)));
 }
+
+void SchemaSettings::toggle_abstract(int state) {
+  QSettings settings("dunedaq", "dbse");
+  settings.beginGroup("view defaults");
+  settings.setValue("highlight_abstract", (state>0));
+}
+void SchemaSettings::toggle_active(int state) {
+  QSettings settings("dunedaq", "dbse");
+  settings.beginGroup("view defaults");
+  settings.setValue("highlight_active", (state>0));
+}
+void SchemaSettings::toggle_inherited(int state) {
+  QSettings settings("dunedaq", "dbse");
+  settings.beginGroup("view defaults");
+  settings.setValue("show_inherited", (state>0));
+}
+void SchemaSettings::toggle_default(int state) {
+  QSettings settings("dunedaq", "dbse");
+  settings.beginGroup("view defaults");
+  settings.setValue("show_default", (state>0));
+}
+
 
 void SchemaSettings::set_color(QListWidgetItem* item) {
   QStringList text = item->text().toLower().split(" ");
