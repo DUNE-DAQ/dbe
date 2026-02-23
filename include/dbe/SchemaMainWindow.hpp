@@ -44,6 +44,10 @@ private:
   QString m_export_path{"."};
   QDir m_schema_directory{"."};
   QList<QUrl> m_path_urls;
+  bool m_save_layout_on_exit;
+  QByteArray m_default_state;
+  QByteArray m_default_geometry;
+  QSize m_default_size;
 
   void InitialSettings();
   void InitialTab();
@@ -97,6 +101,9 @@ private slots:
   void export_current_view();
   void toggle_case_sensitive ( int );
   void update_view();
+  void save_layout();
+  void restore_layout();
+  void default_layout();
 };
 
 }  // namespace dbse

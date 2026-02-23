@@ -62,9 +62,12 @@
    </widget>
    <widget class="QMenu" name="menuEdit">
     <property name="title">
-     <string>Edit</string>
+     <string>Settings</string>
     </property>
     <addaction name="actionSettings"/>
+    <addaction name="actionSave_layout"/>
+    <addaction name="actionRestore_layout"/>
+    <addaction name="actionDefault_layout"/>
    </widget>
    <addaction name="MenuFile"/>
    <addaction name="menuEdit"/>
@@ -196,7 +199,7 @@ sensitive</string>
   </widget>
   <action name="OpenFileSchema">
    <property name="text">
-    <string>Open Schema</string>
+    <string>&amp;Open Schema</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+O</string>
@@ -208,7 +211,7 @@ sensitive</string>
      <normaloff>:/icons/commit.xpm</normaloff>:/icons/commit.xpm</iconset>
    </property>
    <property name="text">
-    <string>Save Schema</string>
+    <string>&amp;Save Schema</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+S</string>
@@ -232,7 +235,7 @@ sensitive</string>
      <normaloff>:/icons/CreateDatabase.png</normaloff>:/icons/CreateDatabase.png</iconset>
    </property>
    <property name="text">
-    <string>Create New Schema</string>
+    <string>&amp;Create New Schema</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+N</string>
@@ -244,7 +247,7 @@ sensitive</string>
      <normaloff>:/icons/CreateDatabase.png</normaloff>:/icons/CreateDatabase.png</iconset>
    </property>
    <property name="text">
-    <string>Show schema file</string>
+    <string>Show schema &amp;file</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+I</string>
@@ -292,12 +295,12 @@ sensitive</string>
      <normaloff>:/icons/save.xpm</normaloff>:/icons/save.xpm</iconset>
    </property>
    <property name="text">
-    <string>Save View</string>
+    <string>&amp;Save View</string>
    </property>
   </action>
   <action name="LoadView">
    <property name="text">
-    <string>Load View</string>
+    <string>&amp;Load View</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+V</string>
@@ -329,12 +332,12 @@ sensitive</string>
     <iconset theme="document-save-as"/>
    </property>
    <property name="text">
-    <string>Save View As</string>
+    <string>Save View &amp;As</string>
    </property>
   </action>
   <action name="exportView">
    <property name="text">
-    <string>Export View</string>
+    <string>&amp;Export View</string>
    </property>
   </action>
   <action name="close_tab">
@@ -351,7 +354,22 @@ sensitive</string>
   </action>
   <action name="actionSettings">
    <property name="text">
-    <string>Preferences</string>
+    <string>&amp;Preferences</string>
+   </property>
+  </action>
+  <action name="actionSave_layout">
+   <property name="text">
+    <string>&amp;Save layout</string>
+   </property>
+  </action>
+  <action name="actionRestore_layout">
+   <property name="text">
+    <string>&amp;Restore layout</string>
+   </property>
+  </action>
+  <action name="actionDefault_layout">
+   <property name="text">
+    <string>Restore &amp;Default layout</string>
    </property>
   </action>
  </widget>

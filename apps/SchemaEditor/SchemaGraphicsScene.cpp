@@ -30,7 +30,7 @@ dbse::SchemaGraphicsScene::SchemaGraphicsScene ( QObject * parent )
 {
   setSceneRect ( QRectF ( 0, 0, 10000, 10000 ) );
 
-  QSettings settings("dunedaq", "dbse");
+  QSettings settings;
   settings.beginGroup("view defaults");
 
   m_inherited_properties_visible = settings.value("show_inherited", false).toBool();

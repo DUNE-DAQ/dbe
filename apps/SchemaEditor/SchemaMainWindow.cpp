@@ -23,6 +23,7 @@
 #include <QCloseEvent>
 #include <QPrinter>
 #include <QPrintDialog>
+#include <QSettings>
 #include <QSvgGenerator>
 
 //#include <format>
@@ -41,6 +42,11 @@ dbse::SchemaMainWindow::SchemaMainWindow ( QString SchemaFile, QWidget * parent 
     ContextMenuFileView ( nullptr ),
     ContextMenuTableView ( nullptr )
 {
+  m_default_state = saveState();
+  m_default_geometry = saveGeometry();
+  m_default_size = QSize(1400, 880);
+  QCoreApplication::setOrganizationName("dunedaq");
+  QCoreApplication::setApplicationName("dbse");
   SchemaStyle::load();
 
   InitialSettings();
@@ -79,8 +85,9 @@ void dbse::SchemaMainWindow::InitialSettings()
     }
     m_path_urls.append(QUrl::fromLocalFile(path));
   }
-
+  restore_layout();
 }
+
 
 void dbse::SchemaMainWindow::InitialTab()
 {
@@ -101,6 +108,9 @@ void dbse::SchemaMainWindow::SetController()
   connect ( ui->CreateNewSchema, SIGNAL ( triggered() ), this, SLOT ( CreateNewSchema() ) );
   connect ( ui->ShowSchema, SIGNAL ( triggered() ), this, SLOT ( show_file_info_active_schema() ) );
   connect ( ui->SaveSchema, SIGNAL ( triggered() ), this, SLOT ( SaveSchema() ) );
+  connect ( ui->actionSave_layout, SIGNAL ( triggered() ), this, SLOT ( save_layout() ) );
+  connect ( ui->actionRestore_layout, SIGNAL ( triggered() ), this, SLOT ( restore_layout() ) );
+  connect ( ui->actionDefault_layout, SIGNAL ( triggered() ), this, SLOT ( default_layout() ) );
   connect ( ui->SetRelationship, SIGNAL ( triggered ( bool ) ), this,
             SLOT ( ChangeCursorRelationship ( bool ) ) );
   connect ( ui->SetInheritance, SIGNAL ( triggered ( bool ) ), this,
@@ -531,6 +541,10 @@ void dbse::SchemaMainWindow::closeEvent ( QCloseEvent * event )
   }
 
   KernelWrapper::GetInstance().CloseAllSchema();
+
+  if (m_save_layout_on_exit) {
+    save_layout();
+  }
 
   for ( QWidget * Widget : QApplication::allWidgets() )
   {
@@ -1064,4 +1078,42 @@ void dbse::SchemaMainWindow::edit_settings() {
     connect(m_settings, SIGNAL(settings_updated()), this, SLOT(update_view()));
   }
   m_settings->show();
+}
+
+void dbse::SchemaMainWindow::save_layout() {
+  QSettings settings;
+  settings.beginGroup("MainWindow-layout");
+  settings.setValue("size", size());
+  settings.setValue("pos", pos());
+  settings.setValue("geometry", saveGeometry());
+  settings.setValue("state", saveState());
+  settings.endGroup();
+}
+
+void dbse::SchemaMainWindow::restore_layout() {
+  QSettings settings;
+  settings.beginGroup("MainWindow-layout");
+  if (settings.contains("size")) {
+    resize(settings.value("size").toSize());
+  }
+  if (settings.contains("pos")) {
+    move(settings.value("pos").toPoint());
+  }
+  if (settings.contains("geometry")) {
+    restoreGeometry(settings.value("geometry").toByteArray());
+  }
+  if (settings.contains("state")) {
+    restoreState(settings.value("state").toByteArray());
+  }
+  settings.endGroup();
+
+  settings.beginGroup("MainWindow");
+  m_save_layout_on_exit = settings.value("saveLayout", false).toBool();
+  settings.endGroup();
+}
+
+void dbse::SchemaMainWindow::default_layout() {
+  restoreGeometry(m_default_geometry);
+  restoreState(m_default_state);
+  resize(m_default_size);
 }

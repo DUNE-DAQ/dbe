@@ -27,7 +27,7 @@ namespace dbse
     void toggle_active(int);
     void toggle_inherited(int);
     void toggle_default(int);
-
+    void toggle_save(int);
   private:
     Ui::SchemaSettings* m_ui;
   };
