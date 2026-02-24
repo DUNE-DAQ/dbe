@@ -16,9 +16,13 @@ void dbse::CustomMethodModel::setupModel()
   Data.clear();
   const std::list<OksMethod *> * MethodList;
   std::set<std::string> direct_methods;
-  for (auto method : *SchemaClass->direct_methods()) {
-    direct_methods.insert(method->get_name());
+  auto methods = SchemaClass->direct_methods();
+  if (methods != nullptr) {
+    for (auto method : *methods) {
+      direct_methods.insert(method->get_name());
+    }
   }
+
   if ( SchemaDerived )
   {
     MethodList = SchemaClass->all_methods();
@@ -28,7 +32,7 @@ void dbse::CustomMethodModel::setupModel()
     MethodList = SchemaClass->direct_methods();
   }
 
-  if ( MethodList )
+  if ( MethodList != nullptr )
   {
     for ( OksMethod * Method : *MethodList )
     {
