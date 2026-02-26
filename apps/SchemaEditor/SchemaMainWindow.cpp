@@ -124,6 +124,24 @@ void dbse::SchemaMainWindow::SetController()
 
   connect ( ui->actionSettings, SIGNAL (triggered() ), this, SLOT ( edit_settings() ));
 
+  connect ( ui->displayClasses, SIGNAL ( triggered ( bool ) ), ui->ClassWidget,
+            SLOT ( setVisible ( bool ) ) );
+  connect ( ui->displayDiagrams, SIGNAL ( triggered ( bool ) ), ui->TabWidget,
+            SLOT ( setVisible ( bool ) ) );
+  connect ( ui->displayInfo_tabs, SIGNAL ( triggered ( bool ) ), ui->DockWidget,
+            SLOT ( setVisible ( bool ) ) );
+  connect ( ui->displayToolbar, SIGNAL ( triggered ( bool ) ), ui->MainToolBar,
+            SLOT ( setVisible ( bool ) ) );
+
+  connect ( ui->ClassWidget, SIGNAL ( visibilityChanged ( bool ) ), ui->displayClasses,
+            SLOT ( setChecked ( bool ) ) );
+  // connect ( ui->TabWidget, SIGNAL ( visibilityChanged ( bool ) ), ui->displayDiagrams,
+  //           SLOT ( setChecked ( bool ) ) );
+  connect ( ui->DockWidget, SIGNAL ( visibilityChanged ( bool ) ), ui->displayInfo_tabs,
+            SLOT ( setChecked ( bool ) ) );
+  connect ( ui->MainToolBar, SIGNAL ( visibilityChanged ( bool ) ), ui->displayToolbar,
+            SLOT ( setChecked ( bool ) ) );
+
   connect ( ui->ClassTableView, SIGNAL ( activated ( QModelIndex ) ), this,
             SLOT ( LaunchClassEditor ( QModelIndex ) ) );
   connect ( ui->close_tab, SIGNAL ( triggered() ), this, SLOT ( close_tab() ) );
@@ -1087,6 +1105,7 @@ void dbse::SchemaMainWindow::save_layout() {
   settings.setValue("pos", pos());
   settings.setValue("geometry", saveGeometry());
   settings.setValue("state", saveState());
+  settings.setValue("diagrams-visible", ui->TabWidget->isVisible());
   settings.endGroup();
 }
 
@@ -1104,6 +1123,11 @@ void dbse::SchemaMainWindow::restore_layout() {
   }
   if (settings.contains("state")) {
     restoreState(settings.value("state").toByteArray());
+  }
+  if (settings.contains("diagrams-visible")) {
+    auto visible = settings.value("diagrams-visible").toBool();
+    ui->displayDiagrams->setChecked(visible);
+    ui->TabWidget->setVisible(visible);
   }
   settings.endGroup();
 

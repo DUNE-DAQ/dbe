@@ -53,14 +53,13 @@
     <property name="title">
      <string>View</string>
     </property>
-    <addaction name="SaveView"/>
-    <addaction name="SaveViewAs"/>
-    <addaction name="exportView"/>
-    <addaction name="LoadView"/>
     <addaction name="separator"/>
-    <addaction name="PrintView"/>
+    <addaction name="displayClasses"/>
+    <addaction name="displayDiagrams"/>
+    <addaction name="displayInfo_tabs"/>
+    <addaction name="displayToolbar"/>
    </widget>
-   <widget class="QMenu" name="menuEdit">
+   <widget class="QMenu" name="menuSettings">
     <property name="title">
      <string>Settings</string>
     </property>
@@ -69,9 +68,20 @@
     <addaction name="actionRestore_layout"/>
     <addaction name="actionDefault_layout"/>
    </widget>
+   <widget class="QMenu" name="menuClass_Diagram">
+    <property name="title">
+     <string>SchemaViews</string>
+    </property>
+    <addaction name="LoadView"/>
+    <addaction name="SaveView"/>
+    <addaction name="SaveViewAs"/>
+    <addaction name="exportView"/>
+    <addaction name="PrintView"/>
+   </widget>
    <addaction name="MenuFile"/>
-   <addaction name="menuEdit"/>
+   <addaction name="menuSettings"/>
    <addaction name="MenuView"/>
+   <addaction name="menuClass_Diagram"/>
   </widget>
   <widget class="QToolBar" name="MainToolBar">
    <property name="windowTitle">
@@ -141,6 +151,9 @@ sensitive</string>
    </widget>
   </widget>
   <widget class="QDockWidget" name="DockWidget">
+   <property name="enabled">
+    <bool>true</bool>
+   </property>
    <property name="sizePolicy">
     <sizepolicy hsizetype="MinimumExpanding" vsizetype="Preferred">
      <horstretch>0</horstretch>
@@ -370,6 +383,59 @@ sensitive</string>
   <action name="actionDefault_layout">
    <property name="text">
     <string>Restore &amp;Default layout</string>
+   </property>
+  </action>
+  <action name="displayClasses">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Classes</string>
+   </property>
+  </action>
+  <action name="displayDiagrams">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Diagrams</string>
+   </property>
+   <property name="toolTip">
+    <string>Toggle display of Schema Diagrams</string>
+   </property>
+  </action>
+  <action name="displayInfo_tabs">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Info tabs</string>
+   </property>
+   <property name="toolTip">
+    <string>Toggle display of Info tabs</string>
+   </property>
+  </action>
+  <action name="displayToolbar">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Toolbar</string>
+   </property>
+   <property name="toolTip">
+    <string>Toggle display of Toolbar</string>
    </property>
   </action>
  </widget>
