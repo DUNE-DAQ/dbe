@@ -120,6 +120,9 @@ void dbse::SchemaGraphicsScene::CreateActions()
   // Remove arrow
   m_remove_arrow = new QAction ( "&Remove Arrow", this );
   connect ( m_remove_arrow, SIGNAL ( triggered() ), this, SLOT ( RemoveArrowSlot() ) );
+
+  m_save = new QAction("&Save view", this);
+  connect(m_save, SIGNAL(triggered()), this, SLOT(requestSave()));
 }
 
 void dbse::SchemaGraphicsScene::dragEnterEvent ( QGraphicsSceneDragDropEvent * event )
@@ -195,6 +198,10 @@ void dbse::SchemaGraphicsScene::contextMenuEvent ( QGraphicsSceneContextMenuEven
     m_note_pos = m_context_menu->actions().size();
     m_context_menu->addAction ( m_edit_note );
     m_context_menu->addAction ( m_remove_note );
+
+    m_context_menu->addSeparator();
+    m_save_pos = m_context_menu->actions().size();
+    m_context_menu->addAction(m_save);
   }
 
   bool active = KernelWrapper::GetInstance().IsActive ( );
@@ -208,6 +215,11 @@ void dbse::SchemaGraphicsScene::contextMenuEvent ( QGraphicsSceneContextMenuEven
   const auto nitems = m_context_menu->actions().size();
   for (int item=m_seperator_pos; item<nitems; item++) {
     m_context_menu->actions().at ( item )->setVisible ( false );
+  }
+
+  if (m_modified && ItemMap.size()>0) {
+    m_context_menu->actions().at(m_save_pos-1)->setVisible(true);
+    m_context_menu->actions().at(m_save_pos)->setVisible(true);
   }
 
   if ( itemAt ( event->scenePos(), QTransform() ) ) {
@@ -234,9 +246,6 @@ void dbse::SchemaGraphicsScene::contextMenuEvent ( QGraphicsSceneContextMenuEven
       for (int item=m_class_pos+1; item<m_arrow_pos; item++) {
         m_context_menu->actions().at ( item )->setVisible ( true );
       }
-
-
-
     }
     else if ( arrow != nullptr ) {
       m_context_menu->actions().at ( m_arrow_pos )->setVisible ( true );
@@ -435,6 +444,9 @@ void dbse::SchemaGraphicsScene::modified(bool state) {
   emit sceneModified(state);
 }
 
+void dbse::SchemaGraphicsScene::requestSave() {
+  emit saveRequested();
+}
 void dbse::SchemaGraphicsScene::modified_slot() {
   modified(true);
 }

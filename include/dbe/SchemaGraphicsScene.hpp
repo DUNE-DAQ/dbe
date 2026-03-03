@@ -41,6 +41,7 @@ public:
   void ClearModified();
 signals:
   void sceneModified(bool);
+  void saveRequested();
 protected:
   // bool event ( QEvent* event );
   void mousePressEvent ( QGraphicsSceneMouseEvent * mouseEvent );
@@ -71,6 +72,7 @@ private slots:
   void RemoveClassSlot();
   void RemoveArrowSlot();
   void DrawArrow ( QString ClassName, QString RelationshipType, QString RelationshipName );
+  void requestSave();
 private:
   QMap<QString, SchemaGraphicObject *> ItemMap;
   QGraphicsLineItem * m_line;
@@ -79,6 +81,7 @@ private:
   int m_class_pos;
   int m_arrow_pos;
   int m_note_pos;
+  int m_save_pos;
   QAction * m_add_class;
   QAction * m_edit_class;
   QAction * m_toggle_indirect_infos;
@@ -96,6 +99,7 @@ private:
   QAction * m_remove_note;
   QAction * m_remove_class;
   QAction * m_remove_arrow;
+  QAction* m_save;
   QMetaObject::Connection m_addclass_connection;
   SchemaGraphicObject * CurrentObject;
   SchemaGraphicSegmentedArrow * m_current_arrow;

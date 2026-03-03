@@ -519,17 +519,19 @@ void dbse::SchemaMainWindow::export_current_view(){
     m_export_path.truncate(spos);
   }
 
-  auto scene = tab->GetScene();
-  auto view = tab->GetView();
-
+  if (!file.endsWith(".svg")) {
+    file.append(".svg");
+  }
   QSvgGenerator generator;
   generator.setFileName(file);
+  auto view = tab->GetView();
   auto vpr=view->viewport()->rect();
   generator.setSize(QSize(vpr.width(),vpr.height()));
   generator.setViewBox(vpr);
 
   QPainter painter;
   painter.begin(&generator);
+  auto scene = tab->GetScene();
   scene->render ( &painter, QRectF(), view->viewport()->rect() );
   painter.end();
 }
@@ -782,6 +784,8 @@ void dbse::SchemaMainWindow::add_tab()
   auto  tab = dynamic_cast<SchemaTab *> ( ui->TabWidget->currentWidget() );
   connect (tab->GetScene(), &SchemaGraphicsScene::sceneModified,
            this, &dbse::SchemaMainWindow::modifiedView);
+  connect (tab->GetScene(), &SchemaGraphicsScene::saveRequested,
+           this, &dbse::SchemaMainWindow::SaveView);
 }
 
 void dbse::SchemaMainWindow::modifiedView(bool modified) {
@@ -1124,11 +1128,13 @@ void dbse::SchemaMainWindow::restore_layout() {
   if (settings.contains("state")) {
     restoreState(settings.value("state").toByteArray());
   }
-  if (settings.contains("diagrams-visible")) {
-    auto visible = settings.value("diagrams-visible").toBool();
-    ui->displayDiagrams->setChecked(visible);
-    ui->TabWidget->setVisible(visible);
-  }
+
+  auto visible = settings.value("diagrams-visible", true).toBool();
+  ui->displayDiagrams->setChecked(visible);
+  ui->TabWidget->setVisible(visible);
+
+  ui->displayToolbar->setChecked(ui->MainToolBar->isVisible());
+
   settings.endGroup();
 
   settings.beginGroup("MainWindow");

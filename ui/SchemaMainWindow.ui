@@ -310,6 +310,9 @@ sensitive</string>
    <property name="text">
     <string>&amp;Save View</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+K</string>
+   </property>
   </action>
   <action name="LoadView">
    <property name="text">
@@ -351,6 +354,9 @@ sensitive</string>
   <action name="exportView">
    <property name="text">
     <string>&amp;Export View</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+E</string>
    </property>
   </action>
   <action name="close_tab">
