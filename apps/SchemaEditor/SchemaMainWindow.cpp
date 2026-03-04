@@ -97,9 +97,10 @@ void dbse::SchemaMainWindow::InitialTab()
 
 void dbse::SchemaMainWindow::InitialTabCorner()
 {
-  QPushButton * RightButton = new QPushButton ( "+" );
-  ui->TabWidget->setCornerWidget ( RightButton, Qt::TopLeftCorner );
-  connect ( RightButton, SIGNAL ( clicked() ), this, SLOT ( add_tab() ) );
+  QPushButton * new_tab_button = new QPushButton ( "+" );
+  new_tab_button->setToolTip("Open new schema view tab");
+  ui->TabWidget->setCornerWidget ( new_tab_button, Qt::TopLeftCorner );
+  connect ( new_tab_button, SIGNAL ( clicked() ), this, SLOT ( add_tab() ) );
 }
 
 void dbse::SchemaMainWindow::SetController()
@@ -990,7 +991,7 @@ void dbse::SchemaMainWindow::close_tab() {
 
 void dbse::SchemaMainWindow::RemoveTab ( int index )
 {
-  if ( index == -1 || ( ( ui->TabWidget->count() == 1 ) && index == 0 ) ) {
+  if ( index == -1 ) {
     return;
   }
 
@@ -1007,6 +1008,9 @@ void dbse::SchemaMainWindow::RemoveTab ( int index )
   }
   ui->TabWidget->removeTab ( index );
   delete tab;
+  if ( ui->TabWidget->count() == 0 ) {
+    add_tab();
+  }
 }
 
 void dbse::SchemaMainWindow::CustomContextMenuFileView ( QPoint Pos )

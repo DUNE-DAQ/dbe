@@ -76,6 +76,7 @@
     <addaction name="SaveView"/>
     <addaction name="SaveViewAs"/>
     <addaction name="exportView"/>
+    <addaction name="close_tab"/>
     <addaction name="PrintView"/>
    </widget>
    <addaction name="MenuFile"/>
@@ -272,7 +273,10 @@ sensitive</string>
      <normaloff>:/icons/schema_editor_oks_class.xpm</normaloff>:/icons/schema_editor_oks_class.xpm</iconset>
    </property>
    <property name="text">
-    <string>AddClass</string>
+    <string>Add Class</string>
+   </property>
+   <property name="toolTip">
+    <string>Add new class</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+A</string>
@@ -287,7 +291,10 @@ sensitive</string>
      <normaloff>:/icons/link2.xpm</normaloff>:/icons/link2.xpm</iconset>
    </property>
    <property name="text">
-    <string>SetRelationship</string>
+    <string>Set Relationship</string>
+   </property>
+   <property name="toolTip">
+    <string>Set Relationship by selecting classes on diagram</string>
    </property>
   </action>
   <action name="SetInheritance">
@@ -299,7 +306,10 @@ sensitive</string>
      <normaloff>:/icons/glink.xpm</normaloff>:/icons/glink.xpm</iconset>
    </property>
    <property name="text">
-    <string>SetInheritance</string>
+    <string>Set Inheritance</string>
+   </property>
+   <property name="toolTip">
+    <string>Set Inheritance by selecting classes on diagram</string>
    </property>
   </action>
   <action name="SaveView">
@@ -365,7 +375,10 @@ sensitive</string>
      <normaloff>:/icons/fail.xpm</normaloff>:/icons/fail.xpm</iconset>
    </property>
    <property name="text">
-    <string>Close Tab</string>
+    <string>Close View</string>
+   </property>
+   <property name="toolTip">
+    <string>Close view tab</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+W</string>

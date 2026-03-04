@@ -179,8 +179,10 @@ with plain text. Line breaks should be added by hand.
 | Ctl-A | Add new schema class | Only available when there is an 'Active' schema file|
 | Ctl-N | Create New schema file |
 | Ctl-O | Open new schema file  | 
-| Ctl-I | Open file info dialog  | Only available when there is an 'Active' schema file|
+| Ctl-I | Open file info dialog for active file | Only available when there is an 'Active' schema file|
 | Ctl-S | Save modified schema files  ||
 | Ctl-V | Load View ||
-| Ctl-W | Close tab ||
+| Ctl-K | Save View ||
+| Ctl-E | Export View as SVG ||
+| Ctl-W | Close View tab ||
 | Ctl-Q |  Quit  ||
