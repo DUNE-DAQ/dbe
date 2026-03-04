@@ -123,6 +123,9 @@ void dbse::SchemaGraphicsScene::CreateActions()
 
   m_save = new QAction("&Save view", this);
   connect(m_save, SIGNAL(triggered()), this, SLOT(requestSave()));
+
+  m_move = new QAction("&Move scene", this);
+  connect(m_move, SIGNAL(triggered()), this, SLOT(moveScene()));
 }
 
 void dbse::SchemaGraphicsScene::dragEnterEvent ( QGraphicsSceneDragDropEvent * event )
@@ -185,6 +188,8 @@ void dbse::SchemaGraphicsScene::contextMenuEvent ( QGraphicsSceneContextMenuEven
     m_context_menu->addAction ( m_edit_class );
     m_context_menu->addAction ( m_remove_class );
     m_context_menu->addAction ( m_toggle_highlight_class );
+    m_context_menu->addSeparator();
+
     m_context_menu->addAction ( m_add_direct_super_classes );
     m_context_menu->addAction ( m_add_direct_relationship_classes );
     m_context_menu->addAction ( m_add_all_super_classes );
@@ -202,6 +207,7 @@ void dbse::SchemaGraphicsScene::contextMenuEvent ( QGraphicsSceneContextMenuEven
     m_context_menu->addSeparator();
     m_save_pos = m_context_menu->actions().size();
     m_context_menu->addAction(m_save);
+    m_context_menu->addAction(m_move);
   }
 
   bool active = KernelWrapper::GetInstance().IsActive ( );
@@ -217,8 +223,11 @@ void dbse::SchemaGraphicsScene::contextMenuEvent ( QGraphicsSceneContextMenuEven
     m_context_menu->actions().at ( item )->setVisible ( false );
   }
 
-  if (m_modified && ItemMap.size()>0) {
+  if (ItemMap.size()>0) {
     m_context_menu->actions().at(m_save_pos-1)->setVisible(true);
+    m_context_menu->actions().at(m_save_pos+1)->setVisible(true);
+  }
+  if (m_modified && ItemMap.size()>0) {
     m_context_menu->actions().at(m_save_pos)->setVisible(true);
   }
 
@@ -442,6 +451,29 @@ void dbse::SchemaGraphicsScene::ClearModified() {
 void dbse::SchemaGraphicsScene::modified(bool state) {
   m_modified = state;
   emit sceneModified(state);
+}
+
+void dbse::SchemaGraphicsScene::moveScene() {
+  qreal minx = 1e6;
+  qreal miny = 1e6;
+  for (auto obj : ItemMap) {
+    auto pos = obj->pos();
+    if (pos.x() < minx) {
+      minx = pos.x();
+    }
+    if (pos.y() < miny) {
+      miny = pos.y();
+    }
+  }
+  qreal xoffset = m_current_pos.x() - minx;
+  qreal yoffset = m_current_pos.y() - miny;
+  for (auto obj : ItemMap) {
+    obj->setX(obj->x()+xoffset);
+    obj->setY(obj->y()+yoffset);
+    obj->update_arrows();
+  }
+  update();
+  modified(true);
 }
 
 void dbse::SchemaGraphicsScene::requestSave() {

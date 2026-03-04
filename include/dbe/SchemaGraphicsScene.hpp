@@ -73,6 +73,7 @@ private slots:
   void RemoveArrowSlot();
   void DrawArrow ( QString ClassName, QString RelationshipType, QString RelationshipName );
   void requestSave();
+  void moveScene();
 private:
   QMap<QString, SchemaGraphicObject *> ItemMap;
   QGraphicsLineItem * m_line;
@@ -100,6 +101,7 @@ private:
   QAction * m_remove_class;
   QAction * m_remove_arrow;
   QAction* m_save;
+  QAction* m_move;
   QMetaObject::Connection m_addclass_connection;
   SchemaGraphicObject * CurrentObject;
   SchemaGraphicSegmentedArrow * m_current_arrow;
