@@ -379,6 +379,7 @@ void dbse::SchemaGraphicsScene::add_notes (QStringList notes,
       QString("#" + QString::number(m_next_note++)),
       notes.at(index) );
     note->setPos ( positions.at ( index ) );
+    m_notes.insert(note);
     addItem(note);
   }
 
@@ -472,6 +473,10 @@ void dbse::SchemaGraphicsScene::moveScene() {
     obj->setY(obj->y()+yoffset);
     obj->update_arrows();
   }
+  for (auto obj : m_notes) {
+    obj->setX(obj->x()+xoffset);
+    obj->setY(obj->y()+yoffset);
+  }
   update();
   modified(true);
 }
@@ -562,10 +567,12 @@ void dbse::SchemaGraphicsScene::remove_note_slot() {
 }
 
 void dbse::SchemaGraphicsScene::add_note_slot(SchemaGraphicNote* note) {
+  m_notes.insert(note);
   addItem(note);
   modified(true);
 }
 void dbse::SchemaGraphicsScene::cancel_note_slot(SchemaGraphicNote* note) {
+  m_notes.erase(note);
   delete note;
 }
 

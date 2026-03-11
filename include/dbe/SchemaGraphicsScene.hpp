@@ -76,6 +76,7 @@ private slots:
   void moveScene();
 private:
   QMap<QString, SchemaGraphicObject *> ItemMap;
+  std::set<SchemaGraphicNote*> m_notes;
   QGraphicsLineItem * m_line;
   QMenu * m_context_menu;
   int m_seperator_pos;
