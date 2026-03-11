@@ -58,6 +58,7 @@
     <addaction name="displayDiagrams"/>
     <addaction name="displayInfo_tabs"/>
     <addaction name="displayToolbar"/>
+    <addaction name="displayStatus_bar"/>
    </widget>
    <widget class="QMenu" name="menuSettings">
     <property name="title">
@@ -86,7 +87,7 @@
   </widget>
   <widget class="QToolBar" name="MainToolBar">
    <property name="windowTitle">
-    <string>View toolbar</string>
+    <string>Main toolbar</string>
    </property>
    <attribute name="toolBarArea">
     <enum>TopToolBarArea</enum>
@@ -455,6 +456,17 @@ sensitive</string>
    </property>
    <property name="toolTip">
     <string>Toggle display of Toolbar</string>
+   </property>
+  </action>
+  <action name="displayStatus_bar">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Status bar</string>
+   </property>
+   <property name="toolTip">
+    <string>Toggle display of Status bar</string>
    </property>
   </action>
  </widget>

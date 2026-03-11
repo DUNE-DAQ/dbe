@@ -133,11 +133,11 @@ void dbse::SchemaMainWindow::SetController()
             SLOT ( setVisible ( bool ) ) );
   connect ( ui->displayToolbar, SIGNAL ( triggered ( bool ) ), ui->MainToolBar,
             SLOT ( setVisible ( bool ) ) );
+  connect ( ui->displayStatus_bar, SIGNAL ( triggered ( bool ) ), ui->StatusBar,
+            SLOT ( setVisible ( bool ) ) );
 
   connect ( ui->ClassWidget, SIGNAL ( visibilityChanged ( bool ) ), ui->displayClasses,
             SLOT ( setChecked ( bool ) ) );
-  // connect ( ui->TabWidget, SIGNAL ( visibilityChanged ( bool ) ), ui->displayDiagrams,
-  //           SLOT ( setChecked ( bool ) ) );
   connect ( ui->DockWidget, SIGNAL ( visibilityChanged ( bool ) ), ui->displayInfo_tabs,
             SLOT ( setChecked ( bool ) ) );
   connect ( ui->MainToolBar, SIGNAL ( visibilityChanged ( bool ) ), ui->displayToolbar,
@@ -212,7 +212,6 @@ void dbse::SchemaMainWindow::show_file_info(QString fn) {
   }
 }
 void dbse::SchemaMainWindow::connect_file_info(SchemaFileInfo* win){
-  std::cout << __FUNCTION__ << " New SchemaFileInfo\n";
   connect (win, &SchemaFileInfo::files_updated,
            this, &SchemaMainWindow::update_models);
 }
@@ -1114,6 +1113,7 @@ void dbse::SchemaMainWindow::save_layout() {
   settings.setValue("geometry", saveGeometry());
   settings.setValue("state", saveState());
   settings.setValue("diagrams-visible", ui->TabWidget->isVisible());
+  settings.setValue("statusbar-visible", ui->StatusBar->isVisible());
   settings.endGroup();
 }
 
@@ -1137,8 +1137,11 @@ void dbse::SchemaMainWindow::restore_layout() {
   ui->displayDiagrams->setChecked(visible);
   ui->TabWidget->setVisible(visible);
 
-  ui->displayToolbar->setChecked(ui->MainToolBar->isVisible());
+  visible = settings.value("statusbar-visible", true).toBool();
+  ui->StatusBar->setVisible(visible);
+  ui->displayStatus_bar->setChecked(visible);
 
+  ui->displayToolbar->setChecked(ui->MainToolBar->isVisible());
   settings.endGroup();
 
   settings.beginGroup("MainWindow");
