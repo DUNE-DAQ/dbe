@@ -1,5 +1,5 @@
 /// Including QT Headers
-#include "dbe/confaccessor.hpp"
+#include "dbe/FileInfo.hpp"
 #include "dbe/ui_constants.hpp"
 
 #include <QAction>
@@ -37,20 +37,16 @@ dbe::CustomFileView::CustomFileView ( QWidget * parent )
 
 void dbe::CustomFileView::CreateActions()
 {
-
-
-  FindFile = new QAction ( tr ( "Find File" ), this );
-  FindFile->setShortcut ( QKeySequence ( tr ( "Ctrl+F" ) ) );
-  FindFile->setShortcutContext ( Qt::WidgetShortcut );
-  connect ( FindFile, SIGNAL ( triggered() ), this, SLOT ( FindFileSlot() ) );
-//  connect ( Shortcut, SIGNAL ( activated() ), this, SLOT ( FindFileSlot() ) );
-  ContextMenu->addAction ( FindFile );
-
   LaunchIncludeEditor = new QAction ( tr ( "Add/Remove Files" ), this );
   LaunchIncludeEditor->setShortcutContext ( Qt::WidgetShortcut );
   connect ( LaunchIncludeEditor, SIGNAL ( triggered() ), this,
             SLOT ( LaunchIncludeEditorSlot() ) );
   ContextMenu->addAction ( LaunchIncludeEditor );
+
+  m_file_info_action = new QAction (tr ("File &information"));
+  connect ( m_file_info_action, SIGNAL(triggered()),
+            this, SLOT(file_info_slot()) );
+  ContextMenu->addAction ( m_file_info_action );
 
   HideReadOnlyFiles = new QAction ( tr ( "Hide Read Only Files" ), this );
   HideReadOnlyFiles->setShortcutContext ( Qt::WidgetShortcut );
@@ -60,10 +56,13 @@ void dbe::CustomFileView::CreateActions()
             SLOT ( HideReadOnlyFilesSlot ( bool ) ) );
   ContextMenu->addAction ( HideReadOnlyFiles );
 
-  m_file_info_action = new QAction (tr ("File &information"));
-  connect ( m_file_info_action, SIGNAL(triggered()),
-            this, SLOT(file_info_slot()) );
-  ContextMenu->addAction ( m_file_info_action );
+
+  FindFile = new QAction ( tr ( "Find File" ), this );
+  FindFile->setShortcut ( QKeySequence ( tr ( "Ctrl+F" ) ) );
+  FindFile->setShortcutContext ( Qt::WidgetShortcut );
+  connect ( FindFile, SIGNAL ( triggered() ), this, SLOT ( FindFileSlot() ) );
+//  connect ( Shortcut, SIGNAL ( activated() ), this, SLOT ( FindFileSlot() ) );
+  ContextMenu->addAction ( FindFile );
 }
 
 void dbe::CustomFileView::ConnectActions()
@@ -88,16 +87,21 @@ void dbe::CustomFileView::contextMenuEvent ( QContextMenuEvent * Event )
   if ( index.isValid() )
   {
     if ( model()->data ( model()->index ( index.row(), 2 ) ).toString() == "RO" ) {
-      ContextMenu->actions().at ( 1 )->setVisible ( false );
+      ContextMenu->actions().at ( 0 )->setVisible ( false );
     }
     else {
-      ContextMenu->actions().at ( 1 )->setVisible ( true );
+      ContextMenu->actions().at ( 0 )->setVisible ( true );
     }
+    ContextMenu->actions().at ( 1 )->setVisible ( true );
 
     setCurrentIndex ( index );
     selectionModel()->setCurrentIndex ( index, QItemSelectionModel::NoUpdate );
-    ContextMenu->exec ( Event->globalPos() );
   }
+  else {
+      ContextMenu->actions().at(0)->setVisible(false);
+      ContextMenu->actions().at(1)->setVisible(false);
+  }
+  ContextMenu->exec ( Event->globalPos() );
 }
 
 void dbe::CustomFileView::GoToFile()
@@ -247,29 +251,7 @@ void dbe::CustomFileView::file_info_slot(QModelIndex index) {
                                                   index.parent() ) ).toString();
   auto full_name = path + "/" + file;
 
-  QStringList includes ( dbe::config::api::get::file::inclusions_singlefile (
-                           full_name ) );
-  QString message{"Files included by " + file + "\n"};
-  bool schema=false;
-  for (auto inc: includes) {
-    if (schema && !inc.endsWith(".schema.xml")) {
-      message.append("\nData files:");
-      schema = false;
-    }
-    if (inc.endsWith(".schema.xml")) {
-      if (!schema) {
-        message.append("\nSchema files:");
-        schema = true;
-      }
-    }
-    message.append("\n   " + inc);
-  }
-
-  QMessageBox mbox(this);
-  mbox.setWindowTitle(QString{"File information for  " + file});
-  mbox.setStandardButtons(QMessageBox::Ok);
-  mbox.setText(message);
-  mbox.exec();
+  FileInfo::show_file_info(full_name);
 }
 
 void dbe::CustomFileView::LaunchIncludeEditorSlot()

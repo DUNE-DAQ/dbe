@@ -7,6 +7,7 @@
 #include "dbe/StyleUtility.hpp"
 #include "dbe/CreateDatabaseWidget.hpp"
 #include "dbe/Command.hpp"
+#include "dbe/FileInfo.hpp"
 #include "dbe/messenger.hpp"
 #include "dbe/messenger_proxy.hpp"
 #include "dbe/config_api.hpp"
@@ -417,6 +418,8 @@ void dbe::MainWindow::build_file_model()
     FileView->horizontalHeader()->setSectionResizeMode(1, QHeaderView::ResizeToContents);
     FileView->horizontalHeader()->setSectionResizeMode(2, QHeaderView::ResizeToContents);
     FileView->horizontalHeader()->setSectionResizeMode(3, QHeaderView::ResizeToContents);
+
+    emit signal_new_file_model();
   }
 }
 
@@ -430,13 +433,23 @@ void dbe::MainWindow::slot_fetch_data ( const treenode * ClassNode )
   }
 }
 
-void dbe::MainWindow::slot_commit_database ( bool Exit )
+bool dbe::MainWindow::slot_commit_database ( bool Exit )
 {
   CommitDialog * SaveDialog = new CommitDialog();
   int DialogResult = SaveDialog->exec();
 
   if ( DialogResult )
   {
+    FileInfo::parse_all_objects();
+    for (auto file : dbe::confaccessor::uncommitted_files()) {
+      auto message = FileInfo::check_file_includes(QString::fromStdString(file));
+      if (!message.isEmpty()) {
+        QMessageBox::warning ( 0, "Save database", message );
+        FileInfo::show_file_info(QString::fromStdString(file));
+        return false;
+      }
+    }
+
     QString CommitMessage = SaveDialog->GetCommitMessage();
 
     try
@@ -469,6 +482,24 @@ void dbe::MainWindow::slot_commit_database ( bool Exit )
     {
       WARN ( "The changes could not be committed", dbe::config::errors::parse ( e ).c_str() )
       ers::error ( e );
+      return false;
+    }
+    // Gaahhh confaccessor catches dunedaq::conffwk::Exception and
+    // rethrows it as daq::dbe::CouldNotCommitChanges!!
+    catch (daq::dbe::CouldNotCommitChanges const& exc)
+    {
+      std::string reason{exc.what()};
+      auto cause = exc.cause();
+      while (cause != nullptr) {
+        reason = cause->what();
+        cause = cause->cause();
+      }
+      WARN ("The changes could not be committed",
+            // dbe::config::errors::parse(exc).c_str(),
+            reason,
+            "\n\nTry fixing includes from File Info window")
+      ers::error (exc);
+      return false;
     }
   }
   else
@@ -478,6 +509,7 @@ void dbe::MainWindow::slot_commit_database ( bool Exit )
       slot_abort_changes();
     }
   }
+  return true;
 }
 
 void dbe::MainWindow::slot_abort_changes()
@@ -1380,8 +1412,7 @@ bool dbe::MainWindow::check_close()
       }
       else if ( ret == QMessageBox::Save )
       {
-        slot_commit_database ( true );
-        return true;
+        return slot_commit_database ( true );
       }
       else if ( ret == QMessageBox::Cancel )
       {

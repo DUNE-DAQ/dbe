@@ -33,7 +33,7 @@ private:
   QFileInfo SchemaFile;
   QString DirToCreate;
   bool CreateToInclude;
-
+  std::list<std::string> get_includes();
 private slots:
   void DefineSchema();
   void DefineDatabaseFile();

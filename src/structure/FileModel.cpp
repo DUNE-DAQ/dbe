@@ -147,6 +147,9 @@ QString dbe::FileModel::GetFullFileName ( QString & FileName )
       if ( TdaqFolder.exists ( FileName ) )
       {
         FileName = TdaqFolder.path() + "/" + FileName;
+        char* rpath =  realpath(FileName.toStdString().c_str(), NULL);
+        FileName = QString(rpath);
+        free(rpath);
         found=true;
         break;
       }

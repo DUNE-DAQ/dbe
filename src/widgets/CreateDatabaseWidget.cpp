@@ -10,6 +10,7 @@
 #include "conffwk/Schema.hpp"
 #include "dbe/Exceptions.hpp"
 #include "dbe/messenger.hpp"
+#include "dbe/FileInfo.hpp"
 
 using namespace dunedaq::conffwk;
 
@@ -58,26 +59,38 @@ dbe::CreateDatabaseWidget::CreateDatabaseWidget ( QWidget * parent, bool Include
 
 void dbe::CreateDatabaseWidget::DefineSchema()
 {
-  QString SchemaFilePath = QFileDialog::getOpenFileName ( this, tr ( "Open Schema File" ),
-                                                          DirToCreate.append("./"),
-                                                          tr ( "XML files (*.xml)" ) );
-  QFileInfo SchemaFile = QFileInfo ( SchemaFilePath );
-
-  if ( !SchemaFile.isFile() )
-  {
-    StatusBar->setPalette ( StyleUtility::AlertStatusBarPallete );
-    StatusBar->showMessage ( QString ( "The file is not accessible. Check before usage" ) );
+  auto fd = new QFileDialog ( this, tr ( "Select Schema File" ),
+                              DirToCreate.append("./"),
+                              tr ( "XML schema files (*.schema.xml)" ) );
+  fd->setFileMode ( QFileDialog::ExistingFile );
+  fd->setViewMode ( QFileDialog::Detail );
+  fd->setAcceptMode ( QFileDialog::AcceptOpen );
+  fd->setSidebarUrls(FileInfo::get_path_urls());
+  if (!(fd->exec() == QDialog::Accepted)) {
+    return;
   }
-  else
-  {
-    if ( SchemaFile.fileName().contains ( "schema" ) ) SchemaCombo->addItem (
-        SchemaFile.absoluteFilePath() );
-    else
-    {
+  auto files = fd->selectedFiles();
+  for (auto file: files) {
+    QFileInfo SchemaFile = QFileInfo (file);
+    if ( !SchemaFile.isFile() ) {
       StatusBar->setPalette ( StyleUtility::AlertStatusBarPallete );
-      StatusBar->showMessage (
-        QString ( "The file %1 is not a schema file" ).arg ( SchemaFile.absoluteFilePath() ) );
+      StatusBar->showMessage ( QString ( "The file is not accessible. Check before usage" ) );
     }
+    else {
+      if (SchemaFile.fileName().contains("schema")) {
+        schema_list->addItem(FileInfo::prune_path(file));
+      }
+      else {
+        StatusBar->setPalette ( StyleUtility::AlertStatusBarPallete );
+        StatusBar->showMessage (
+          QString ( "The file %1 is not a schema file" ).arg ( SchemaFile.absoluteFilePath() ) );
+      }
+    }
+  }
+
+  if (schema_list->count()>0 && !DatabaseName->text().isEmpty()) {
+    CreateDatabaseButton->setEnabled ( true );
+    CreateNoLoadDatabaseButton->setEnabled ( true );
   }
 }
 
@@ -94,33 +107,45 @@ void dbe::CreateDatabaseWidget::DefineDatabaseFile()
     Dir = DirToCreate.append ( "/NewDatabaseFile.data.xml" );
   }
 
-  QString DatabaseFilePath = QFileDialog::getSaveFileName ( this,
-                                                            tr ( "Save to Database File" ),
-                                                            Dir,
-                                                            tr ( "XML files (*.xml)" ) );
-  DatabaseFile = QFileInfo ( DatabaseFilePath );
+  auto fd = new QFileDialog ( this, tr("Select new DB File"),
+                              Dir,
+                              tr("XML data files (*.data.xml)"));
+  fd->setFileMode ( QFileDialog::AnyFile );
+  fd->setViewMode ( QFileDialog::Detail );
+  fd->setAcceptMode ( QFileDialog::AcceptSave );
+  fd->setSidebarUrls(FileInfo::get_path_urls());
+  if (!(fd->exec() == QDialog::Accepted)) {
+    return;
+  }
+  auto files = fd->selectedFiles();
+
+  DatabaseFile = QFileInfo (files.at(0));
 
   DatabaseName->setText ( DatabaseFile.absoluteFilePath() );
-  CreateDatabaseButton->setEnabled ( true );
-  CreateNoLoadDatabaseButton->setEnabled ( true );
+
+  if (schema_list->count()>0) {
+    CreateDatabaseButton->setEnabled ( true );
+    CreateNoLoadDatabaseButton->setEnabled ( true );
+  }
 }
+
+std::list<std::string> dbe::CreateDatabaseWidget::get_includes() {
+  std::list<std::string> includes;
+
+  for (int row=0; row<schema_list->count(); ++row) {
+    auto item = schema_list->item(row)->text();
+    includes.push_back(item.toStdString());
+  }
+  return includes;
+}
+
 
 void dbe::CreateDatabaseWidget::CreateDatabaseFileLoad()
 {
   Configuration db ( "oksconflibs" );
-
-  try
-  {
-    std::list<std::string> Includes;
-
-    for ( int i = 0; i < SchemaCombo->count(); ++i )
-    {
-      QString Item = SchemaCombo->itemText ( i );
-      Includes.push_back ( Item.toStdString() );
-    }
-
+  try {
     const std::string DatabaseName = DatabaseFile.absoluteFilePath().toStdString();
-    db.create ( DatabaseName, Includes );
+    db.create ( DatabaseName, get_includes());
     db.commit();
 
     QMessageBox::information (
@@ -139,19 +164,9 @@ void dbe::CreateDatabaseWidget::CreateDatabaseFileLoad()
 void dbe::CreateDatabaseWidget::CreateDatabaseFileNoLoad()
 {
   Configuration db ( "oksconflibs" );
-
-  try
-  {
-    std::list<std::string> Includes;
-
-    for ( int i = 0; i < SchemaCombo->count(); ++i )
-    {
-      QString Item = SchemaCombo->itemText ( i );
-      Includes.push_back ( Item.toStdString() );
-    }
-
+  try {
     const std::string DatabaseName = DatabaseFile.absoluteFilePath().toStdString();
-    db.create ( DatabaseName, Includes );
+    db.create (DatabaseName, get_includes());
     db.commit();
 
     QMessageBox::information ( 0, tr ( "DBE" ), QString ( "The Database was created.\n" ),
@@ -167,19 +182,9 @@ void dbe::CreateDatabaseWidget::CreateDatabaseFileNoLoad()
 void dbe::CreateDatabaseWidget::CreateDatabaseFileInclude()
 {
   Configuration db ( "oksconflibs" );
-
-  try
-  {
-    std::list<std::string> Includes;
-
-    for ( int i = 0; i < SchemaCombo->count(); ++i )
-    {
-      QString Item = SchemaCombo->itemText ( i );
-      Includes.push_back ( Item.toStdString() );
-    }
-
+  try {
     const std::string DatabaseName = DatabaseFile.absoluteFilePath().toStdString();
-    db.create ( DatabaseName, Includes );
+    db.create (DatabaseName, get_includes());
     db.commit();
 
     QMessageBox::information ( 0, tr ( "DBE" ), QString ( "The Database was created.\n" ),

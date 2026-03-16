@@ -120,7 +120,7 @@ private slots:
   //void slot_oracle_prepare();
   //void slot_load_oracle ( const QString & );
 
-  void slot_commit_database ( bool Exit = false );
+  bool slot_commit_database ( bool Exit = false );
 
   void slot_abort_changes();
   void slot_abort_external_changes();
@@ -176,6 +176,7 @@ signals:
   void signal_batch_change_stopped(const QList<QPair<QString, QString>>&);
   void signal_db_loaded();
   void signal_externalchanges_processed();
+  void signal_new_file_model();
 };
 
 }  // namespace dbe

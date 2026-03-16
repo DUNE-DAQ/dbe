@@ -337,7 +337,8 @@ std::list<std::string> dbe::confaccessor::save ( const QString & CommitMessage )
   }
   catch ( dunedaq::conffwk::Exception const & e )
   {
-    throw daq::dbe::CouldNotCommitChanges ( ERS_HERE, dbe::config::errors::parse ( e ) );
+    // throw daq::dbe::CouldNotCommitChanges ( ERS_HERE, dbe::config::errors::parse ( e ) );
+    throw daq::dbe::CouldNotCommitChanges ( ERS_HERE, "confaccessor", e );
   }
 }
 
