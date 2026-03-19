@@ -6,6 +6,7 @@
 #include <QMainWindow>
 #include <QModelIndex>
 #include <QMenu>
+#include <QPrinter>
 #include <QSortFilterProxyModel>
 #include "dbe/SchemaCustomFileModel.hpp"
 #include "dbe/SchemaCustomTableModel.hpp"
@@ -48,6 +49,7 @@ private:
   QByteArray m_default_state;
   QByteArray m_default_geometry;
   QSize m_default_size;
+  QPrinter* m_printer{};
 
   void InitialSettings();
   void InitialTab();

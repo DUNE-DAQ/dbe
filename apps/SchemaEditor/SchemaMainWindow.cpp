@@ -490,11 +490,13 @@ void dbse::SchemaMainWindow::PrintCurrentView()
 {
   SchemaTab * CurrentTab = dynamic_cast<SchemaTab *> ( ui->TabWidget->currentWidget() );
 
-  QPrinter printer;
+  if (m_printer == nullptr) {
+    m_printer = new QPrinter;
+  }
 
-  if ( QPrintDialog ( &printer ).exec() == QDialog::Accepted )
+  if ( QPrintDialog ( m_printer ).exec() == QDialog::Accepted )
   {
-    QPainter painter ( &printer );
+    QPainter painter ( m_printer );
     painter.setRenderHint ( QPainter::Antialiasing );
 
     SchemaGraphicsScene * Scene = CurrentTab->GetScene();
