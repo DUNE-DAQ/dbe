@@ -341,6 +341,9 @@ sensitive</string>
    <property name="text">
     <string>Print View</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+P</string>
+   </property>
   </action>
   <action name="NameView">
    <property name="icon">

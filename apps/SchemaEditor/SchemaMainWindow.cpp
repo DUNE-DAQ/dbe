@@ -42,14 +42,15 @@ dbse::SchemaMainWindow::SchemaMainWindow ( QString SchemaFile, QWidget * parent 
     ContextMenuFileView ( nullptr ),
     ContextMenuTableView ( nullptr )
 {
+  InitialSettings();
   m_default_state = saveState();
   m_default_geometry = saveGeometry();
   m_default_size = QSize(1400, 880);
   QCoreApplication::setOrganizationName("dunedaq");
   QCoreApplication::setApplicationName("dbse");
   SchemaStyle::load();
+  restore_layout();
 
-  InitialSettings();
   InitialTab();
   InitialTabCorner();
   SetController();
@@ -85,7 +86,6 @@ void dbse::SchemaMainWindow::InitialSettings()
     }
     m_path_urls.append(QUrl::fromLocalFile(path));
   }
-  restore_layout();
 }
 
 
@@ -1155,4 +1155,9 @@ void dbse::SchemaMainWindow::default_layout() {
   restoreGeometry(m_default_geometry);
   restoreState(m_default_state);
   resize(m_default_size);
+
+  ui->displayDiagrams->setChecked(true);
+  ui->TabWidget->setVisible(true);
+  ui->StatusBar->setVisible(true);
+  ui->displayStatus_bar->setChecked(true);
 }
