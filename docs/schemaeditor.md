@@ -14,11 +14,7 @@ function schemaeditor ()
 { 
     bash -c "spack load dbe; command schemaeditor $@"
 }
-
 ```
-
-
-
 
 
 ## Starting the editor
@@ -138,11 +134,11 @@ file info windows is not (yet) available.
 classes you are interested in from the 'Class Name' list onto a schema 
 view tab. Relationships and inheritance connections will be
 automatically drawn. By default, only the direct properties of the
-classes are shown, to display all properties including those inherited
+classes are shown. To display all properties, including those inherited from super-classes,
 the context menu in the schema view panel includes an option to toggle
-inherited properties. The context menu on an individual class within
+viewing inherited properties. The context menu on an individual class within
 the view allows the addition of all its parent/child/related classes to
-the view.
+the view. They will all appear in the top left corner and will need to be moved to appropriate places one by one.
 
 ![view object context menu](schema-view-object-menu.png)
 
@@ -172,7 +168,7 @@ accordingly.
 #### Highlighting selected class
 
 The class under the cursor can be highlighted by selecting the
-appropriate item from the context menu. 
+appropriate item from the context menu.
 
 ### Tool-tips
 
