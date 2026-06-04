@@ -12,6 +12,7 @@
 #include <QWidget>
 
 #include <map>
+#include <set>
 
 namespace dbe
 {
@@ -33,7 +34,9 @@ namespace dbe
     static QList<QUrl> get_path_urls();
     static QStringList get_path_list();
     static QString prune_path(QString file);
-    static bool match_path(QString& file, QStringList& includes);
+    static bool match_path(const QString& file, 
+                           const QString& top_file,
+                           const QStringList& includes);
     static void parse_all_objects();
     static QString check_file_includes(const QString& file);
 
@@ -54,6 +57,8 @@ namespace dbe
     void add_datafile();
     void add_schemafile();
     void add_includefile(QFileDialog* fd);
+    void add_missing_datafiles();
+    void add_missing_schemafiles();
 
     void remove_datafile_slot();
     void remove_schemafile_slot();
@@ -73,7 +78,11 @@ namespace dbe
     QMenu* m_object_menu{nullptr};
     QUuid const m_uuid;
 
+    bool m_updating{false};
+
     static std::map<QString, std::map<QString, const tref>> s_obj_map;
+    static std::map<QString, std::set<QString>> s_missing_schema_map;
+    static std::map<QString, std::set<QString>> s_missing_data_map;
 
     static QStringList s_path_list;
     static QList<QUrl> s_path_urls;
