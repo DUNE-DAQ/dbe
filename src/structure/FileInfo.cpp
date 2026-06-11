@@ -11,6 +11,8 @@
 #include <QFileDialog>
 #include <QInputDialog>
 #include <QListWidgetItem>
+#include <QMessageBox>
+#include <QScopedValueRollback>
 #include <QString>
 #include <QWidget>
 
@@ -120,8 +122,16 @@ QString FileInfo::check_file_includes(const QString& filename) {
   QString message{};
 
   auto fname = prune_path(filename);
-  s_missing_schema_map.at(fname).clear();
-  s_missing_data_map.at(fname).clear();
+  if (!s_missing_schema_map.contains(fname)) {
+    s_missing_schema_map.insert({fname,{}});
+  } else {
+    s_missing_schema_map.at(fname).clear();
+  }
+  if (!s_missing_data_map.contains(fname)) {
+    s_missing_data_map.insert({fname,{}});
+  } else {
+    s_missing_data_map.at(fname).clear();
+  }
   QStringList includes(config::api::get::file::inclusions_singlefile (
                          filename));
   if (s_obj_map.contains(prune_path(filename))) {
@@ -241,8 +251,15 @@ void FileInfo::parse_objects() {
   m_ui->object_list->update();
 
   auto status = check_includes();
+  if (!s_missing_schema_map.contains(fname)) {
+    s_missing_schema_map.insert({fname,{}});
+  }
+  if (!s_missing_data_map.contains(fname)) {
+    s_missing_data_map.insert({fname,{}});
+  }
   m_ui->add_missing_schema->setVisible(!s_missing_schema_map.at(fname).empty());
   m_ui->add_missing->setVisible(!s_missing_data_map.at(fname).empty());
+
   m_ui->warningBox->setVisible(!status);
 }
 
@@ -369,37 +386,44 @@ void FileInfo::add_includefile(QFileDialog* fd) {
   fd->setSidebarUrls(s_path_urls);
   if (fd->exec() == QDialog::Accepted) {
     auto files = fd->selectedFiles();
-    m_updating = true;
+    QScopedValueRollback<bool> rb(m_updating,true);
     for (auto file: files) {
       file = prune_path(file);
       config::api::commands::file::add(m_filename, file);
     }
     parse_includes();
     parse_objects();
-    m_updating = false;
   }
 }
 
 void FileInfo::add_missing_schemafiles() {
-  m_updating = true;
-  for (const auto& file : s_missing_schema_map.at(prune_path(m_filename))) {
+  QScopedValueRollback<bool> rb(m_updating,true);
+  auto short_filename = prune_path(m_filename);
+  if (!s_missing_schema_map.contains(short_filename)) {
+    QMessageBox::warning (this, "Warning", 
+                          QString("Missing schema map is corrupt and does not contain %1").arg(short_filename));
+    return;
+  }
+  for (const auto& file : s_missing_schema_map.at(short_filename)) {
     config::api::commands::file::add(m_filename, file);
   }
   parse_includes();
   parse_objects();
-
-  m_updating = false;
 }
 
 void FileInfo::add_missing_datafiles() {
-  m_updating = true;
+  QScopedValueRollback<bool> rb(m_updating,true);
+  auto short_filename = prune_path(m_filename);
+  if (!s_missing_data_map.contains(short_filename)) {
+    QMessageBox::warning (this, "Warning", 
+                          QString("Missing data map is corrupt and does not contain %1").arg(short_filename));
+    return;
+  }
   for (const auto& file : s_missing_data_map.at(prune_path(m_filename))) {
     config::api::commands::file::add(m_filename, file);
   }
   parse_includes();
   parse_objects();
-
-  m_updating = false;
 }
 
 void FileInfo::remove_schemafile_slot() {
