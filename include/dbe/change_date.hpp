@@ -1,4 +1,11 @@
 /*
+ * DUNE DAQ modification notice:
+ * This file has been modified from the original ATLAS dbe source for the DUNE DAQ project.
+ * Fork baseline commit: dbe-02-12-17 (2022-05-12).
+ * Renamed since fork: yes (from dbe/change_date.hpp to include/dbe/change_date.hpp).
+ */
+
+/*
  * change_date.hpp
  *
  *  Created on: Nov 10, 2015

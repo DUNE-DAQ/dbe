@@ -1,4 +1,11 @@
 /*
+ * DUNE DAQ modification notice:
+ * This file has been modified from the original ATLAS dbe source for the DUNE DAQ project.
+ * Fork baseline commit: dbe-02-12-17 (2022-05-12).
+ * Renamed since fork: yes (from test/confaccessor_test.cpp to unittest/confaccessor_test.cxx).
+ */
+
+/*
  * confaccessor_test.cpp
  *
  *  Created on: 24 May 2016

@@ -1,4 +1,11 @@
 /*
+ * DUNE DAQ modification notice:
+ * This file has been modified from the original ATLAS dbe source for the DUNE DAQ project.
+ * Fork baseline commit: dbe-02-12-17 (2022-05-12).
+ * Renamed since fork: yes (from dbe/model_common_interface.h to include/dbe/model_common_interface.hpp).
+ */
+
+/*
  * model_common_interface.h
  *
  *  Created on: Nov 16, 2015

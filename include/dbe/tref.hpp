@@ -1,4 +1,11 @@
 /*
+ * DUNE DAQ modification notice:
+ * This file has been modified from the original ATLAS dbe source for the DUNE DAQ project.
+ * Fork baseline commit: dbe-02-12-17 (2022-05-12).
+ * Renamed since fork: yes (from dbe/tref.h to include/dbe/tref.hpp).
+ */
+
+/*
  * tref.h
  *
  *  Created on: 15 Jun 2016

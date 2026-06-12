@@ -1,4 +1,11 @@
 /*
+ * DUNE DAQ modification notice:
+ * This file has been modified from the original ATLAS dbe source for the DUNE DAQ project.
+ * Fork baseline commit: dbe-02-12-17 (2022-05-12).
+ * Renamed since fork: yes (from dbe/config_reference.hpp to include/dbe/config_reference.hpp).
+ */
+
+/*
  * config_reference.hpp
  *
  *  Created on: Feb 1, 2016
