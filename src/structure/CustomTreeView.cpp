@@ -5,7 +5,7 @@
  * Renamed since fork: no.
  */
 
-﻿/// Including QT Headers
+/// Including QT Headers
 #include "dbe/subtreeproxy.hpp"
 #include "dbe/tree.hpp"
 

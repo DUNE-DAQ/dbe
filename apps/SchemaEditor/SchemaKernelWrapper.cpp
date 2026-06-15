@@ -5,7 +5,7 @@
  * Renamed since fork: yes (from src/SchemaEditor/SchemaKernelWrapper.cpp to apps/SchemaEditor/SchemaKernelWrapper.cpp).
  */
 
-﻿/// Including QT
+/// Including QT
 #include <QMessageBox>
 /// Including Schema
 #include "dbe/SchemaKernelWrapper.hpp"

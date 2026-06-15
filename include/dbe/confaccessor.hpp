@@ -5,7 +5,7 @@
  * Renamed since fork: yes (from dbe/confaccessor.h to include/dbe/confaccessor.hpp).
  */
 
-﻿#ifndef CONFACCESSOR_H
+#ifndef CONFACCESSOR_H
 #define CONFACCESSOR_H
 
 #include "dbe/datahandler.hpp"

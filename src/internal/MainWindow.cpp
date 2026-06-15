@@ -5,7 +5,7 @@
  * Renamed since fork: no.
  */
 
-﻿#include "dbe/MainWindow.hpp"
+#include "dbe/MainWindow.hpp"
 #include "dbe/ObjectEditor.hpp"
 #include "dbe/ObjectCreator.hpp"
 #include "dbe/BatchChangeWidget.hpp"
