@@ -23,6 +23,11 @@ namespace dbse
   private slots:
     void set_color(QListWidgetItem*);
     void set_font(QListWidgetItem*);
+    void toggle_abstract(int);
+    void toggle_active(int);
+    void toggle_inherited(int);
+    void toggle_default(int);
+    void toggle_save(int);
   private:
     Ui::SchemaSettings* m_ui;
   };

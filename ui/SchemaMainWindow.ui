@@ -53,26 +53,41 @@
     <property name="title">
      <string>View</string>
     </property>
+    <addaction name="separator"/>
+    <addaction name="displayClasses"/>
+    <addaction name="displayDiagrams"/>
+    <addaction name="displayInfo_tabs"/>
+    <addaction name="displayToolbar"/>
+    <addaction name="displayStatus_bar"/>
+   </widget>
+   <widget class="QMenu" name="menuSettings">
+    <property name="title">
+     <string>Settings</string>
+    </property>
+    <addaction name="actionSettings"/>
+    <addaction name="actionSave_layout"/>
+    <addaction name="actionRestore_layout"/>
+    <addaction name="actionDefault_layout"/>
+   </widget>
+   <widget class="QMenu" name="menuClass_Diagram">
+    <property name="title">
+     <string>SchemaViews</string>
+    </property>
+    <addaction name="LoadView"/>
     <addaction name="SaveView"/>
     <addaction name="SaveViewAs"/>
     <addaction name="exportView"/>
-    <addaction name="LoadView"/>
-    <addaction name="separator"/>
+    <addaction name="close_tab"/>
     <addaction name="PrintView"/>
    </widget>
-   <widget class="QMenu" name="menuEdit">
-    <property name="title">
-     <string>Edit</string>
-    </property>
-    <addaction name="actionSettings"/>
-   </widget>
    <addaction name="MenuFile"/>
-   <addaction name="menuEdit"/>
+   <addaction name="menuSettings"/>
    <addaction name="MenuView"/>
+   <addaction name="menuClass_Diagram"/>
   </widget>
   <widget class="QToolBar" name="MainToolBar">
    <property name="windowTitle">
-    <string>View toolbar</string>
+    <string>Main toolbar</string>
    </property>
    <attribute name="toolBarArea">
     <enum>TopToolBarArea</enum>
@@ -138,6 +153,9 @@ sensitive</string>
    </widget>
   </widget>
   <widget class="QDockWidget" name="DockWidget">
+   <property name="enabled">
+    <bool>true</bool>
+   </property>
    <property name="sizePolicy">
     <sizepolicy hsizetype="MinimumExpanding" vsizetype="Preferred">
      <horstretch>0</horstretch>
@@ -196,7 +214,7 @@ sensitive</string>
   </widget>
   <action name="OpenFileSchema">
    <property name="text">
-    <string>Open Schema</string>
+    <string>&amp;Open Schema</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+O</string>
@@ -208,7 +226,7 @@ sensitive</string>
      <normaloff>:/icons/commit.xpm</normaloff>:/icons/commit.xpm</iconset>
    </property>
    <property name="text">
-    <string>Save Schema</string>
+    <string>&amp;Save Schema</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+S</string>
@@ -232,7 +250,7 @@ sensitive</string>
      <normaloff>:/icons/CreateDatabase.png</normaloff>:/icons/CreateDatabase.png</iconset>
    </property>
    <property name="text">
-    <string>Create New Schema</string>
+    <string>&amp;Create New Schema</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+N</string>
@@ -244,7 +262,7 @@ sensitive</string>
      <normaloff>:/icons/CreateDatabase.png</normaloff>:/icons/CreateDatabase.png</iconset>
    </property>
    <property name="text">
-    <string>Show schema file</string>
+    <string>Show schema &amp;file</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+I</string>
@@ -256,7 +274,10 @@ sensitive</string>
      <normaloff>:/icons/schema_editor_oks_class.xpm</normaloff>:/icons/schema_editor_oks_class.xpm</iconset>
    </property>
    <property name="text">
-    <string>AddClass</string>
+    <string>Add Class</string>
+   </property>
+   <property name="toolTip">
+    <string>Add new class</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+A</string>
@@ -271,7 +292,10 @@ sensitive</string>
      <normaloff>:/icons/link2.xpm</normaloff>:/icons/link2.xpm</iconset>
    </property>
    <property name="text">
-    <string>SetRelationship</string>
+    <string>Set Relationship</string>
+   </property>
+   <property name="toolTip">
+    <string>Set Relationship by selecting classes on diagram</string>
    </property>
   </action>
   <action name="SetInheritance">
@@ -283,7 +307,10 @@ sensitive</string>
      <normaloff>:/icons/glink.xpm</normaloff>:/icons/glink.xpm</iconset>
    </property>
    <property name="text">
-    <string>SetInheritance</string>
+    <string>Set Inheritance</string>
+   </property>
+   <property name="toolTip">
+    <string>Set Inheritance by selecting classes on diagram</string>
    </property>
   </action>
   <action name="SaveView">
@@ -292,12 +319,15 @@ sensitive</string>
      <normaloff>:/icons/save.xpm</normaloff>:/icons/save.xpm</iconset>
    </property>
    <property name="text">
-    <string>Save View</string>
+    <string>&amp;Save View</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+K</string>
    </property>
   </action>
   <action name="LoadView">
    <property name="text">
-    <string>Load View</string>
+    <string>&amp;Load View</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+V</string>
@@ -310,6 +340,9 @@ sensitive</string>
    </property>
    <property name="text">
     <string>Print View</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+P</string>
    </property>
   </action>
   <action name="NameView">
@@ -329,12 +362,15 @@ sensitive</string>
     <iconset theme="document-save-as"/>
    </property>
    <property name="text">
-    <string>Save View As</string>
+    <string>Save View &amp;As</string>
    </property>
   </action>
   <action name="exportView">
    <property name="text">
-    <string>Export View</string>
+    <string>&amp;Export View</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+E</string>
    </property>
   </action>
   <action name="close_tab">
@@ -343,7 +379,10 @@ sensitive</string>
      <normaloff>:/icons/fail.xpm</normaloff>:/icons/fail.xpm</iconset>
    </property>
    <property name="text">
-    <string>Close Tab</string>
+    <string>Close View</string>
+   </property>
+   <property name="toolTip">
+    <string>Close view tab</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+W</string>
@@ -351,7 +390,86 @@ sensitive</string>
   </action>
   <action name="actionSettings">
    <property name="text">
-    <string>Color/font Settings</string>
+    <string>&amp;Preferences</string>
+   </property>
+  </action>
+  <action name="actionSave_layout">
+   <property name="text">
+    <string>&amp;Save layout</string>
+   </property>
+  </action>
+  <action name="actionRestore_layout">
+   <property name="text">
+    <string>&amp;Restore layout</string>
+   </property>
+  </action>
+  <action name="actionDefault_layout">
+   <property name="text">
+    <string>Restore &amp;Default layout</string>
+   </property>
+  </action>
+  <action name="displayClasses">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Classes</string>
+   </property>
+  </action>
+  <action name="displayDiagrams">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Diagrams</string>
+   </property>
+   <property name="toolTip">
+    <string>Toggle display of Schema Diagrams</string>
+   </property>
+  </action>
+  <action name="displayInfo_tabs">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Info tabs</string>
+   </property>
+   <property name="toolTip">
+    <string>Toggle display of Info tabs</string>
+   </property>
+  </action>
+  <action name="displayToolbar">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Toolbar</string>
+   </property>
+   <property name="toolTip">
+    <string>Toggle display of Toolbar</string>
+   </property>
+  </action>
+  <action name="displayStatus_bar">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Status bar</string>
+   </property>
+   <property name="toolTip">
+    <string>Toggle display of Status bar</string>
    </property>
   </action>
  </widget>

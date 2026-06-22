@@ -8,8 +8,7 @@
 namespace dbse {
 
   void SchemaStyle::load() {
-    // QSettings settings(".dbse.config", QSettings::IniFormat);
-    QSettings settings("dunedaq", "dbse");
+    QSettings settings;
 
     settings.beginGroup("default");
     if (!settings.contains("background")) {
@@ -103,17 +102,18 @@ namespace dbse {
 
   QColor SchemaStyle::get_color(const QString& item,
                                const QString& group) {
-    QSettings settings("dunedaq", "dbse");  
+    QSettings settings;  
     return settings.value(group+"/"+item).value<QColor>();
   }
 
   QColor SchemaStyle::set_color(const QString& item,
                                const QString& group) {
-    QSettings settings("dunedaq", "dbse");
+    QSettings settings;
     settings.beginGroup(group);
     auto color = settings.value(item).value<QColor>();
 
-    color = QColorDialog::getColor(color);
+    color = QColorDialog::getColor(color, nullptr,
+                                   QString("Set "+item+" color for "+group));
 
     if (color.isValid()) {
       settings.setValue(item, color);
@@ -123,7 +123,7 @@ namespace dbse {
 
 
   QFont SchemaStyle::get_font(const QString& group) {
-    QSettings settings("dunedaq", "dbse");  
+    QSettings settings;  
     QString key{group+"/font"};
     if (settings.contains(key)) {
       return settings.value(key).value<QFont>();
@@ -132,16 +132,11 @@ namespace dbse {
   }
 
   QFont SchemaStyle::set_font(const QString& group) {
-    QSettings settings("dunedaq", "dbse");  
+    QFont font = QFontDialog::getFont(nullptr, get_font(group),
+                                      nullptr,
+                                      QString("Select " + group + " font"));
+    QSettings settings;  
     settings.beginGroup(group);
-    QFont font;
-    if (settings.contains("font")) {
-      font = settings.value("font").value<QFont>();
-    }
-    else {
-      font = QFont("Helvetica [Cronyx]", 9);
-    }
-    font = QFontDialog::getFont(nullptr, font);
     settings.setValue("font", font);
     return font;
   }

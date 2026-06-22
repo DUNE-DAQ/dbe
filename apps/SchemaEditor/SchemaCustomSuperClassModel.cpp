@@ -14,8 +14,16 @@ dbse::CustomSuperClassModel::CustomSuperClassModel ( OksClass * ClassInfo,
 void dbse::CustomSuperClassModel::setupModel()
 {
   Data.clear();
-  std::list<std::string> SuperClassList;
 
+  std::set<std::string> direct_classes;
+  const auto& directClasses = SchemaClass->direct_super_classes();
+  if(directClasses != nullptr) {
+    for(const std::string* cl : *directClasses) {
+      direct_classes.insert(*cl);
+    }
+  }
+
+  std::list<std::string> SuperClassList;
   if ( SchemaDerived )
   {
     const OksClass::FList* allClasses = SchemaClass->all_super_classes();
@@ -27,19 +35,22 @@ void dbse::CustomSuperClassModel::setupModel()
   }
   else
   {
-    const auto& directClasses = SchemaClass->direct_super_classes();
-    if(directClasses != nullptr) {
-        for(const std::string* cl : *directClasses) {
-            SuperClassList.push_back(*cl);
-        }
+    for (auto cls : direct_classes) {
+      SuperClassList.push_back(cls);
     }
   }
 
-  for ( std::string Class : SuperClassList )
+  for ( std::string cls : SuperClassList )
   {
-    QStringList Row;
-    Row.append ( QString::fromStdString ( Class ) );
-    Data.append ( Row );
+    QStringList row;
+    row.append ( QString::fromStdString ( cls ) );
+    if (direct_classes.contains(cls)) {
+      row.append("D");
+    }
+    else {
+      row.append("I");
+    }
+    Data.append ( row );
   }
 }
 
