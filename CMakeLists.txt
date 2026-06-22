@@ -1,3 +1,8 @@
+# DUNE DAQ modification notice:
+# This file has been modified from the original ATLAS dbe source for the DUNE DAQ project.
+# Fork baseline commit: dbe-02-12-17 (2022-05-12).
+# Renamed since fork: no.
+
 cmake_minimum_required(VERSION 3.12)
 project(dbe VERSION 1.8.1)
 

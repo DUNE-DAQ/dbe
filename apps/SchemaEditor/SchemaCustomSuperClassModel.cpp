@@ -1,3 +1,8 @@
+// DUNE DAQ modification notice:
+// This file has been modified from the original ATLAS dbe source for the DUNE DAQ project.
+// Fork baseline commit: dbe-02-12-17 (2022-05-12).
+// Renamed since fork: yes (from src/SchemaEditor/SchemaCustomSuperClassModel.cpp to apps/SchemaEditor/SchemaCustomSuperClassModel.cpp).
+
 #include "dbe/SchemaCustomSuperClassModel.hpp"
 
 using namespace dunedaq::oks;

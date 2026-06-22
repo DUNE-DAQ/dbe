@@ -1,3 +1,8 @@
+// DUNE DAQ modification notice:
+// This file has been modified from the original ATLAS dbe source for the DUNE DAQ project.
+// Fork baseline commit: dbe-02-12-17 (2022-05-12).
+// Renamed since fork: yes (from dbe/model_common_interface_macros.h to include/dbe/model_common_interface_macros.hpp).
+
 /*
  * model_common_interface_macros.h
  *
