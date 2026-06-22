@@ -24,9 +24,95 @@ QString FileInfo::s_schema_path{"."};
 QString FileInfo::s_data_path{"."};
 QStringList FileInfo::s_path_list{};
 QList<QUrl> FileInfo::s_path_urls{};
-std::map<QString, std::map<QString, const tref>> FileInfo::s_obj_map{};
-std::map<QString, std::set<QString>> FileInfo::s_missing_schema_map{};
-std::map<QString, std::set<QString>> FileInfo::s_missing_data_map{};
+
+FileInfo::FileInfo(const QString& name) : m_filename(name) {
+  m_short_name = prune_path(m_filename);
+  parse_objects();
+  check_includes();
+}
+
+void FileInfo::parse_objects() {
+  m_objects.clear();
+  for (auto const& class_name :
+         config::api::info::onclass::allnames <std::vector<std::string>>()) {
+    for (auto obj : config::api::info::onclass::objects(class_name, false)) {
+      auto file = prune_path(QString::fromStdString(obj.contained_in()));
+      if (file == m_short_name) {
+        m_objects.insert({QString::fromStdString(obj.full_name()), obj});
+      }
+    }
+  }
+}
+
+bool FileInfo::check_includes() {
+  m_message.clear();
+  m_missing_schema.clear();
+  m_missing_data.clear();
+  QStringList includes(config::api::get::file::inclusions_singlefile (
+                         m_filename));
+  for (auto [id, obj] : m_objects) {
+    dunedaq::conffwk::class_t const & classdef =
+      dbe::config::api::info::onclass::definition (obj.class_name(), false);
+
+    auto schema_file = QString::fromStdString(classdef.p_schema_path);
+    if (!match_path(schema_file, m_filename, includes)) {
+      m_message += QString("Object <i>" + id + "</i> is of class <i>"
+                           + QString::fromStdString(obj.class_name())
+                           + "</i> defined in file <b>" + schema_file
+                           + "</b> which is not included<br>");
+      m_missing_schema.insert(prune_path(schema_file));
+    }
+
+
+    std::vector<tref> relobjs;
+    for (auto rel: classdef.p_relationships) {
+      if (config::api::info::relation::is_simple(rel)) {
+        try {
+          relobjs.push_back(dbegraph::linked::through::relation<tref> (obj, rel));
+        }
+        catch ( daq::dbe::config_object_retrieval_result_is_null const & e ) {
+          // nothing needs be done to handle cases that a relation has not been set
+        }
+      }
+      else {
+        relobjs = dbegraph::linked::through::relation<std::vector<tref>> (obj, rel);
+      }
+
+      for (auto relobj : relobjs) {
+        auto file = QString::fromStdString(relobj.contained_in());
+        if (!(FileInfo::match_path(file, m_filename, includes))) {
+          m_message += QString("Object <i>" + id + "</i> has relationship to <i>"
+                               + QString::fromStdString(relobj.full_name())
+                               + "</i> in file <b>" + file
+                               + "</b> which is not included<br>");
+          m_missing_data.insert(FileInfo::prune_path(file));
+        }
+      }
+    }
+  }
+  return m_message.isEmpty();
+}
+
+const QString& FileInfo::data_path() {
+  if (s_data_path == ".") {
+    s_data_path = s_schema_path;
+  }
+  return s_data_path;
+}
+void FileInfo::update_data_path(const QString& path) {
+  s_data_path = path;
+}
+
+const QString& FileInfo::schema_path() {
+  if (s_schema_path == ".") {
+    s_schema_path = s_data_path;
+  }
+  return s_schema_path;
+}
+void FileInfo::update_schema_path(const QString& path) {
+  s_schema_path = path;
+}
+
 
 void FileInfo::setup_paths() {
   QString DUNEDAQ_DB_PATH = getenv ( "DUNEDAQ_DB_PATH" );
@@ -101,85 +187,10 @@ QStringList FileInfo::get_path_list(){
   return s_path_list;
 }
 
-void FileInfo::parse_all_objects() {
-  s_obj_map.clear();
-  for (auto const& class_name :
-         config::api::info::onclass::allnames <std::vector<std::string>>()) {
-    for (auto obj : config::api::info::onclass::objects(class_name, false)) {
-      auto file = prune_path(QString::fromStdString(obj.contained_in()));
-      auto name = QString::fromStdString(obj.full_name());
-      if (!s_obj_map.contains(file)) {
-        s_obj_map.insert({file,{}});
-        s_missing_schema_map.insert({file,{}});
-        s_missing_data_map.insert({file,{}});
-      }
-      s_obj_map.at(file).insert({name, obj});
-    }
-  }
-}
 
-QString FileInfo::check_file_includes(const QString& filename) {
-  QString message{};
-
-  auto fname = prune_path(filename);
-  if (!s_missing_schema_map.contains(fname)) {
-    s_missing_schema_map.insert({fname,{}});
-  } else {
-    s_missing_schema_map.at(fname).clear();
-  }
-  if (!s_missing_data_map.contains(fname)) {
-    s_missing_data_map.insert({fname,{}});
-  } else {
-    s_missing_data_map.at(fname).clear();
-  }
-  QStringList includes(config::api::get::file::inclusions_singlefile (
-                         filename));
-  if (s_obj_map.contains(prune_path(filename))) {
-    for (auto [id, obj] : s_obj_map.at(prune_path(filename))) {
-      dunedaq::conffwk::class_t const & classdef =
-        dbe::config::api::info::onclass::definition (obj.class_name(), false);
-
-      auto schema_file = QString::fromStdString(classdef.p_schema_path);
-      if (!match_path(schema_file, filename, includes)) {
-        message += QString("Object <i>" + id + "</i> is of class <i>"
-                           + QString::fromStdString(obj.class_name())
-                           + "</i> defined in file <b>" + schema_file
-                           + "</b> which is not included<br>");
-        s_missing_schema_map.at(fname).insert(prune_path(schema_file));
-      }
-      std::vector<tref> relobjs;
-      for (auto rel: classdef.p_relationships) {
-        if (config::api::info::relation::is_simple(rel)) {
-          try {
-            relobjs.push_back(dbegraph::linked::through::relation<tref> (obj, rel));
-          }
-          catch ( daq::dbe::config_object_retrieval_result_is_null const & e ) {
-            // nothing needs be done to handle cases that a relation has not been set
-          }
-        }
-        else {
-          relobjs = dbegraph::linked::through::relation<std::vector<tref>> (obj, rel);
-        }
-
-        for (auto relobj : relobjs) {
-          auto file = QString::fromStdString(relobj.contained_in());
-          if (!(match_path(file, filename, includes))) {
-            message += QString("Object <i>" + id + "</i> has relationship to <i>"
-                               + QString::fromStdString(relobj.full_name())
-                               + "</i> in file <b>" + file
-                               + "</b> which is not included<br>");
-            s_missing_data_map.at(fname).insert(prune_path(file));
-          }
-        }
-      }
-    }
-  }
-  return message;
-}
-
-
-FileInfo::FileInfo(QString filename, QWidget* /*parent*/)
-  : m_ui(new Ui::FileInfo), m_filename(filename), m_uuid(QUuid::createUuid()) {
+FileInfoWidget::FileInfoWidget(QString filename, QWidget* /*parent*/)
+  : m_ui(new Ui::FileInfo),
+    m_file(filename), m_uuid(QUuid::createUuid()) {
 
   QWidget::setAttribute(Qt::WA_DeleteOnClose);
 
@@ -197,7 +208,7 @@ FileInfo::FileInfo(QString filename, QWidget* /*parent*/)
   setObjectName(filename);
   setWindowTitle("File:  " + filename.section('/',-1));
 
-  setup_paths();
+  m_file.setup_paths();
   parse_includes();
   parse_objects();
 
@@ -228,7 +239,7 @@ FileInfo::FileInfo(QString filename, QWidget* /*parent*/)
            this, SLOT (filemodel_updated()));
 }
 
-void FileInfo::filemodel_updated() {
+void FileInfoWidget::filemodel_updated() {
   if (m_updating) {
     return;
   }
@@ -237,42 +248,28 @@ void FileInfo::filemodel_updated() {
 }
 
 
-void FileInfo::parse_objects() {
-  parse_all_objects();
+void FileInfoWidget::parse_objects() {
+  m_file.parse_objects();
+  m_file.check_includes();
   m_ui->object_list->clear();
-  auto fname = prune_path(m_filename);
-  if (s_obj_map.contains(fname)) {
-    auto& omap = s_obj_map.at(fname);
-    for (auto const& [obj_name, obj_ref] : omap) {
-      auto item = new QListWidgetItem(obj_name);
-      m_ui->object_list->addItem(item);
-    }
+  for (auto const& [obj_name, obj_ref] : m_file.objects()) {
+    auto item = new QListWidgetItem(obj_name);
+    m_ui->object_list->addItem(item);
   }
+
   m_ui->object_list->update();
 
-  auto status = check_includes();
-  if (!s_missing_schema_map.contains(fname)) {
-    s_missing_schema_map.insert({fname,{}});
-  }
-  if (!s_missing_data_map.contains(fname)) {
-    s_missing_data_map.insert({fname,{}});
-  }
-  m_ui->add_missing_schema->setVisible(!s_missing_schema_map.at(fname).empty());
-  m_ui->add_missing->setVisible(!s_missing_data_map.at(fname).empty());
+  m_ui->add_missing_schema->setVisible(!m_file.missing_schema().empty());
+  m_ui->add_missing->setVisible(!m_file.missing_data().empty());
 
-  m_ui->warningBox->setVisible(!status);
+  m_ui->message->setText(m_file.message());
+  m_ui->warningBox->setVisible(!m_file.message().isEmpty());
 }
 
 
-bool FileInfo::check_includes() {
-  QString message = check_file_includes(m_filename);
-  m_ui->message->setText(message);
-  return message.isEmpty();
-}
-
-void FileInfo::parse_includes() {
+void FileInfoWidget::parse_includes() {
   QStringList includes(config::api::get::file::inclusions_singlefile (
-                         m_filename));
+                         m_file.name()));
   m_ui->schema_list->clear();
   m_ui->data_list->clear();
   for (auto inc: includes) {
@@ -293,28 +290,28 @@ void FileInfo::parse_includes() {
   m_ui->data_list->update();
 }
 
-void FileInfo::keyPressEvent(QKeyEvent* event) {
+void FileInfoWidget::keyPressEvent(QKeyEvent* event) {
   if (event->key() == Qt::Key_Escape) {
     close();
   }
   QWidget::keyPressEvent(event);
 }
 
-void FileInfo::accept() {
+void FileInfoWidget::accept() {
   close();
 }
-void FileInfo::reject() {
+void FileInfoWidget::reject() {
   close();
 }
 
-void FileInfo::edit_object_slot() {
+void FileInfoWidget::edit_object_slot() {
   auto item = m_ui->object_list->currentItem();
   edit_object_slot(item);
 }
 
-void FileInfo::edit_object_slot(QListWidgetItem* item) {
+void FileInfoWidget::edit_object_slot(QListWidgetItem* item) {
   auto name = item->text();
-  if (s_obj_map.at(prune_path(m_filename)).contains(name)) {
+  if (m_file.objects().contains(name)) {
     for ( QWidget * widget : QApplication::allWidgets() ) {
       auto oe = dynamic_cast<ObjectEditor*> ( widget );
       if ( oe != nullptr ) {
@@ -327,133 +324,118 @@ void FileInfo::edit_object_slot(QListWidgetItem* item) {
       }
     }
 
-    auto obj = s_obj_map.at(prune_path(m_filename)).at(name);
+    auto obj = m_file.objects().at(name);
     auto oe = new ObjectEditor(obj);
     oe->show();
   }
 }
 
-void FileInfo::delete_object_slot() {
+void FileInfoWidget::delete_object_slot() {
   auto name = m_ui->object_list->currentItem()->text();
-  auto file = prune_path(m_filename);
-  if (s_obj_map.at(file).contains(name)) {
-    config::api::commands::delobj(s_obj_map.at(file).at(name), m_uuid);
+  if (m_file.objects().contains(name)) {
+    config::api::commands::delobj(m_file.objects().at(name), m_uuid);
   }
   parse_objects();
 }
 
-void FileInfo::rename_object_slot() {
+void FileInfoWidget::rename_object_slot() {
   auto name = m_ui->object_list->currentItem()->text();
-  auto file = prune_path(m_filename);
-  if (s_obj_map.at(file).contains(name)) {
+  if (m_file.objects().contains(name)) {
     QInputDialog dia(this);
     dia.setLabelText("Enter new name for " + name);
     auto code = dia.exec();
     if (code == QDialog::Accepted) {
       std::string new_name = dia.textValue().toStdString();
-      config::api::commands::renobj(s_obj_map.at(file).at(name), new_name, m_uuid);
+      config::api::commands::renobj(m_file.objects().at(name), new_name, m_uuid);
     }
   }
   parse_objects();
 }
 
-void FileInfo::add_datafile() {
-  if (s_data_path == ".") {
-    s_data_path = s_schema_path;
-  }
-  auto fd = new QFileDialog ( this, tr ( "Open Data File" ), s_data_path,
+
+void FileInfoWidget::add_datafile() {
+  auto fd = new QFileDialog ( this, tr ( "Open Data File" ),
+                              m_file.data_path(),
                               tr ( "XML data files (*.data.xml)" ) );
   add_includefile(fd);
   if (fd->result() == QDialog::Accepted) {
-    s_data_path = fd->directory().path();
+    m_file.update_data_path(fd->directory().path());
   }
 }
-void FileInfo::add_schemafile() {
-  if (s_schema_path == ".") {
-    s_schema_path = s_data_path;
-  }
-  auto fd = new QFileDialog ( this, tr ( "Open Schema File" ), s_schema_path,
+
+void FileInfoWidget::add_schemafile() {
+  auto fd = new QFileDialog ( this, tr ( "Open Schema File" ),
+                              m_file.schema_path(),
                               tr ( "XML schema files (*.schema.xml)" ) );
   add_includefile(fd);
   if (fd->result() == QDialog::Accepted) {
-    s_schema_path = fd->directory().path();
+    m_file.update_schema_path (fd->directory().path());
   }
 }
-void FileInfo::add_includefile(QFileDialog* fd) {
+
+void FileInfoWidget::add_includefile(QFileDialog* fd) {
   fd->setFileMode ( QFileDialog::ExistingFiles );
   fd->setViewMode ( QFileDialog::Detail );
   fd->setAcceptMode ( QFileDialog::AcceptOpen );
-  fd->setSidebarUrls(s_path_urls);
+  fd->setSidebarUrls(m_file.get_path_urls());
   if (fd->exec() == QDialog::Accepted) {
     auto files = fd->selectedFiles();
     QScopedValueRollback<bool> rb(m_updating,true);
     for (auto file: files) {
-      file = prune_path(file);
-      config::api::commands::file::add(m_filename, file);
+      file = m_file.prune_path(file);
+      config::api::commands::file::add(m_file.name(), file);
     }
     parse_includes();
     parse_objects();
   }
 }
 
-void FileInfo::add_missing_schemafiles() {
+void FileInfoWidget::add_missing_schemafiles() {
   QScopedValueRollback<bool> rb(m_updating,true);
-  auto short_filename = prune_path(m_filename);
-  if (!s_missing_schema_map.contains(short_filename)) {
-    QMessageBox::warning (this, "Warning", 
-                          QString("Missing schema map is corrupt and does not contain %1").arg(short_filename));
-    return;
-  }
-  for (const auto& file : s_missing_schema_map.at(short_filename)) {
-    config::api::commands::file::add(m_filename, file);
+  for (const auto& file : m_file.missing_schema()) {
+    config::api::commands::file::add(m_file.name(), file);
   }
   parse_includes();
   parse_objects();
 }
 
-void FileInfo::add_missing_datafiles() {
+void FileInfoWidget::add_missing_datafiles() {
   QScopedValueRollback<bool> rb(m_updating,true);
-  auto short_filename = prune_path(m_filename);
-  if (!s_missing_data_map.contains(short_filename)) {
-    QMessageBox::warning (this, "Warning", 
-                          QString("Missing data map is corrupt and does not contain %1").arg(short_filename));
-    return;
-  }
-  for (const auto& file : s_missing_data_map.at(prune_path(m_filename))) {
-    config::api::commands::file::add(m_filename, file);
+  for (const auto& file : m_file.missing_data()) {
+    config::api::commands::file::add(m_file.name(), file);
   }
   parse_includes();
   parse_objects();
 }
 
-void FileInfo::remove_schemafile_slot() {
+void FileInfoWidget::remove_schemafile_slot() {
   remove_includefile(m_ui->schema_list->currentItem()->text());
 }
-void FileInfo::remove_datafile_slot() {
+void FileInfoWidget::remove_datafile_slot() {
   remove_includefile(m_ui->data_list->currentItem()->text());
 }
-void FileInfo::remove_includefile(const QString& file) {
-  config::api::commands::file::remove(m_filename, file);
+void FileInfoWidget::remove_includefile(const QString& file) {
+  config::api::commands::file::remove(m_file.name(), file);
   parse_includes();
   parse_objects();
 }
 
 
-void FileInfo::file_info_slot() {
+void FileInfoWidget::file_info_slot() {
   show_file_info(m_ui->data_list->currentItem()->text());
 }
 
-void FileInfo::file_info_slot(QListWidgetItem* item) {
+void FileInfoWidget::file_info_slot(QListWidgetItem* item) {
   show_file_info(item->text());
 }
 
-void FileInfo::file_info_slot(const QString& filename) {
+void FileInfoWidget::file_info_slot(const QString& filename) {
   show_file_info(filename);
 }
 
-void FileInfo::show_file_info(const QString& filename) {
+void FileInfoWidget::show_file_info(const QString& filename) {
   for ( QWidget * widget : QApplication::allWidgets() ) {
-    auto fi = dynamic_cast<FileInfo *> ( widget );
+    auto fi = dynamic_cast<FileInfoWidget *> ( widget );
     if ( fi != nullptr ) {
       if (fi->objectName() == filename) {
         fi->raise();
@@ -464,11 +446,11 @@ void FileInfo::show_file_info(const QString& filename) {
     }
   }
 
-  auto fi = new FileInfo(filename);
+  auto fi = new FileInfoWidget(filename);
   fi->show();
 }
 
-void FileInfo::activate_schema_context_menu (QPoint pos) {
+void FileInfoWidget::activate_schema_context_menu (QPoint pos) {
   if (m_schema_menu == nullptr) {
     m_schema_menu = new QMenu(this);
 
@@ -489,7 +471,7 @@ void FileInfo::activate_schema_context_menu (QPoint pos) {
   m_schema_menu->exec (m_ui->schema_list->mapToGlobal(pos));
 }
 
-void FileInfo::activate_data_context_menu (QPoint pos) {
+void FileInfoWidget::activate_data_context_menu (QPoint pos) {
   if (m_data_menu == nullptr) {
     m_data_menu = new QMenu(this);
 
@@ -519,7 +501,7 @@ void FileInfo::activate_data_context_menu (QPoint pos) {
   m_data_menu->exec (m_ui->data_list->mapToGlobal(pos));
 }
 
-void FileInfo::activate_object_context_menu (QPoint pos) {
+void FileInfoWidget::activate_object_context_menu (QPoint pos) {
   if (m_object_menu == nullptr) {
     m_object_menu = new QMenu(this);
 

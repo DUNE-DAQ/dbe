@@ -251,7 +251,7 @@ void dbe::CustomFileView::file_info_slot(QModelIndex index) {
                                                   index.parent() ) ).toString();
   auto full_name = path + "/" + file;
 
-  FileInfo::show_file_info(full_name);
+  FileInfoWidget::show_file_info(full_name);
 }
 
 void dbe::CustomFileView::LaunchIncludeEditorSlot()
