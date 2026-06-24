@@ -21,24 +21,59 @@ namespace dbe
     class FileInfo;
   }  // namespace Ui
 
-  class FileInfo : public QWidget {
-    Q_OBJECT
+
+  class FileInfo {
   public:
-    FileInfo(QString filename, QWidget* parent=0);
-    ~FileInfo() = default;
+    explicit FileInfo(const QString& filename);
 
-    void keyPressEvent(QKeyEvent* event) override;
+    const QString& name(){return m_filename;};
+    const QString& short_name(){return m_short_name;};
 
-    static void show_file_info(const QString& filename);
     static void setup_paths();
     static QList<QUrl> get_path_urls();
     static QStringList get_path_list();
     static QString prune_path(QString file);
+
+    static const QString& data_path();
+    static void update_data_path(const QString& path);
+    static const QString& schema_path();
+    static void update_schema_path(const QString& path);
     static bool match_path(const QString& file, 
                            const QString& top_file,
                            const QStringList& includes);
-    static void parse_all_objects();
-    static QString check_file_includes(const QString& file);
+    bool check_includes();
+    const QString& message() const {return m_message;};
+    const std::map<QString, const tref>& objects() const {return m_objects;};
+
+    const std::set<QString>& missing_schema() const {return m_missing_schema;};
+    const std::set<QString>& missing_data() const {return m_missing_data;};
+
+    void parse_objects();
+
+  private:
+    static QStringList s_path_list;
+    static QList<QUrl> s_path_urls;
+    static QString s_schema_path;
+    static QString s_data_path;
+
+    QString m_filename;
+    QString m_short_name;
+    QString m_message;
+    std::map<QString, const tref> m_objects;
+    std::set<QString> m_missing_schema;
+    std::set<QString> m_missing_data;
+  };
+
+
+  class FileInfoWidget : public QWidget {
+    Q_OBJECT
+  public:
+    FileInfoWidget(QString filename, QWidget* parent=0);
+    ~FileInfoWidget() = default;
+
+    void keyPressEvent(QKeyEvent* event) override;
+
+    static void show_file_info(const QString& filename);
 
   private slots:
     void accept();
@@ -68,10 +103,10 @@ namespace dbe
   private:
     void parse_objects();
     void parse_includes();
-    bool check_includes();
+
     Ui::FileInfo* m_ui;
-    std::map<QString, const tref> m_obj_map;
-    QString m_filename;
+
+    FileInfo m_file;
     bool m_readonly{false};
     QMenu* m_schema_menu{nullptr};
     QMenu* m_data_menu{nullptr};
@@ -79,15 +114,7 @@ namespace dbe
     QUuid const m_uuid;
 
     bool m_updating{false};
-
-    static std::map<QString, std::map<QString, const tref>> s_obj_map;
-    static std::map<QString, std::set<QString>> s_missing_schema_map;
-    static std::map<QString, std::set<QString>> s_missing_data_map;
-
-    static QStringList s_path_list;
-    static QList<QUrl> s_path_urls;
-    static QString s_schema_path;
-    static QString s_data_path;
   };
+
 } //namespace dbe
 #endif // DBE_FILEINFO_H

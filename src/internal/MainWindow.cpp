@@ -445,12 +445,12 @@ bool dbe::MainWindow::slot_commit_database ( bool Exit )
 
   if ( DialogResult )
   {
-    FileInfo::parse_all_objects();
     for (auto file : dbe::confaccessor::uncommitted_files()) {
-      auto message = FileInfo::check_file_includes(QString::fromStdString(file));
+      FileInfo info(QString::fromStdString(file));
+      auto message = info.message();
       if (!message.isEmpty()) {
         QMessageBox::warning ( 0, "Save database", message );
-        FileInfo::show_file_info(QString::fromStdString(file));
+        FileInfoWidget::show_file_info(info.name());
         return false;
       }
     }
