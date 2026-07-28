@@ -39,6 +39,10 @@ namespace dbe
                            const QStringList& includes);
     static void parse_all_objects();
     static QString check_file_includes(const QString& file);
+    static QString get_schema_path() {return s_schema_path;}
+    static QString get_data_path() {return s_data_path;}
+    static void set_schema_path(const QString& path) {s_schema_path=path;}
+    static void set_data_path(const QString& path) {s_data_path=path;}
 
   private slots:
     void accept();

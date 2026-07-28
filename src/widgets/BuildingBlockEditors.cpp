@@ -106,12 +106,13 @@ void base::closeEvent ( QCloseEvent * Event )
 
 //------------------------------------------------------------------------------------------------
 relation::relation ( t_virtue const & relation, QWidget * parent,
-                     bool owned )
+                     bool owned, bool readonly )
   :
   base (
    std::make_shared<t_build_block_editor> ( relation ), parent, owned ),
   p_base_data_editor ( std::static_pointer_cast<t_build_block_editor> ( p_data_editor ) ),
   IsMultiValue ( false ),
+  m_readonly(readonly),
   StatusBar ( nullptr ),
   ContextMenu ( nullptr ),
   RemoveAction ( nullptr ),
@@ -195,12 +196,12 @@ bool relation::eventFilter ( QObject * Target, QEvent * Event )
         };
 
         if(Event->type() == QEvent::DragEnter) {
-           QDragEnterEvent *tDropEvent = static_cast<QDragEnterEvent *>(Event);
+           QDragEnterEvent *tDragEvent = static_cast<QDragEnterEvent *>(Event);
 
-           const QMimeData * const data = tDropEvent->mimeData();
+           const QMimeData * const data = tDragEvent->mimeData();
            const auto& decodedData = decode(data);
            if((decodedData.first == true) && (decodedData.second.size() > 0)) {
-               tDropEvent->acceptProposedAction();
+               tDragEvent->acceptProposedAction();
            }
 
            return true;
@@ -208,11 +209,12 @@ bool relation::eventFilter ( QObject * Target, QEvent * Event )
 
         if(Event->type() == QEvent::Drop) {
             QDropEvent *tDropEvent = static_cast<QDropEvent *>(Event);
-
-            const QMimeData * const data = tDropEvent->mimeData();
-            for(const QString& o : decode(data).second) {
-                // TODO: this is not very efficient for large lists
-                AddToDataList(o);
+            if (!m_readonly) {
+                const QMimeData * const data = tDropEvent->mimeData();
+                for(const QString& o : decode(data).second) {
+                    // TODO: this is not very efficient for large lists
+                    AddToDataList(o);
+                }
             }
 
             tDropEvent->acceptProposedAction();
@@ -242,50 +244,17 @@ bool relation::eventFilter ( QObject * Target, QEvent * Event )
                 return true;
             }
 
-            if(FirstItem == nullptr) {
-                if(IsMultiValue) {
-                    FirstItem = new QListWidgetItem("Type here");
-                } else {
-                    if(this_data.isEmpty()) {
-                        FirstItem = new QListWidgetItem("No Object");
-                    } else {
-                        FirstItem = new QListWidgetItem(this_data.at(0));
-                    }
-                }
-
-                ListWidget->addItem(FirstItem);
-
-                if(IsMultiValue) {
-                    FirstItem->setBackground(Qt::GlobalColor::lightGray);
-                    FirstItem->setForeground(QColor(0, 0, 0, 127));
-                }
-
-                FirstItem->setSizeHint(FirstItem->sizeHint() + QSize(0, 25));
-            } else if(FirstItem->listWidget() == ListWidget && ListWidget->itemWidget(FirstItem) != 0) {
+            if(FirstItem != nullptr &&
+               FirstItem->listWidget() == ListWidget &&
+               ListWidget->itemWidget(FirstItem) != 0) {
                 ListWidget->takeItem(ListWidget->row(FirstItem));
                 ListWidget->setItemWidget(FirstItem, nullptr);
                 delete FirstItem;
-
-                if(IsMultiValue) {
-                    FirstItem = new QListWidgetItem("Type here");
-                } else {
-                    if(this_data.isEmpty()) {
-                        FirstItem = new QListWidgetItem("No Object");
-                    } else {
-                        FirstItem = new QListWidgetItem(this_data.at(0));
-                    }
-                }
-
-                ListWidget->addItem(FirstItem);
-
-                if(IsMultiValue) {
-                    FirstItem->setBackground(Qt::GlobalColor::lightGray);
-                    FirstItem->setForeground(QColor(0, 0, 0, 127));
-                }
-
-                FirstItem->setSizeHint(FirstItem->sizeHint() + QSize(0, 25));
+                SetFirstItem();
             }
-
+            else {
+              std::cout << "Do we ever get here? FirstItem is not null but other conditions not met!\n";
+            }
             return false;
         }
     } else if(QLineEdit* le = dynamic_cast<QLineEdit *>(Target)) {
@@ -293,7 +262,7 @@ bool relation::eventFilter ( QObject * Target, QEvent * Event )
             const QString& value = le->text();
 
             // This string checking is very very bad...
-            if((value.isEmpty() == false) && (value != "Type here") && (value != "No Object")) {
+            if((value.isEmpty() == false) && (value != c_input_placeholder) && (value != c_no_object_placeholder)) {
                 CreateObjectEditor(le->text().toStdString());
                 return false;
             }
@@ -314,8 +283,10 @@ void relation::SetEditor()
     // Enable drops only for multi-value
     // This allows to drop several objects in a relationship (e.g., several computers in a rack)
     // Not really needed for single-value relationship (the item can be selected from the list)
-    ListWidget->setAcceptDrops ( true );
-    ListWidget->installEventFilter ( this );
+    if (!m_readonly) {
+      ListWidget->setAcceptDrops ( true );
+      ListWidget->installEventFilter ( this );
+    }
   }
 
   SetFirstItem();
@@ -344,7 +315,7 @@ void relation::FetchData()
 
   for ( tref const & o : related )
   {
-    result.append ( QString::fromStdString ( o.UID() ) );
+    result.append ( QString::fromStdString ( o.full_name() ) );
   }
 
   emit FetchDataDone ( result );
@@ -358,8 +329,9 @@ bool relation::GetIsMultiValue() const
 void relation::DataWasFetched ( QStringList ListOfObjects )
 {
   ComboBox->clear();
-  ComboBox->addItems ( ListOfObjects );
-
+  if (!m_readonly) {
+    ComboBox->addItems ( ListOfObjects );
+  }
   emit signal_internal_value_change();
 
   if ( this_initial_load )
@@ -394,28 +366,35 @@ void relation::SetFirstItem()
 {
   if ( IsMultiValue )
   {
-    FirstItem = new QListWidgetItem ( "Type here" );
+    if (m_readonly) {
+      if ( this_data.isEmpty() ) {
+        FirstItem = new QListWidgetItem ( c_no_object_placeholder );
+        ListWidget->addItem ( FirstItem );
+      }
+      else {
+        FirstItem = new QListWidgetItem ( this_data.at ( 0 ) );
+      }
+    }
+    else {
+      FirstItem = new QListWidgetItem ( c_input_placeholder );
+      FirstItem->setBackground ( Qt::GlobalColor::lightGray );
+      FirstItem->setForeground ( QColor ( 0, 0, 0, 127 ) );
+      ListWidget->addItem ( FirstItem );
+    }
   }
   else
   {
     if ( this_data.isEmpty() )
     {
-      FirstItem = new QListWidgetItem ( "No Object" );
+      FirstItem = new QListWidgetItem ( c_no_object_placeholder );
     }
-
     else
     {
       FirstItem = new QListWidgetItem ( this_data.at ( 0 ) );
     }
+    ListWidget->addItem ( FirstItem );
   }
 
-  ListWidget->addItem ( FirstItem );
-
-  if ( IsMultiValue )
-  {
-    FirstItem->setBackground ( Qt::GlobalColor::lightGray );
-    FirstItem->setForeground ( QColor ( 0, 0, 0, 127 ) );
-  }
 
   FirstItem->setSizeHint ( FirstItem->sizeHint() + QSize ( 0, 25 ) );
 }
@@ -505,7 +484,7 @@ void relation::CustomContextMenuRequested ( const QPoint & pos )
     ContextMenu->addAction ( RemoveAction );
   }
 
-  if ( ( CurrentItem = ListWidget->itemAt ( pos ) ) )
+  if ( !m_readonly && ( CurrentItem = ListWidget->itemAt ( pos ) ) )
   {
     if ( CurrentItem != FirstItem )
     {
@@ -723,7 +702,7 @@ void relation::EditItemEntered ( QListWidgetItem * Item )
 
 void relation::EndSignal()
 {
-  if ( IsMultiValue and ListWidget->item ( 0 )->text() == "Type here"
+  if ( IsMultiValue and ListWidget->item ( 0 )->text() == c_input_placeholder
        and not this_value_changed )
   {
     return;
@@ -739,7 +718,7 @@ void relation::EndSignal()
     QListWidgetItem * Item = ListWidget->item ( i );
     QString const & val = Item->text();
 
-    if ( val != "Type here" and val != "No Object" )
+    if ( val != c_input_placeholder and val != c_no_object_placeholder )
     {
       this_data.append ( val );
     }
@@ -780,7 +759,7 @@ void relation::AddToDataList ( const QString & DataValue )
 
   if ( IsMultiValue )
   {
-    FirstItem = new QListWidgetItem ( "Type here" );
+    FirstItem = new QListWidgetItem ( c_input_placeholder );
   }
   else
   {
@@ -824,7 +803,7 @@ void relation::RemoveFromDataList()
     {
       QString text = item->text();
 
-      if ( text != "Type here" )
+      if ( text != c_input_placeholder )
       {
         if ( IsMultiValue )
         {
@@ -842,7 +821,7 @@ void relation::RemoveFromDataList()
           {
             editbox->lineEdit()->clear();
             editbox->lineEdit()->clearFocus();
-            FirstItem->setText ( "No Object" );
+            FirstItem->setText ( c_no_object_placeholder );
           }
         }
 
@@ -862,7 +841,7 @@ void relation::UpdateActions()
   {
     QString const & value = ListWidget->item ( i )->text();
 
-    if ( value != "No Object" and value != "Type here" )
+    if ( value != c_no_object_placeholder and value != c_input_placeholder )
     {
       values.append ( value );
     }
@@ -907,10 +886,11 @@ void relation::closeEvent ( QCloseEvent * Event )
 
 //------------------------------------------------------------------------------------------------
 stringattr::stringattr ( t_virtue const & attr, QWidget * parent,
-                         bool owned )
+                         bool owned, bool readonly )
   :
   base ( std::make_shared<t_build_block_editor> ( attr ), parent, owned ),
   m_base_data_editor ( std::static_pointer_cast<t_build_block_editor> ( p_data_editor ) ),
+  m_readonly(readonly),
   DefaultValue ( "" ),
   PopUpButton ( nullptr ),
   Dialog ( nullptr ),
@@ -920,8 +900,13 @@ stringattr::stringattr ( t_virtue const & attr, QWidget * parent,
   setupUi ( this );
   t_virtue const & virtue = m_base_data_editor->get();
 
- StringLineEdit->installEventFilter(this);
- StringLineEdit->setTabChangesFocus(true);
+  if (m_readonly) {
+      StringLineEdit->setReadOnly(true);
+  }
+  else {
+      StringLineEdit->installEventFilter(this);
+  }
+  StringLineEdit->setTabChangesFocus(true);
 
   setWindowTitle ( QString ( "Edit Attr : %1" ).arg ( virtue.p_name.c_str() ) );
   AttributeNameLabel->setText ( QString ( virtue.p_name.c_str() ) + " : " );
@@ -1073,9 +1058,11 @@ void stringattr::closeEvent ( QCloseEvent * Event )
 
 void stringattr::SetController()
 {
-  connect ( StringLineEdit, SIGNAL ( textChanged (  ) ), this, SLOT ( UpdateActions (  ) ), Qt::UniqueConnection );
-  connect ( this, SIGNAL ( signal_data_input_complete() ), this, SLOT ( AddToDataList() ) );
-  connect ( OkButton, SIGNAL ( clicked() ), this, SLOT ( AddToDataList() ), Qt::UniqueConnection );
+  if (!m_readonly) {
+      connect ( StringLineEdit, SIGNAL ( textChanged (  ) ), this, SLOT ( UpdateActions (  ) ), Qt::UniqueConnection );
+      connect ( this, SIGNAL ( signal_data_input_complete() ), this, SLOT ( AddToDataList() ) );
+      connect ( OkButton, SIGNAL ( clicked() ), this, SLOT ( AddToDataList() ), Qt::UniqueConnection );
+  }
 }
 
 void stringattr::setdefaults ( const QString & ValueDefault )
@@ -1202,18 +1189,23 @@ void stringattr::ToogleTextEditOkButton()
 
 //------------------------------------------------------------------------------------------------
 numericattr::numericattr ( t_virtue const & attr, QWidget * parent,
-                           bool owned )
+                           bool owned, bool readonly )
   :
   base ( std::make_shared<t_build_block_editor> ( attr ), parent, owned ),
   this_base_data_editor ( std::static_pointer_cast<t_build_block_editor> ( p_data_editor ) ),
+  m_readonly(readonly),
   this_native_base ( -1 )
 {
   setupUi ( this );
   t_virtue const & Virtue = this_base_data_editor->get();
 
   setWindowTitle ( QString ( "Edit Attribute: %1" ).arg ( Virtue.p_name.c_str() ) );
-  LineEdit->SetPopupMenu();
-
+  if (m_readonly) {
+      LineEdit->setReadOnly(true);
+  }
+  else {
+      LineEdit->SetPopupMenu();
+  }
   if ( Virtue.p_is_not_null )
   {
     this_base_data_editor->set_valid ( false );
@@ -1884,27 +1876,33 @@ void numericattr::ChangeFormatOct()
 
 //------------------------------------------------------------------------------------------------
 combo::combo ( t_virtue const & attr, QWidget * parent,
-               bool owned )
+               bool owned, bool readonly )
   :
   base ( std::make_shared<t_build_block_editor> ( attr ), parent, owned ),
-  m_base_data_editor ( std::static_pointer_cast<t_build_block_editor> ( p_data_editor ) )
+  m_base_data_editor ( std::static_pointer_cast<t_build_block_editor> ( p_data_editor ) ),
+  m_readonly(readonly)
 {
   setupUi ( this );
   SetController();
   /// Configuration of combo box
   Combo->setFocusPolicy ( Qt::ClickFocus );
-  Combo->installEventFilter ( this );
-
-  if ( Combo->lineEdit() != nullptr )
-  {
-    Combo->lineEdit()->installEventFilter ( this );
+  if (m_readonly) {
+      Combo->setEditable (false);
+      if ( Combo->lineEdit() != nullptr ) {
+          Combo->lineEdit()->setReadOnly(true);
+          Combo->lineEdit()->hide();
+      }
   }
+  else {
+      Combo->installEventFilter ( this );
+      if ( Combo->lineEdit() != nullptr ) {
+          Combo->lineEdit()->installEventFilter ( this );
+      }
 
-  t_virtue const & Virtue = m_base_data_editor->get();
-
-  if ( Virtue.p_type == dunedaq::conffwk::class_type )
-  {
-    Combo->setEditable ( true );
+      t_virtue const & Virtue = m_base_data_editor->get();
+      if ( Virtue.p_type == dunedaq::conffwk::class_type ) {
+          Combo->setEditable ( true );
+      }
   }
 }
 
@@ -1929,13 +1927,13 @@ void combo::SetValidatorData ( QStringList const & Data, bool AcceptNoMatch )
   Combo->clear();
   Combo->addItems ( Data );
 
-  QCompleter * Completer = new QCompleter ( Combo->model(), Combo );
-  Completer->setCaseSensitivity ( Qt::CaseInsensitive );
-  Completer->setCompletionMode ( QCompleter::PopupCompletion );
-  Completer->setFilterMode(Qt::MatchContains);
-
-  Combo->setCompleter ( Completer );
-
+  if (Combo->isEditable()) {
+    QCompleter * Completer = new QCompleter ( Combo->model(), Combo );
+    Completer->setCaseSensitivity ( Qt::CaseInsensitive );
+    Completer->setCompletionMode ( QCompleter::PopupCompletion );
+    Completer->setFilterMode(Qt::MatchContains);
+    Combo->setCompleter ( Completer );
+  }
   m_base_data_editor->set_obligatory ( false );
 
   QVariant VarFromList ( Data );
@@ -1945,7 +1943,6 @@ void combo::SetValidatorData ( QStringList const & Data, bool AcceptNoMatch )
     ValidatorAcceptNoMatch * TmpValidator = new ValidatorAcceptNoMatch ( VarFromList, this );
     Combo->setValidator ( TmpValidator );
   }
-
   else
   {
     ValidatorAcceptMatch * TmpValidator = new ValidatorAcceptMatch ( VarFromList, this );
@@ -1982,6 +1979,7 @@ void combo::SetEditor()
     QStringList classes ( dbe::config::api::info::onclass::allnames<QStringList>() );
     classes.sort();
     SetValidatorData ( classes );
+    Combo->lineEdit()->setText(c_input_placeholder);
   }
 
   SetData ( this_data );
@@ -1994,12 +1992,31 @@ void combo::setdata ( QStringList const & v )
 
 bool combo::eventFilter ( QObject * Target, QEvent * Event )
 {
-  if ( Target == Combo->lineEdit() && Event->type() == QEvent::MouseButtonRelease )
-  {
-    if ( !Combo->lineEdit()->hasSelectedText() )
-    {
-      Combo->lineEdit()->selectAll();
+  if (dynamic_cast<QLineEdit*>(Target) != nullptr) {
+    std::cout << "cast to QLineEdit\n";
+  }
+  if ( Target == Combo && Combo->lineEdit() != nullptr) {
+    if (Event->type() < 100) {
+    }
+    if (Event->type() == QEvent::FocusOut) {
+      if (Combo->lineEdit()->text().isEmpty()) {
+        Combo->lineEdit()->setText(c_input_placeholder);
+      }
       return true;
+    }
+    if (Event->type() == QEvent::FocusIn) {
+      if (!Combo->lineEdit()->hasSelectedText() ) {
+        Combo->lineEdit()->selectAll();
+      }
+      return true;
+    }
+    if(Event->type() == QEvent::KeyPress) {
+      QKeyEvent * KeyEvent = dynamic_cast<QKeyEvent *>(Event);
+      if(KeyEvent->key() == Qt::Key_Up || KeyEvent->key() == Qt::Key_Down) {
+        return true;
+      } else {
+        return false;
+      }
     }
   }
 
@@ -2023,16 +2040,16 @@ void combo::SetController()
             SLOT ( TryValidate ( const QString & ) ), Qt::UniqueConnection );
   connect ( Combo, SIGNAL ( activated ( const QString & ) ), this,
             SLOT ( ChangeDetected ( const QString & ) ), Qt::UniqueConnection );
-  connect ( Combo, SIGNAL ( currentIndexChanged ( int ) ), this,
-            SLOT ( CheckDefaults ( int ) ),
-            Qt::UniqueConnection );
 }
 
 void combo::TryValidate ( QString tmp )
 {
+  if (tmp == c_input_placeholder) {
+    Combo->lineEdit()->setPalette ( QApplication::palette ( this ) );
+    return;
+  }
   int index = 0;
-
-  if ( Combo->validator() != nullptr )
+  if (Combo->validator() != nullptr )
   {
     if ( Combo->validator()->validate ( tmp, index ) == QValidator::Acceptable )
     {
@@ -2040,19 +2057,19 @@ void combo::TryValidate ( QString tmp )
 
       if ( CompareDefaults() )
       {
-        Combo->setPalette ( StyleUtility::LoadedDefault );
+        Combo->lineEdit()->setPalette ( StyleUtility::LoadedDefault );
       }
 
       else
       {
-        Combo->setPalette ( QApplication::palette ( this ) );
+        Combo->lineEdit()->setPalette ( QApplication::palette ( this ) );
       }
     }
 
     else if ( Combo->validator()->validate ( tmp, index ) == QValidator::Intermediate )
     {
       m_base_data_editor->set_not_null ( false );
-      Combo->setPalette ( StyleUtility::WarningStatusBarPallete );
+      Combo->lineEdit()->setPalette ( StyleUtility::WarningStatusBarPallete );
     }
   }
 
@@ -2108,10 +2125,11 @@ void combo::buildtooltip()
 
 //------------------------------------------------------------------------------------------------
 multiattr::multiattr ( t_virtue const & attr, QWidget * parent,
-                       bool owned )
+                       bool owned, bool readonly )
   :
   base ( std::make_shared<t_build_block_editor> ( attr ), parent, owned ),
   m_base_data_editor ( std::static_pointer_cast<t_build_block_editor> ( p_data_editor ) ),
+  m_readonly(readonly),
   StatusBar ( nullptr ),
   OkButton ( nullptr ),
   RemoveButton ( nullptr ),
@@ -2129,6 +2147,7 @@ multiattr::multiattr ( t_virtue const & attr, QWidget * parent,
   QHBoxLayout * ButtonLayout = new QHBoxLayout();
   ListWidget = new QListWidget ( this );
   ListWidget->setContextMenuPolicy ( Qt::CustomContextMenu );
+  MainLayout->addWidget ( ListWidget );
 
   switch ( Virtue.p_type )
   {
@@ -2143,7 +2162,8 @@ multiattr::multiattr ( t_virtue const & attr, QWidget * parent,
     connect ( Combo->Combo, SIGNAL ( activated ( const QString & ) ), this,
               SLOT ( AddToDataList ( const QString & ) ), Qt::UniqueConnection );
     BaseWidget = Combo;
-
+    Combo->setStyleSheet ( "QLineEdit { background: #c0c0c0;} "
+                           "QLineEdit:focus {background: white;}" );
     break;
   }
 
@@ -2169,7 +2189,8 @@ multiattr::multiattr ( t_virtue const & attr, QWidget * parent,
     BaseWidget = Numeric;
     /// Frame
     Numeric->GetLineEdit()->setFrame ( false );
-    Numeric->GetLineEdit()->setPlaceholderText ( "Type Here" );
+    Numeric->GetLineEdit()->setReadOnly(m_readonly);
+    Numeric->GetLineEdit()->setPlaceholderText (c_input_placeholder);
     Numeric->setStyleSheet (
       "QLineEdit { background: #c0c0c0;} QLineEdit:focus {background: white;}" );
     Numeric->GetLineEdit()->setFixedHeight ( 24 );
@@ -2178,7 +2199,6 @@ multiattr::multiattr ( t_virtue const & attr, QWidget * parent,
   }
 
   // Types below are all treated as string types
-
   case dunedaq::conffwk::date_type:
   case dunedaq::conffwk::time_type:
   case dunedaq::conffwk::string_type:
@@ -2190,10 +2210,11 @@ multiattr::multiattr ( t_virtue const & attr, QWidget * parent,
               Qt::UniqueConnection );
     BaseWidget = String;
     /// Frame
+    String->GetLineEdit()->setReadOnly(m_readonly);
     String->GetLineEdit()->setFrameStyle(QFrame::NoFrame);
-//    String->GetLineEdit()->setPlaceholderText ( "Type here" );
+    String->GetLineEdit()->setPlaceholderText ( c_input_placeholder );
     String->setStyleSheet ( "QLineEdit { background: #c0c0c0;} "
-    																						"QLineEdit:focus {background: white;}" );
+                            "QLineEdit:focus {background: white;}" );
 //    String->GetLineEdit()->setFixedHeight ( 24 );
 
     ListWidget->setFrameStyle ( QFrame::NoFrame );
@@ -2214,7 +2235,6 @@ multiattr::multiattr ( t_virtue const & attr, QWidget * parent,
   connect ( ListWidget, SIGNAL ( customContextMenuRequested ( QPoint ) ), this,
             SLOT ( CustomContextMenuRequested ( QPoint ) ) );
 
-  MainLayout->addWidget ( ListWidget );
   MainLayout->addLayout ( ButtonLayout );
   SetStatusBar();
   MainLayout->addWidget ( StatusBar );
@@ -2264,7 +2284,6 @@ void multiattr::SetEditor()
     widget->setFlags (
       Qt::ItemIsSelectable | Qt::ItemIsEditable | Qt::ItemIsDragEnabled
       | Qt::ItemIsDropEnabled | Qt::ItemIsEnabled );
-
   }
 
   connect ( ListWidget, SIGNAL ( itemChanged ( QListWidgetItem * ) ), this,

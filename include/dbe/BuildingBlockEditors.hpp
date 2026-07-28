@@ -135,6 +135,8 @@ public:
 
   virtual QStringList getdata();
 
+  const QString c_input_placeholder{"Add a new value"};
+  const QString c_no_object_placeholder{"No Object currently set"};
 protected:
   base ( std::shared_ptr<editor_data_state> editordata, QWidget * parent =
            nullptr, bool owned = false );
@@ -176,7 +178,8 @@ public:
   typedef dunedaq::conffwk::relationship_t t_virtue;
   typedef editor_data<t_virtue> t_build_block_editor;
 
-  relation ( t_virtue const & relation, QWidget * parent = nullptr, bool owned = false );
+  relation ( t_virtue const & relation, QWidget * parent = nullptr,
+             bool owned = false, bool readonly=false );
 
   bool GetIsMultiValue() const;
 
@@ -196,6 +199,7 @@ private:
   std::shared_ptr<t_build_block_editor> p_base_data_editor;
 
   bool IsMultiValue;
+  bool m_readonly;
 
   QStatusBar * StatusBar;
   QStringList CurrentDataList;
@@ -245,7 +249,8 @@ public:
   typedef dunedaq::conffwk::attribute_t t_virtue;
   typedef editor_data<t_virtue> t_build_block_editor;
 
-  stringattr ( t_virtue const & attr, QWidget * parent = nullptr, bool owned = false );
+  stringattr ( t_virtue const & attr, QWidget * parent = nullptr,
+               bool owned = false, bool readonly=false );
   ~stringattr();
 
   void SetEditor() override;
@@ -270,6 +275,7 @@ private:
 
   std::shared_ptr<t_build_block_editor> m_base_data_editor;
 
+  bool m_readonly;
   QString DefaultValue;
   QPushButton * PopUpButton;
   QDialog * Dialog;
@@ -299,7 +305,8 @@ public:
   typedef dunedaq::conffwk::attribute_t t_virtue;
   typedef editor_data<t_virtue> t_build_block_editor;
 
-  numericattr ( t_virtue const & attr, QWidget * parent = nullptr, bool owned = false );
+  numericattr ( t_virtue const & attr, QWidget * parent = nullptr,
+                bool owned = false, bool readonly=false );
 
   void SetEditor() override;
 
@@ -318,6 +325,7 @@ private:
 
   std::shared_ptr<t_build_block_editor> this_base_data_editor;
 
+  bool m_readonly;
   int this_base;
   int this_native_base;
 
@@ -346,7 +354,8 @@ public:
   typedef dunedaq::conffwk::attribute_t t_virtue;
   typedef editor_data<t_virtue> t_build_block_editor;
 
-  combo ( t_virtue const & attr, QWidget * parent = nullptr, bool owned = false );
+  combo ( t_virtue const & attr, QWidget * parent = nullptr,
+          bool owned = false, bool readonly=false );
 
   void SetEditor() override;
 
@@ -364,7 +373,7 @@ private:
   void SetController();
 
   std::shared_ptr<t_build_block_editor> m_base_data_editor;
-
+  bool m_readonly;
 private slots:
   void TryValidate ( QString );
   void ChangeDetected ( QString const & );
@@ -384,7 +393,8 @@ public:
   typedef dunedaq::conffwk::attribute_t t_virtue;
   typedef editor_data<t_virtue> t_build_block_editor;
 
-  multiattr ( t_virtue const & attr, QWidget * parent = nullptr, bool owned = false );
+  multiattr ( t_virtue const & attr, QWidget * parent = nullptr,
+              bool owned = false, bool readonly=false );
 
   void SetEditor() override;
 
@@ -396,6 +406,7 @@ private:
 
   std::shared_ptr<t_build_block_editor> m_base_data_editor;
 
+  bool m_readonly;
   QStatusBar * StatusBar;
   QPushButton * OkButton;
   QPushButton * RemoveButton;

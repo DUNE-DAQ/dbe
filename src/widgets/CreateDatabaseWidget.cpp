@@ -22,7 +22,6 @@ using namespace dunedaq::conffwk;
 dbe::CreateDatabaseWidget::CreateDatabaseWidget ( QWidget * parent, bool Include,
                                                   const QString & CreateDir )
   : QWidget ( parent ),
-    StatusBar ( nullptr ),
     DirToCreate ( CreateDir ),
     CreateToInclude ( Include )
 {
@@ -49,13 +48,8 @@ dbe::CreateDatabaseWidget::CreateDatabaseWidget ( QWidget * parent, bool Include
     CreateNoLoadDatabaseButton->hide();
   }
 
-  StatusBar = new QStatusBar ( StatusFrame );
-  StatusBar->setSizeGripEnabled ( false );
-  StatusFrame->setFrameStyle ( QFrame::NoFrame );
-  StatusLayout->addWidget ( StatusBar );
 
-  StatusBar->setAutoFillBackground ( true );
-  StatusBar->showMessage ( "Select schema files and define new database file!" );
+  m_instructions->setText ( "Select schema files and define new database file. Database must contain at least one schema file, other includes may be added later via a File info window." );
   CreateDatabaseButton->setDisabled ( true );
   CreateNoLoadDatabaseButton->setDisabled ( true );
 
@@ -65,7 +59,7 @@ dbe::CreateDatabaseWidget::CreateDatabaseWidget ( QWidget * parent, bool Include
 void dbe::CreateDatabaseWidget::DefineSchema()
 {
   auto fd = new QFileDialog ( this, tr ( "Select Schema File" ),
-                              DirToCreate.append("./"),
+                              FileInfo::get_schema_path(),
                               tr ( "XML schema files (*.schema.xml)" ) );
   fd->setFileMode ( QFileDialog::ExistingFile );
   fd->setViewMode ( QFileDialog::Detail );
@@ -74,21 +68,23 @@ void dbe::CreateDatabaseWidget::DefineSchema()
   if (!(fd->exec() == QDialog::Accepted)) {
     return;
   }
+  FileInfo::set_schema_path(fd->directory().path());
+
   auto files = fd->selectedFiles();
   for (auto file: files) {
     QFileInfo SchemaFile = QFileInfo (file);
     if ( !SchemaFile.isFile() ) {
-      StatusBar->setPalette ( StyleUtility::AlertStatusBarPallete );
-      StatusBar->showMessage ( QString ( "The file is not accessible. Check before usage" ) );
+      m_instructions->setPalette ( StyleUtility::AlertStatusBarPallete );
+      m_instructions->setText ( QString ( "The file is not accessible. Check before usage" ));
     }
     else {
       if (SchemaFile.fileName().contains("schema")) {
         schema_list->addItem(FileInfo::prune_path(file));
       }
       else {
-        StatusBar->setPalette ( StyleUtility::AlertStatusBarPallete );
-        StatusBar->showMessage (
-          QString ( "The file %1 is not a schema file" ).arg ( SchemaFile.absoluteFilePath() ) );
+        m_instructions->setPalette ( StyleUtility::AlertStatusBarPallete );
+        m_instructions->setText (
+          QString ( "The file %1 is not a schema file" ).arg ( SchemaFile.absoluteFilePath() ));
       }
     }
   }
@@ -103,17 +99,10 @@ void dbe::CreateDatabaseWidget::DefineDatabaseFile()
 {
   QString Dir;
 
-  if ( DirToCreate.isEmpty() )
-  {
-    Dir = QString ( "./NewDatabaseFile.data.xml" );
-  }
-  else
-  {
-    Dir = DirToCreate.append ( "/NewDatabaseFile.data.xml" );
-  }
+  QString path = FileInfo::get_data_path().append ( "/NewDatabaseFile.data.xml" );
 
   auto fd = new QFileDialog ( this, tr("Select new DB File"),
-                              Dir,
+                              path,
                               tr("XML data files (*.data.xml)"));
   fd->setFileMode ( QFileDialog::AnyFile );
   fd->setViewMode ( QFileDialog::Detail );
@@ -122,6 +111,7 @@ void dbe::CreateDatabaseWidget::DefineDatabaseFile()
   if (!(fd->exec() == QDialog::Accepted)) {
     return;
   }
+  FileInfo::set_data_path(fd->directory().path());
   auto files = fd->selectedFiles();
 
   DatabaseFile = QFileInfo (files.at(0));
@@ -145,60 +135,43 @@ std::list<std::string> dbe::CreateDatabaseWidget::get_includes() {
 }
 
 
-void dbe::CreateDatabaseWidget::CreateDatabaseFileLoad()
-{
+bool dbe::CreateDatabaseWidget::create_database_file(std::string extra_text) {
   Configuration db ( "oksconflibs" );
   try {
     const std::string DatabaseName = DatabaseFile.absoluteFilePath().toStdString();
-    db.create ( DatabaseName, get_includes());
+    db.create (DatabaseName, get_includes());
     db.commit();
-
-    QMessageBox::information (
-      0, tr ( "DBE" ),
-      QString ( "Database was created.\nNow the DB will be loaded into the Editor!\n" ),
-      QMessageBox::Ok );
-    emit CanLoadDatabase ( DatabaseFile.absoluteFilePath() );
-    close();
   }
   catch ( dunedaq::conffwk::Exception const & ex )
   {
     FAIL ( "Database creation failure", dbe::config::errors::parse ( ex ).c_str() );
+    return false;
+  }
+
+  QMessageBox::information (0, tr ( "DBE" ),
+                            QString::fromStdString ("The Database was created.\n"+extra_text),
+                            QMessageBox::Ok );
+  return true;
+}
+void dbe::CreateDatabaseWidget::CreateDatabaseFileLoad()
+{
+  if (create_database_file("Now the DB will be loaded into the Editor!\n")) {
+    emit CanLoadDatabase ( DatabaseFile.absoluteFilePath() );
+    close();
   }
 }
 
 void dbe::CreateDatabaseWidget::CreateDatabaseFileNoLoad()
 {
-  Configuration db ( "oksconflibs" );
-  try {
-    const std::string DatabaseName = DatabaseFile.absoluteFilePath().toStdString();
-    db.create (DatabaseName, get_includes());
-    db.commit();
-
-    QMessageBox::information ( 0, tr ( "DBE" ), QString ( "The Database was created.\n" ),
-                               QMessageBox::Ok );
+  if (create_database_file("")) {
     close();
-  }
-  catch ( dunedaq::conffwk::Exception const & ex )
-  {
-    FAIL ( "Database creation failure", dbe::config::errors::parse ( ex ).c_str() );
   }
 }
 
 void dbe::CreateDatabaseWidget::CreateDatabaseFileInclude()
 {
-  Configuration db ( "oksconflibs" );
-  try {
-    const std::string DatabaseName = DatabaseFile.absoluteFilePath().toStdString();
-    db.create (DatabaseName, get_includes());
-    db.commit();
-
-    QMessageBox::information ( 0, tr ( "DBE" ), QString ( "The Database was created.\n" ),
-                               QMessageBox::Ok );
+  if (create_database_file("")) {
     emit CanIncludeDatabase ( DatabaseFile.absoluteFilePath() );
     close();
-  }
-  catch ( dunedaq::conffwk::Exception const & ex )
-  {
-    FAIL ( "Database creation error", dbe::config::errors::parse ( ex ).c_str() );
   }
 }

@@ -77,6 +77,7 @@ private:
 
   std::string classname;
   std::unique_ptr<dref> m_object_to_edit;
+  bool m_readonly{false};
 
   tref Object()
   {

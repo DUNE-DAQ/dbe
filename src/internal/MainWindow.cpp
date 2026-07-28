@@ -21,6 +21,7 @@
 #include "dbe/treenode.hpp"
 #include "dbe/version.hpp"
 #include "dbe/MyApplication.hpp"
+#include "dbe/Preferences.hpp"
 
 #include "logging/Logging.hpp"
 
@@ -74,7 +75,11 @@ dbe::MainWindow::MainWindow ( QMap<QString, QString> const & cmdargs, QWidget * 
   attach();
 
   /// Reading Applications Settings/CommandLine
-  load_settings ( false );
+  QCoreApplication::setOrganizationName("dunedaq");
+  QCoreApplication::setApplicationName("dbe_main");
+  load_default_settings(); // Start with defaults in case no user setting saved
+  QSettings settings;      // Then try user settings
+  apply_settings(settings);
   argsparse ( cmdargs );
 
   if (isArchivedConf == true) {
@@ -170,10 +175,6 @@ void dbe::MainWindow::init()
 
   // Make Files the current tab 
   InfoWidget->setCurrentIndex (0);
-
-
-  /// Color Management
-  StyleUtility::InitColorManagement();
 }
 
 void dbe::MainWindow::attach()
@@ -181,6 +182,7 @@ void dbe::MainWindow::attach()
   connect ( OpenDB, SIGNAL ( triggered() ), this, SLOT ( slot_open_database_from_file() ) );
   connect ( Commit, SIGNAL ( triggered() ), this, SLOT ( slot_commit_database() ) );
   connect ( Exit, SIGNAL ( triggered() ), this, SLOT ( close() ) );
+  connect ( actionPreferences, SIGNAL ( triggered() ), this, SLOT ( slot_launch_preferences() ) );
   connect ( UndoAction, SIGNAL ( triggered() ), UndoView->stack(), SLOT ( undo() ) );
   connect ( RedoAction, SIGNAL ( triggered() ), UndoView->stack(), SLOT ( redo() ) );
   connect ( UndoAll, SIGNAL ( triggered() ), this, SLOT ( slot_undo_allchanges() ) );
@@ -206,7 +208,7 @@ void dbe::MainWindow::attach()
 
 
   connect ( LoadDefaultSettings, SIGNAL ( triggered() ), this,
-            SLOT ( LoadDefaultSetting() ) );
+            SLOT ( reload_default_settings() ) );
   connect ( CreateDatabase, SIGNAL ( triggered() ), this, SLOT ( slot_create_newdb() ) );
   //connect ( OpenOracleDB, SIGNAL ( triggered() ), this, SLOT ( slot_oracle_prepare() ) );
 
@@ -274,7 +276,7 @@ void dbe::MainWindow::attach()
 
   connect ( &dbe::interface::messenger_proxy::ref(),
             SIGNAL ( signal_debug ( QString const, QString const ) ), this,
-            SLOT ( slot_debuginfo_message ( QString , QString ) ), Qt::QueuedConnection );
+            SLOT ( slot_information_message ( QString , QString ) ), Qt::QueuedConnection );
 
   connect ( &dbe::interface::messenger_proxy::ref(),
             SIGNAL ( signal_info ( QString const, QString const ) ), this,
@@ -282,7 +284,7 @@ void dbe::MainWindow::attach()
 
   connect ( &dbe::interface::messenger_proxy::ref(),
             SIGNAL ( signal_note ( QString const, QString const ) ), this,
-            SLOT ( slot_notice_message ( QString , QString ) ), Qt::QueuedConnection );
+            SLOT ( slot_information_message ( QString , QString ) ), Qt::QueuedConnection );
 
   connect ( &dbe::interface::messenger_proxy::ref(),
             SIGNAL ( signal_warn ( QString const, QString const ) ), this,
@@ -294,7 +296,7 @@ void dbe::MainWindow::attach()
 
   connect ( &dbe::interface::messenger_proxy::ref(),
             SIGNAL ( signal_fail ( QString const, QString const ) ), this,
-            SLOT ( slot_failure_message ( QString , QString ) ), Qt::QueuedConnection );
+            SLOT ( slot_error_message ( QString, QString ) ), Qt::QueuedConnection );
 
   // connect ( this, SIGNAL ( signal_rdb_found(const QString&, const RDBMap& ) ),
   //           this, SLOT ( slot_rdb_found(const QString&, const RDBMap&) ), Qt::AutoConnection );
@@ -646,9 +648,17 @@ void dbe::MainWindow::slot_launch_batchchange_on_table()
   Batch->show();
 }
 
-void dbe::MainWindow::LoadDefaultSetting()
+void dbe::MainWindow::reload_default_settings()
 {
-  load_settings ( false );
+  QSettings settings;
+  settings.clear();
+  load_default_settings();
+}
+void dbe::MainWindow::load_default_settings()
+{
+  QSettings defaults(":theme/DBE_Default_User_Settings.conf",
+                     QSettings::NativeFormat);
+  apply_settings(defaults);
 }
 
 QString dbe::MainWindow::find_db_repository_dir()
@@ -823,50 +833,49 @@ void dbe::MainWindow::setinternals()
   FileView->setModel ( NULL );
 }
 
-void dbe::MainWindow::load_settings ( bool LoadSettings )
+void dbe::MainWindow::apply_settings (QSettings& settings)
 {
-  /// Load Settings means default settings
-  QSettings * Settings;
-  QString userPath = QDir::homePath() + "/.conffwk/ATLAS_TDAQ_DBE";
-  QString userFile = "DBE_User_Settings.conf";
-
-  if ( !LoadSettings )
-  {
-    if ( QDir ( userPath ).exists ( userFile ) )
-      Settings = new QSettings ( "ATLAS_TDAQ_DBE",
-                                 "DBE_User_Settings" );
-    else
-      Settings = new QSettings ( ":theme/DBE_Default_User_Settings.conf",
-                                 QSettings::NativeFormat );
+  settings.beginGroup ( "MainWindow-layout" );
+  if (settings.contains("size")) {
+    resize ( settings.value ( "size" ).toSize() );
   }
-  else
-  {
-    Settings = new QSettings ( ":theme/DBE_Default_User_Settings.conf",
-                               QSettings::NativeFormat );
+  if (settings.contains("pos")) {
+    move ( settings.value ( "pos" ).toPoint() );
   }
+  if (settings.contains("TableView")) {
+    DisplayTableView->setChecked ( settings.value ( "TableView" ).toBool() );
+  }
+  if (settings.contains("ClassView")) {
+    DisplayClassView->setChecked ( settings.value ( "ClassView" ).toBool() );
+  }
+  if (settings.contains("Messages")) {  
+    DisplayMessages->setChecked ( settings.value ( "Messages" ).toBool() );
+  }
+  if (settings.contains("geometry")) {
+    restoreGeometry ( settings.value ( "geometry" ).toByteArray() );
+  }
+  if (settings.contains("state")) {
+    restoreState ( settings.value ( "state" ).toByteArray() );
+  }
+  settings.endGroup();
 
-  Settings->beginGroup ( "MainWindow-layout" );
-  resize ( Settings->value ( "size" ).toSize() );
-  move ( Settings->value ( "pos" ).toPoint() );
-  DisplayTableView->setChecked ( Settings->value ( "TableView" ).toBool() );
-  DisplayClassView->setChecked ( Settings->value ( "ClassView" ).toBool() );
+  settings.beginGroup ( "MainWindow-checkboxes" );
+  if (settings.contains("tree-case-sensitive")) {
+    CaseSensitiveCheckBoxTree->setChecked (
+      settings.value ( "tree-case-sensitive" ).toBool() );
+  }
+  if (settings.contains("table-case-sensitive")) {
+    CaseSensitiveCheckBoxTable->setChecked (
+      settings.value ( "table-case-sensitive" ).toBool() );
+  }
+  settings.endGroup();
 
-  DisplayMessages->setChecked ( Settings->value ( "Messages" ).toBool() );
-  restoreGeometry ( Settings->value ( "geometry" ).toByteArray() );
-  restoreState ( Settings->value ( "state" ).toByteArray() );
-  Settings->endGroup();
-
-  Settings->beginGroup ( "MainWindow-checkboxes" );
-  CaseSensitiveCheckBoxTree->setChecked (
-    Settings->value ( "tree-case-sensitive" ).toBool() );
-  CaseSensitiveCheckBoxTable->setChecked (
-    Settings->value ( "table-case-sensitive" ).toBool() );
-  Settings->endGroup();
+  StyleUtility::InitColorManagement();
 }
 
 void dbe::MainWindow::WriteSettings()
 {
-  QSettings Settings ( "ATLAS_TDAQ_DBE", "DBE_User_Settings" );
+  QSettings Settings("dunedaq", "dbe_main");
   Settings.beginGroup ( "MainWindow-layout" );
   Settings.setValue ( "size", size() );
   Settings.setValue ( "pos", pos() );
@@ -1693,17 +1702,17 @@ namespace {
     const int MAX_MESSAGE_LENGTH = 500;
 }
 
-void dbe::MainWindow::slot_failure_message ( QString const title, QString const msg )
-{
+void dbe::MainWindow::display_message_box(const QString& title, const QString& msg,
+                                          const QMessageBox::Icon& icon) {
     QMessageBox mb(this);
-    mb.setIcon(QMessageBox::Icon::Critical);
+    mb.setIcon(icon);
     mb.setWindowTitle(title);
     mb.setStandardButtons(QMessageBox::Ok);
     if(msg.length() > MAX_MESSAGE_LENGTH) {
-        QString&& m = msg.left(MAX_MESSAGE_LENGTH);
-        m.append("...");
-        mb.setText("<b>The message has been truncated because too long, look at the details for the full message</b>");
-        mb.setInformativeText(m);
+        QString&& truncated_msg = msg.left(MAX_MESSAGE_LENGTH);
+        truncated_msg.append("...");
+        mb.setText("<b>The message has been truncated because it is too long, look at the details for the full message</b>");
+        mb.setInformativeText(truncated_msg);
         mb.setDetailedText(msg);
     } else {
         mb.setText(msg);
@@ -1711,6 +1720,7 @@ void dbe::MainWindow::slot_failure_message ( QString const title, QString const 
 
     mb.exec();
 }
+
 
 /**
  * This method permits to propagate and display messages from the messaging subsytem.
@@ -1721,73 +1731,7 @@ void dbe::MainWindow::slot_failure_message ( QString const title, QString const 
  */
 void dbe::MainWindow::slot_information_message ( QString const title, QString const msg )
 {
-    QMessageBox mb(this);
-    mb.setIcon(QMessageBox::Icon::Information);
-    mb.setWindowTitle(title);
-    mb.setStandardButtons(QMessageBox::Ok);
-    if(msg.length() > MAX_MESSAGE_LENGTH) {
-        QString&& m = msg.left(MAX_MESSAGE_LENGTH);
-        m.append("...");
-        mb.setText("<b>The message has been truncated because too long, look at the details for the full message</b>");
-        mb.setInformativeText(m);
-        mb.setDetailedText(msg);
-    } else {
-        mb.setText(msg);
-    }
-
-    mb.exec();
-}
-
-/**
- * This method permits to propagate and display messages from the messaging subsytem.
- *
- * It is important that the arguments are pass-by-copy because references will become invalid,
- * even if they are bound to consted temporaries, once the deleter from the other thread is called.
- *
- */
-void dbe::MainWindow::slot_debuginfo_message ( QString const title, QString const msg )
-{
-    QMessageBox mb(this);
-    mb.setIcon(QMessageBox::Icon::Information);
-    mb.setWindowTitle(title);
-    mb.setStandardButtons(QMessageBox::Ok);
-    if(msg.length() > MAX_MESSAGE_LENGTH) {
-        QString&& m = msg.left(MAX_MESSAGE_LENGTH);
-        m.append("...");
-        mb.setText("<b>The message has been truncated because too long, look at the details for the full message</b>");
-        mb.setInformativeText(m);
-        mb.setDetailedText(msg);
-    } else {
-        mb.setText(msg);
-    }
-
-    mb.exec();
-}
-
-/**
- * This method permits to propagate and display messages from the messaging subsytem.
- *
- * It is important that the arguments are pass-by-copy because references will become invalid,
- * even if they are bound to consted temporaries, once the deleter from the other thread is called.
- *
- */
-void dbe::MainWindow::slot_notice_message ( QString const title, QString const msg )
-{
-    QMessageBox mb(this);
-    mb.setIcon(QMessageBox::Icon::Information);
-    mb.setWindowTitle(title);
-    mb.setStandardButtons(QMessageBox::Ok);
-    if(msg.length() > MAX_MESSAGE_LENGTH) {
-        QString&& m = msg.left(MAX_MESSAGE_LENGTH);
-        m.append("...");
-        mb.setText("<b>The message has been truncated because too long, look at the details for the full message</b>");
-        mb.setInformativeText(m);
-        mb.setDetailedText(msg);
-    } else {
-        mb.setText(msg);
-    }
-
-    mb.exec();
+    display_message_box(title, msg, QMessageBox::Icon::Information);
 }
 
 /**
@@ -1799,21 +1743,7 @@ void dbe::MainWindow::slot_notice_message ( QString const title, QString const m
  */
 void dbe::MainWindow::slot_error_message ( QString const title, QString const msg )
 {
-    QMessageBox mb(this);
-    mb.setIcon(QMessageBox::Icon::Critical);
-    mb.setWindowTitle(title);
-    mb.setStandardButtons(QMessageBox::Ok);
-    if(msg.length() > MAX_MESSAGE_LENGTH) {
-        QString&& m = msg.left(MAX_MESSAGE_LENGTH);
-        m.append("...");
-        mb.setText("<b>The message has been truncated because too long, look at the details for the full message</b>");
-        mb.setInformativeText(m);
-        mb.setDetailedText(msg);
-    } else {
-        mb.setText(msg);
-    }
-
-    mb.exec();
+    display_message_box(title, msg, QMessageBox::Icon::Critical);
 }
 
 /**
@@ -1825,21 +1755,7 @@ void dbe::MainWindow::slot_error_message ( QString const title, QString const ms
  */
 void dbe::MainWindow::slot_warning_message ( QString const title, QString const msg )
 {
-    QMessageBox mb(this);
-    mb.setIcon(QMessageBox::Icon::Warning);
-    mb.setWindowTitle(title);
-    mb.setStandardButtons(QMessageBox::Ok);
-    if(msg.length() > MAX_MESSAGE_LENGTH) {
-        QString&& m = msg.left(MAX_MESSAGE_LENGTH);
-        m.append("...");
-        mb.setText("<b>The message has been truncated because too long, look at the details for the full message</b>");
-        mb.setInformativeText(m);
-        mb.setDetailedText(msg);
-    } else {
-        mb.setText(msg);
-    }
-
-    mb.exec();
+    display_message_box(title, msg, QMessageBox::Icon::Warning);
 }
 
 //-----------------------------------------------------------------------------------------------------------------------------
@@ -1931,4 +1847,9 @@ bool dbe::MainWindow::check_ready() const
 void dbe::MainWindow::slot_loaded_db_file( QString file )
 {
     allFiles.insert(file);
+}
+
+void dbe::MainWindow::slot_launch_preferences() {
+  auto  prefs = new Preferences();
+  prefs->show();
 }
