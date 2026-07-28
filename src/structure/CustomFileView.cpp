@@ -1,3 +1,8 @@
+// DUNE DAQ modification notice:
+// This file has been modified from the original ATLAS dbe source for the DUNE DAQ project.
+// Fork baseline commit: dbe-02-12-17 (2022-05-12).
+// Renamed since fork: no.
+
 /// Including QT Headers
 #include "dbe/FileInfo.hpp"
 #include "dbe/ui_constants.hpp"

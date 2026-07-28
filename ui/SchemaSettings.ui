@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>400</width>
-    <height>300</height>
+    <height>553</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -33,6 +33,62 @@
    </item>
    <item>
     <widget class="QListWidget" name="font_list"/>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="groupBox">
+     <property name="title">
+      <string>Main window settings</string>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout_3">
+      <item>
+       <widget class="QCheckBox" name="save_settings">
+        <property name="text">
+         <string>Save layout on exit</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="view_toggles">
+     <property name="toolTip">
+      <string>Defaults applied to new Schema View tabs</string>
+     </property>
+     <property name="title">
+      <string>Schema View Default options</string>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout">
+      <item>
+       <widget class="QCheckBox" name="inherited_button">
+        <property name="text">
+         <string>Show inherited properties</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QCheckBox" name="default_value_button">
+        <property name="text">
+         <string>Show default values</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QCheckBox" name="abstract_button">
+        <property name="text">
+         <string>Highlight abstract classes</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QCheckBox" name="active_button">
+        <property name="text">
+         <string>Highlight classes in active file</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
    </item>
    <item>
     <widget class="QDialogButtonBox" name="buttonBox">

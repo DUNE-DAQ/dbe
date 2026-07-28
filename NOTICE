@@ -1,13 +1,24 @@
 
-This repo's code has been copied from the ATLAS TDAQ package of the
-same name (under the tdaq-9-05-00 release) and been refactored for the
-DUNE DAQ. Original ATLAS TDAQ licensing info (Apache License 2.0) can
-be found below this line. Note that while this license does not
-necessarily apply to the refactored parts of the code, it does apply
-to the unmodified parts.
+This repository's code was copied from the ATLAS TDAQ package "dbe"
+(https://gitlab.cern.ch/atlas-tdaq-software/dbe/) (from its dbe-02-12-17 version) in February 2023; the
+carbon copy of that code can be found in commit
+b876976981116d740a260263497b7d3bbbf2265f in this repo. Since then, the
+code has been refactored for the DUNE DAQ.
+
+Consistent with the ATLAS "dbe" repository's Apache 2.0 license:
+
+* A copy of the original ATLAS dbe NOTICE is reproduced below and in
+  licenses_and_notices/NOTICE.dbe_ATLAS.
+
+* A copy of the ATLAS dbe Apache 2.0 license is included in
+  licenses_and_notices/LICENSE.Apache2.0; it is to be considered only
+  in terms of satisfying ATLAS dbe's license terms and not as a
+  licensing of this repository's code as such.
+
+* All modifications to the source files for DUNE DAQ in this
+  repository are marked as such in each file's header.
 
 ======================================================================
-
 
 Copyright (C) 2001-2020 CERN for the benefit of the ATLAS collaboration.
 Licensed under the Apache License, version 2.0.

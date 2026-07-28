@@ -1,6 +1,12 @@
+// DUNE DAQ modification notice:
+// This file has been modified from the original ATLAS dbe source for the DUNE DAQ project.
+// Fork baseline commit: dbe-02-12-17 (2022-05-12).
+// Renamed since fork: yes (from src/SchemaEditor/SchemaCustomModelInterface.cpp to apps/SchemaEditor/SchemaCustomModelInterface.cpp).
+
 /// Including Schema Editor
 #include "dbe/SchemaCustomModelInterface.hpp"
 #include "dbe/SchemaKernelWrapper.hpp"
+#include "dbe/SchemaStyle.hpp"
 
 dbse::CustomModelInterface::CustomModelInterface ( QStringList Headers, QObject * parent )
   : QAbstractTableModel ( parent ),
@@ -48,12 +54,24 @@ QVariant dbse::CustomModelInterface::headerData ( int section, Qt::Orientation o
 
 QVariant dbse::CustomModelInterface::data ( const QModelIndex & index, int role ) const
 {
-  if ( role != Qt::DisplayRole )
-  {
-    return QVariant();
+  if ( role == Qt::DisplayRole ) {
+    return Data.value ( index.row() ).value ( index.column() );
   }
-
-  return Data.value ( index.row() ).value ( index.column() );
+  else if (role == Qt::ForegroundRole) {
+    auto row = Data.at(index.row());
+    auto flag = row.at(row.size()-1);
+    if (flag == "I") {
+      return SchemaStyle::get_color("foreground", "inherited");
+    }
+  }
+  else if (role == Qt::BackgroundRole) {
+    auto row = Data.at(index.row());
+    auto flag = row.at(row.size()-1);
+    if (flag == "I") {
+      return SchemaStyle::get_color("background", "inherited");
+    }
+  }
+  return QVariant();
 }
 
 QStringList dbse::CustomModelInterface::getRowFromIndex ( QModelIndex & index )

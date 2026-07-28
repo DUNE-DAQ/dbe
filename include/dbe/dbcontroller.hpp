@@ -1,3 +1,8 @@
+// DUNE DAQ modification notice:
+// This file has been modified from the original ATLAS dbe source for the DUNE DAQ project.
+// Fork baseline commit: dbe-02-12-17 (2022-05-12).
+// Renamed since fork: yes (from dbe/dbcontroller.h to include/dbe/dbcontroller.hpp).
+
 #ifndef DBE_DBCONTROLLER_H_
 #define DBE_DBCONTROLLER_H_
 

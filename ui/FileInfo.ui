@@ -199,6 +199,13 @@
               </spacer>
              </item>
              <item>
+              <widget class="QPushButton" name="add_missing_schema">
+               <property name="text">
+                <string>Add missing schema</string>
+               </property>
+              </widget>
+             </item>
+             <item>
               <widget class="QPushButton" name="add_schema">
                <property name="text">
                 <string>Add</string>
@@ -258,6 +265,13 @@
                 </size>
                </property>
               </spacer>
+             </item>
+             <item>
+              <widget class="QPushButton" name="add_missing">
+               <property name="text">
+                <string>Add missing files</string>
+               </property>
+              </widget>
              </item>
              <item>
               <widget class="QPushButton" name="add_data">

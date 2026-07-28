@@ -1,4 +1,9 @@
-﻿#include "dbe/MainWindow.hpp"
+// DUNE DAQ modification notice:
+// This file has been modified from the original ATLAS dbe source for the DUNE DAQ project.
+// Fork baseline commit: dbe-02-12-17 (2022-05-12).
+// Renamed since fork: no.
+
+#include "dbe/MainWindow.hpp"
 #include "dbe/ObjectEditor.hpp"
 #include "dbe/ObjectCreator.hpp"
 #include "dbe/BatchChangeWidget.hpp"

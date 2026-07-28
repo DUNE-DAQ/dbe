@@ -1,3 +1,8 @@
+// DUNE DAQ modification notice:
+// This file has been modified from the original ATLAS dbe source for the DUNE DAQ project.
+// Fork baseline commit: dbe-02-12-17 (2022-05-12).
+// Renamed since fork: yes (from test/dbe_test_defs.hpp to unittest/dbe_test_defs.hpp).
+
 /*
  * dbe_test_defs.hpp
  *

@@ -41,6 +41,7 @@ public:
   void RemoveArrows();
   bool HasArrow ( SchemaGraphicObject * Dest ) const;
   void update_arrows();
+  bool highlighted() const {return m_highlight_class;};
 protected:
   QVariant itemChange ( GraphicsItemChange change, const QVariant & value );
   void hoverEnterEvent ( QGraphicsSceneHoverEvent* ev );

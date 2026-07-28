@@ -1,7 +1,9 @@
 /// Including QT Headers
 #include <QGraphicsSceneDragDropEvent>
 #include <QEvent>
+#include <QSettings>
 #include <QMimeData>
+
 #include <QWidget>
 
 #include <QMenu>
@@ -24,13 +26,19 @@ dbse::SchemaGraphicsScene::SchemaGraphicsScene ( QObject * parent )
     m_context_menu ( nullptr ),
     CurrentObject ( nullptr ),
     m_current_arrow ( nullptr ),
-    m_inherited_properties_visible(false),
-    m_highlight_abstract(false),
-    m_highlight_active(false),
     m_modified(false)
 {
-  CreateActions();
   setSceneRect ( QRectF ( 0, 0, 10000, 10000 ) );
+
+  QSettings settings;
+  settings.beginGroup("view defaults");
+
+  m_inherited_properties_visible = settings.value("show_inherited", false).toBool();
+  m_highlight_abstract = settings.value("highlight_abstract", false).toBool();
+  m_highlight_active = settings.value("highlight_active", false).toBool();
+  m_show_defaults = settings.value("show_default", false).toBool();
+
+  CreateActions();
 }
 
 dbse::SchemaGraphicsScene::~SchemaGraphicsScene()
@@ -48,23 +56,32 @@ void dbse::SchemaGraphicsScene::CreateActions()
   connect ( m_edit_class, SIGNAL ( triggered() ), this, SLOT ( EditClassSlot() ) );
 
   // Toggle inherited properties of all classes in view
-  m_toggle_indirect_infos = new QAction ( "Toggle &inherited properties", this );
+  m_toggle_indirect_infos = new QAction ( "Show &inherited properties", this );
+  m_toggle_indirect_infos->setCheckable(true);
+  m_toggle_indirect_infos->setChecked(m_inherited_properties_visible);
   connect ( m_toggle_indirect_infos, SIGNAL ( triggered() ), this, SLOT ( ToggleIndirectInfos() ) );
 
   // Toggle highlighting of all classes in active schema
-  m_toggle_highlight_active = new QAction ( "Toggle &highlighting of classes in active schema", this );
+  m_toggle_highlight_active = new QAction ( "&Highlight classes in active schema", this );
+  m_toggle_highlight_active->setCheckable(true);
+  m_toggle_highlight_active->setChecked(m_highlight_active);
   connect ( m_toggle_highlight_active, SIGNAL ( triggered() ), this, SLOT ( ToggleHighlightActive() ) );
 
   // Toggle highlighting of all abstract classes in view
-  m_toggle_highlight_abstract = new QAction ( "Toggle &highlighting of abstract classes in view", this );
+  m_toggle_highlight_abstract = new QAction ( "&Highlight abstract classes in view", this );
+  m_toggle_highlight_abstract->setCheckable(true);
+  m_toggle_highlight_abstract->setChecked(m_highlight_abstract);
   connect ( m_toggle_highlight_abstract, SIGNAL ( triggered() ), this, SLOT ( ToggleHighlightAbstract() ) );
 
   // Toggle displaying default values of attributes
-  m_toggle_default = new QAction ( "Toggle showing of &default values of attributes", this );
+  m_toggle_default = new QAction ( "Show &default values of attributes", this );
+  m_toggle_default->setCheckable(true);
+  m_toggle_default->setChecked(m_show_defaults);
   connect ( m_toggle_default, SIGNAL ( triggered() ), this, SLOT ( ToggleDefault() ) );
 
   // Toggle highlighting of current class
-  m_toggle_highlight_class = new QAction ( "Toggle &highlighting of this class", this );
+  m_toggle_highlight_class = new QAction ( "&Highlight this class", this );
+  m_toggle_highlight_class->setCheckable(true);
   connect ( m_toggle_highlight_class, SIGNAL ( triggered() ), this, SLOT ( ToggleHighlightClass() ) );
 
   m_add_note = new QAction ( "&Add note to view", this );
@@ -103,6 +120,12 @@ void dbse::SchemaGraphicsScene::CreateActions()
   // Remove arrow
   m_remove_arrow = new QAction ( "&Remove Arrow", this );
   connect ( m_remove_arrow, SIGNAL ( triggered() ), this, SLOT ( RemoveArrowSlot() ) );
+
+  m_save = new QAction("&Save view", this);
+  connect(m_save, SIGNAL(triggered()), this, SLOT(requestSave()));
+
+  m_move = new QAction("&Move scene", this);
+  connect(m_move, SIGNAL(triggered()), this, SLOT(moveScene()));
 }
 
 void dbse::SchemaGraphicsScene::dragEnterEvent ( QGraphicsSceneDragDropEvent * event )
@@ -165,6 +188,8 @@ void dbse::SchemaGraphicsScene::contextMenuEvent ( QGraphicsSceneContextMenuEven
     m_context_menu->addAction ( m_edit_class );
     m_context_menu->addAction ( m_remove_class );
     m_context_menu->addAction ( m_toggle_highlight_class );
+    m_context_menu->addSeparator();
+
     m_context_menu->addAction ( m_add_direct_super_classes );
     m_context_menu->addAction ( m_add_direct_relationship_classes );
     m_context_menu->addAction ( m_add_all_super_classes );
@@ -178,6 +203,11 @@ void dbse::SchemaGraphicsScene::contextMenuEvent ( QGraphicsSceneContextMenuEven
     m_note_pos = m_context_menu->actions().size();
     m_context_menu->addAction ( m_edit_note );
     m_context_menu->addAction ( m_remove_note );
+
+    m_context_menu->addSeparator();
+    m_save_pos = m_context_menu->actions().size();
+    m_context_menu->addAction(m_save);
+    m_context_menu->addAction(m_move);
   }
 
   bool active = KernelWrapper::GetInstance().IsActive ( );
@@ -191,6 +221,14 @@ void dbse::SchemaGraphicsScene::contextMenuEvent ( QGraphicsSceneContextMenuEven
   const auto nitems = m_context_menu->actions().size();
   for (int item=m_seperator_pos; item<nitems; item++) {
     m_context_menu->actions().at ( item )->setVisible ( false );
+  }
+
+  if (ItemMap.size()>0) {
+    m_context_menu->actions().at(m_save_pos-1)->setVisible(true);
+    m_context_menu->actions().at(m_save_pos+1)->setVisible(true);
+  }
+  if (m_modified && ItemMap.size()>0) {
+    m_context_menu->actions().at(m_save_pos)->setVisible(true);
   }
 
   if ( itemAt ( event->scenePos(), QTransform() ) ) {
@@ -207,6 +245,8 @@ void dbse::SchemaGraphicsScene::contextMenuEvent ( QGraphicsSceneContextMenuEven
 
     if ( object != nullptr) {
       CurrentObject = object;
+      m_toggle_highlight_class->setChecked(CurrentObject->highlighted());
+
       auto filename =
         CurrentObject->GetClass()->get_file()->get_full_file_name();
       bool writable = KernelWrapper::GetInstance().IsFileWritable ( filename );
@@ -339,6 +379,7 @@ void dbse::SchemaGraphicsScene::add_notes (QStringList notes,
       QString("#" + QString::number(m_next_note++)),
       notes.at(index) );
     note->setPos ( positions.at ( index ) );
+    m_notes.insert(note);
     addItem(note);
   }
 
@@ -413,6 +454,36 @@ void dbse::SchemaGraphicsScene::modified(bool state) {
   emit sceneModified(state);
 }
 
+void dbse::SchemaGraphicsScene::moveScene() {
+  qreal minx = 1e6;
+  qreal miny = 1e6;
+  for (auto obj : ItemMap) {
+    auto pos = obj->pos();
+    if (pos.x() < minx) {
+      minx = pos.x();
+    }
+    if (pos.y() < miny) {
+      miny = pos.y();
+    }
+  }
+  qreal xoffset = m_current_pos.x() - minx;
+  qreal yoffset = m_current_pos.y() - miny;
+  for (auto obj : ItemMap) {
+    obj->setX(obj->x()+xoffset);
+    obj->setY(obj->y()+yoffset);
+    obj->update_arrows();
+  }
+  for (auto obj : m_notes) {
+    obj->setX(obj->x()+xoffset);
+    obj->setY(obj->y()+yoffset);
+  }
+  update();
+  modified(true);
+}
+
+void dbse::SchemaGraphicsScene::requestSave() {
+  emit saveRequested();
+}
 void dbse::SchemaGraphicsScene::modified_slot() {
   modified(true);
 }
@@ -496,10 +567,12 @@ void dbse::SchemaGraphicsScene::remove_note_slot() {
 }
 
 void dbse::SchemaGraphicsScene::add_note_slot(SchemaGraphicNote* note) {
+  m_notes.insert(note);
   addItem(note);
   modified(true);
 }
 void dbse::SchemaGraphicsScene::cancel_note_slot(SchemaGraphicNote* note) {
+  m_notes.erase(note);
   delete note;
 }
 

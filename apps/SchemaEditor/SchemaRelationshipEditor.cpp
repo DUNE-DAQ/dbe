@@ -1,3 +1,8 @@
+// DUNE DAQ modification notice:
+// This file has been modified from the original ATLAS dbe source for the DUNE DAQ project.
+// Fork baseline commit: dbe-02-12-17 (2022-05-12).
+// Renamed since fork: yes (from src/SchemaEditor/SchemaRelationshipEditor.cpp to apps/SchemaEditor/SchemaRelationshipEditor.cpp).
+
 #include <QMessageBox>
 /// Including Schema
 #include "dbe/SchemaRelationshipEditor.hpp"
@@ -42,9 +47,8 @@ dbse::SchemaRelationshipEditor::SchemaRelationshipEditor ( OksClass * Class,
   QWidget::setAttribute(Qt::WA_DeleteOnClose);
   ui->setupUi ( this );
   m_writable = true;
-  auto title = SchemaClass->get_name() + "  New Relationship";
-  setWindowTitle (
-    QString ( "Relationship Editor : %1" ).arg ( title.c_str() ) );
+  setWindowTitle (QString("Relationship Editor : %1  New Relationship")
+                  .arg(SchemaClass->get_name().c_str()));
   InitialSettings();
   SetController();
 }
@@ -62,7 +66,8 @@ dbse::SchemaRelationshipEditor::SchemaRelationshipEditor ( OksClass * Class,
   QWidget::setAttribute(Qt::WA_DeleteOnClose);
   m_writable = true;
   ui->setupUi ( this );
-  setWindowTitle ( "New Relationship" );
+  setWindowTitle (QString("Relationship Editor : %1  New Relationship")
+                  .arg(SchemaClass->get_name().c_str()));
   InitialSettings();
   SetController();
   ui->RelationshipTypeComboBox->setCurrentIndex (

@@ -23,6 +23,7 @@
 #include <QCloseEvent>
 #include <QPrinter>
 #include <QPrintDialog>
+#include <QSettings>
 #include <QSvgGenerator>
 
 //#include <format>
@@ -41,9 +42,15 @@ dbse::SchemaMainWindow::SchemaMainWindow ( QString SchemaFile, QWidget * parent 
     ContextMenuFileView ( nullptr ),
     ContextMenuTableView ( nullptr )
 {
-  SchemaStyle::load();
-
   InitialSettings();
+  m_default_state = saveState();
+  m_default_geometry = saveGeometry();
+  m_default_size = QSize(1400, 880);
+  QCoreApplication::setOrganizationName("dunedaq");
+  QCoreApplication::setApplicationName("dbse");
+  SchemaStyle::load();
+  restore_layout();
+
   InitialTab();
   InitialTabCorner();
   SetController();
@@ -70,7 +77,17 @@ void dbse::SchemaMainWindow::InitialSettings()
                                           QVariant ( QString ( "Search for classes regex" ) ) );
   ui->ClassTableSearchLine->setClearButtonEnabled(true);
   m_proxyModel->setFilterCaseSensitivity (Qt::CaseInsensitive);
+
+  QString DUNEDAQ_DB_PATH = getenv ( "DUNEDAQ_DB_PATH" );
+  auto path_list = DUNEDAQ_DB_PATH.split (QLatin1Char(':'), Qt::SkipEmptyParts );
+  for ( QString & path : path_list ) {
+    if ( !path.endsWith ( "/" ) ) {
+      path.append ( "/" );
+    }
+    m_path_urls.append(QUrl::fromLocalFile(path));
+  }
 }
+
 
 void dbse::SchemaMainWindow::InitialTab()
 {
@@ -80,9 +97,10 @@ void dbse::SchemaMainWindow::InitialTab()
 
 void dbse::SchemaMainWindow::InitialTabCorner()
 {
-  QPushButton * RightButton = new QPushButton ( "+" );
-  ui->TabWidget->setCornerWidget ( RightButton, Qt::TopLeftCorner );
-  connect ( RightButton, SIGNAL ( clicked() ), this, SLOT ( add_tab() ) );
+  QPushButton * new_tab_button = new QPushButton ( "+" );
+  new_tab_button->setToolTip("Open new schema view tab");
+  ui->TabWidget->setCornerWidget ( new_tab_button, Qt::TopLeftCorner );
+  connect ( new_tab_button, SIGNAL ( clicked() ), this, SLOT ( add_tab() ) );
 }
 
 void dbse::SchemaMainWindow::SetController()
@@ -91,6 +109,9 @@ void dbse::SchemaMainWindow::SetController()
   connect ( ui->CreateNewSchema, SIGNAL ( triggered() ), this, SLOT ( CreateNewSchema() ) );
   connect ( ui->ShowSchema, SIGNAL ( triggered() ), this, SLOT ( show_file_info_active_schema() ) );
   connect ( ui->SaveSchema, SIGNAL ( triggered() ), this, SLOT ( SaveSchema() ) );
+  connect ( ui->actionSave_layout, SIGNAL ( triggered() ), this, SLOT ( save_layout() ) );
+  connect ( ui->actionRestore_layout, SIGNAL ( triggered() ), this, SLOT ( restore_layout() ) );
+  connect ( ui->actionDefault_layout, SIGNAL ( triggered() ), this, SLOT ( default_layout() ) );
   connect ( ui->SetRelationship, SIGNAL ( triggered ( bool ) ), this,
             SLOT ( ChangeCursorRelationship ( bool ) ) );
   connect ( ui->SetInheritance, SIGNAL ( triggered ( bool ) ), this,
@@ -103,6 +124,24 @@ void dbse::SchemaMainWindow::SetController()
   connect ( ui->Exit, SIGNAL ( triggered() ), this, SLOT ( close() ) );
 
   connect ( ui->actionSettings, SIGNAL (triggered() ), this, SLOT ( edit_settings() ));
+
+  connect ( ui->displayClasses, SIGNAL ( triggered ( bool ) ), ui->ClassWidget,
+            SLOT ( setVisible ( bool ) ) );
+  connect ( ui->displayDiagrams, SIGNAL ( triggered ( bool ) ), ui->TabWidget,
+            SLOT ( setVisible ( bool ) ) );
+  connect ( ui->displayInfo_tabs, SIGNAL ( triggered ( bool ) ), ui->DockWidget,
+            SLOT ( setVisible ( bool ) ) );
+  connect ( ui->displayToolbar, SIGNAL ( triggered ( bool ) ), ui->MainToolBar,
+            SLOT ( setVisible ( bool ) ) );
+  connect ( ui->displayStatus_bar, SIGNAL ( triggered ( bool ) ), ui->StatusBar,
+            SLOT ( setVisible ( bool ) ) );
+
+  connect ( ui->ClassWidget, SIGNAL ( visibilityChanged ( bool ) ), ui->displayClasses,
+            SLOT ( setChecked ( bool ) ) );
+  connect ( ui->DockWidget, SIGNAL ( visibilityChanged ( bool ) ), ui->displayInfo_tabs,
+            SLOT ( setChecked ( bool ) ) );
+  connect ( ui->MainToolBar, SIGNAL ( visibilityChanged ( bool ) ), ui->displayToolbar,
+            SLOT ( setChecked ( bool ) ) );
 
   connect ( ui->ClassTableView, SIGNAL ( activated ( QModelIndex ) ), this,
             SLOT ( LaunchClassEditor ( QModelIndex ) ) );
@@ -173,7 +212,6 @@ void dbse::SchemaMainWindow::show_file_info(QString fn) {
   }
 }
 void dbse::SchemaMainWindow::connect_file_info(SchemaFileInfo* win){
-  std::cout << __FUNCTION__ << " New SchemaFileInfo\n";
   connect (win, &SchemaFileInfo::files_updated,
            this, &SchemaMainWindow::update_models);
 }
@@ -452,11 +490,13 @@ void dbse::SchemaMainWindow::PrintCurrentView()
 {
   SchemaTab * CurrentTab = dynamic_cast<SchemaTab *> ( ui->TabWidget->currentWidget() );
 
-  QPrinter printer;
+  if (m_printer == nullptr) {
+    m_printer = new QPrinter;
+  }
 
-  if ( QPrintDialog ( &printer ).exec() == QDialog::Accepted )
+  if ( QPrintDialog ( m_printer ).exec() == QDialog::Accepted )
   {
-    QPainter painter ( &printer );
+    QPainter painter ( m_printer );
     painter.setRenderHint ( QPainter::Antialiasing );
 
     SchemaGraphicsScene * Scene = CurrentTab->GetScene();
@@ -481,17 +521,19 @@ void dbse::SchemaMainWindow::export_current_view(){
     m_export_path.truncate(spos);
   }
 
-  auto scene = tab->GetScene();
-  auto view = tab->GetView();
-
+  if (!file.endsWith(".svg")) {
+    file.append(".svg");
+  }
   QSvgGenerator generator;
   generator.setFileName(file);
+  auto view = tab->GetView();
   auto vpr=view->viewport()->rect();
   generator.setSize(QSize(vpr.width(),vpr.height()));
   generator.setViewBox(vpr);
 
   QPainter painter;
   painter.begin(&generator);
+  auto scene = tab->GetScene();
   scene->render ( &painter, QRectF(), view->viewport()->rect() );
   painter.end();
 }
@@ -521,6 +563,10 @@ void dbse::SchemaMainWindow::closeEvent ( QCloseEvent * event )
   }
 
   KernelWrapper::GetInstance().CloseAllSchema();
+
+  if (m_save_layout_on_exit) {
+    save_layout();
+  }
 
   for ( QWidget * Widget : QApplication::allWidgets() )
   {
@@ -591,12 +637,13 @@ void dbse:: SchemaMainWindow::update_window_title(QString text) {
 
 void dbse::SchemaMainWindow::OpenSchemaFile()
 {
-  QFileDialog FileDialog ( this, tr ( "Open File" ), ".",
+  QFileDialog FileDialog ( this, tr ( "Open Schema File" ), ".",
                            tr ( "XML schema files (*.schema.xml);;All files (*)" ) );
   FileDialog.setAcceptMode ( QFileDialog::AcceptOpen );
   FileDialog.setFileMode ( QFileDialog::AnyFile );
   FileDialog.setViewMode ( QFileDialog::Detail );
   FileDialog.setDirectory ( m_schema_directory );
+  FileDialog.setSidebarUrls(m_path_urls);
   QStringList FilesSelected;
   QString SchemaPath;
 
@@ -643,17 +690,29 @@ void dbse::SchemaMainWindow::SaveSchema()
 
 void dbse::SchemaMainWindow::CreateNewSchema()
 {
-  QString FileName = QFileDialog::getSaveFileName (
-    this, tr ( "New schema File" ), ".",
+  QFileDialog FileDialog (
+    this, tr ( "Create New schema File" ), ".",
     tr ( "XML schema files (*.schema.xml);;All files (*)" ) );
+  FileDialog.setAcceptMode ( QFileDialog::AcceptSave );
+  FileDialog.setFileMode ( QFileDialog::AnyFile );
+  FileDialog.setViewMode ( QFileDialog::Detail );
+  FileDialog.setDirectory ( m_schema_directory );
+  FileDialog.setSidebarUrls(m_path_urls);
+  FileDialog.setLabelText(QFileDialog::Accept, "Create");
+  if ( !FileDialog.exec() )
+  {
+    return;
+  }
 
-  if ( FileName.isEmpty() )
+  QStringList FilesSelected = FileDialog.selectedFiles();
+  if ( FilesSelected.isEmpty() )
   {
     QMessageBox::warning ( 0, "Schema editor",
                            QString ( "Please provide a name for the schema !" ) );
     return;
   }
 
+  QString FileName = FilesSelected.at(0);
   if ( !FileName.endsWith ( ".schema.xml" ) )
   {
     FileName.append ( ".schema.xml" );
@@ -727,6 +786,8 @@ void dbse::SchemaMainWindow::add_tab()
   auto  tab = dynamic_cast<SchemaTab *> ( ui->TabWidget->currentWidget() );
   connect (tab->GetScene(), &SchemaGraphicsScene::sceneModified,
            this, &dbse::SchemaMainWindow::modifiedView);
+  connect (tab->GetScene(), &SchemaGraphicsScene::saveRequested,
+           this, &dbse::SchemaMainWindow::SaveView);
 }
 
 void dbse::SchemaMainWindow::modifiedView(bool modified) {
@@ -931,7 +992,7 @@ void dbse::SchemaMainWindow::close_tab() {
 
 void dbse::SchemaMainWindow::RemoveTab ( int index )
 {
-  if ( index == -1 || ( ( ui->TabWidget->count() == 1 ) && index == 0 ) ) {
+  if ( index == -1 ) {
     return;
   }
 
@@ -948,6 +1009,9 @@ void dbse::SchemaMainWindow::RemoveTab ( int index )
   }
   ui->TabWidget->removeTab ( index );
   delete tab;
+  if ( ui->TabWidget->count() == 0 ) {
+    add_tab();
+  }
 }
 
 void dbse::SchemaMainWindow::CustomContextMenuFileView ( QPoint Pos )
@@ -1041,4 +1105,59 @@ void dbse::SchemaMainWindow::edit_settings() {
     connect(m_settings, SIGNAL(settings_updated()), this, SLOT(update_view()));
   }
   m_settings->show();
+}
+
+void dbse::SchemaMainWindow::save_layout() {
+  QSettings settings;
+  settings.beginGroup("MainWindow-layout");
+  settings.setValue("size", size());
+  settings.setValue("pos", pos());
+  settings.setValue("geometry", saveGeometry());
+  settings.setValue("state", saveState());
+  settings.setValue("diagrams-visible", ui->TabWidget->isVisible());
+  settings.setValue("statusbar-visible", ui->StatusBar->isVisible());
+  settings.endGroup();
+}
+
+void dbse::SchemaMainWindow::restore_layout() {
+  QSettings settings;
+  settings.beginGroup("MainWindow-layout");
+  if (settings.contains("size")) {
+    resize(settings.value("size").toSize());
+  }
+  if (settings.contains("pos")) {
+    move(settings.value("pos").toPoint());
+  }
+  if (settings.contains("geometry")) {
+    restoreGeometry(settings.value("geometry").toByteArray());
+  }
+  if (settings.contains("state")) {
+    restoreState(settings.value("state").toByteArray());
+  }
+
+  auto visible = settings.value("diagrams-visible", true).toBool();
+  ui->displayDiagrams->setChecked(visible);
+  ui->TabWidget->setVisible(visible);
+
+  visible = settings.value("statusbar-visible", true).toBool();
+  ui->StatusBar->setVisible(visible);
+  ui->displayStatus_bar->setChecked(visible);
+
+  ui->displayToolbar->setChecked(ui->MainToolBar->isVisible());
+  settings.endGroup();
+
+  settings.beginGroup("MainWindow");
+  m_save_layout_on_exit = settings.value("saveLayout", false).toBool();
+  settings.endGroup();
+}
+
+void dbse::SchemaMainWindow::default_layout() {
+  restoreGeometry(m_default_geometry);
+  restoreState(m_default_state);
+  resize(m_default_size);
+
+  ui->displayDiagrams->setChecked(true);
+  ui->TabWidget->setVisible(true);
+  ui->StatusBar->setVisible(true);
+  ui->displayStatus_bar->setChecked(true);
 }

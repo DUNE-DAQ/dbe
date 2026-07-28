@@ -1,3 +1,8 @@
+// DUNE DAQ modification notice:
+// This file has been modified from the original ATLAS dbe source for the DUNE DAQ project.
+// Fork baseline commit: dbe-02-12-17 (2022-05-12).
+// Renamed since fork: yes (from dbe/SchemaMainWindow.h to include/dbe/SchemaMainWindow.hpp).
+
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
@@ -6,6 +11,7 @@
 #include <QMainWindow>
 #include <QModelIndex>
 #include <QMenu>
+#include <QPrinter>
 #include <QSortFilterProxyModel>
 #include "dbe/SchemaCustomFileModel.hpp"
 #include "dbe/SchemaCustomTableModel.hpp"
@@ -43,6 +49,13 @@ private:
   QString m_view_dir{"."};
   QString m_export_path{"."};
   QDir m_schema_directory{"."};
+  QList<QUrl> m_path_urls;
+  bool m_save_layout_on_exit;
+  QByteArray m_default_state;
+  QByteArray m_default_geometry;
+  QSize m_default_size;
+  QPrinter* m_printer{};
+
   void InitialSettings();
   void InitialTab();
   void InitialTabCorner();
@@ -95,6 +108,9 @@ private slots:
   void export_current_view();
   void toggle_case_sensitive ( int );
   void update_view();
+  void save_layout();
+  void restore_layout();
+  void default_layout();
 };
 
 }  // namespace dbse
