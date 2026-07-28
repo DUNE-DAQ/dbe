@@ -19,39 +19,43 @@ Preferences::Preferences(QWidget* parent)
   auto item = new QListWidgetItem("Attribute Foreground");
   item->setToolTip("Foreground colour for attributes");
   item->setForeground(settings.value("attribute/foreground").value<QColor>());
-  m_ui->color_list->addItem(item);
+  m_ui->attribute_list->addItem(item);
 
   item = new QListWidgetItem("Attribute Background");
   item->setToolTip("Normal background colour for attributes");
-  item->setForeground(settings.value("attribute/background").value<QColor>());
-  m_ui->color_list->addItem(item);
+  item->setBackground(settings.value("attribute/background").value<QColor>());
+  m_ui->attribute_list->addItem(item);
 
   item = new QListWidgetItem("Attribute Default-Background");
   item->setToolTip("Background colour for attributes set to their default value");
-  item->setForeground(settings.value("attribute/default-background").value<QColor>());
-  m_ui->color_list->addItem(item);
+  item->setBackground(settings.value("attribute/default-background").value<QColor>());
+  m_ui->attribute_list->addItem(item);
 
   item = new QListWidgetItem("Relationship Foreground");
   item->setToolTip("Foreground colour for relationships");
   item->setForeground(settings.value("relationship/foreground").value<QColor>());
-  m_ui->color_list->addItem(item);
+  m_ui->relationship_list->addItem(item);
 
   item = new QListWidgetItem("Relationship Background");
   item->setToolTip("background colour for relationships");
-  item->setForeground(settings.value("relationship/background").value<QColor>());
-  m_ui->color_list->addItem(item);
+  item->setBackground(settings.value("relationship/background").value<QColor>());
+  m_ui->relationship_list->addItem(item);
 
   item = new QListWidgetItem("Readonly Foreground");
   item->setToolTip("Foreground text colour for readonly items");
   item->setForeground(settings.value("readonly/foreground").value<QColor>());
-  m_ui->color_list->addItem(item);
+  m_ui->read_only_list->addItem(item);
 
   item = new QListWidgetItem("Readonly Background");
   item->setToolTip("Background text colour for readonly items");
-  item->setForeground(settings.value("readonly/background").value<QColor>());
-  m_ui->color_list->addItem(item);
+  item->setBackground(settings.value("readonly/background").value<QColor>());
+  m_ui->read_only_list->addItem(item);
 
-  connect (m_ui->color_list, SIGNAL(itemActivated(QListWidgetItem*)),
+  connect (m_ui->attribute_list, SIGNAL(itemActivated(QListWidgetItem*)),
+           this, SLOT(set_color(QListWidgetItem*)));
+  connect (m_ui->relationship_list, SIGNAL(itemActivated(QListWidgetItem*)),
+           this, SLOT(set_color(QListWidgetItem*)));
+  connect (m_ui->read_only_list, SIGNAL(itemActivated(QListWidgetItem*)),
            this, SLOT(set_color(QListWidgetItem*)));
 
 }
