@@ -216,7 +216,7 @@ void ResourceModel::buildResource ( TreeItem * parent, ConfigObject obj )
   try
   {
     objects.clear();
-    obj.get ( "Contains", objects ); //if not ResourceSet then this might throw
+    obj.get ( "Contains", objects ); //if not ExcludableEntitySet then this might throw
 
     for ( size_t i = 0; i < objects.size(); i++ )
     {

@@ -515,17 +515,17 @@
   </method>
  </class>
 
- <class name="ResourceSet">
+ <class name="ExcludableEntitySet">
   <superclass name="ResourceBase"/>
   <relationship name="Contains" description="A resource set is a container of resources to easily implement group operations (add/remove, enable/disable)." class-type="ResourceBase" low-cc="zero" high-cc="many" is-composite="yes" is-exclusive="no" is-dependent="no"/>
  </class>
 
- <class name="ResourceSetAND" description="This resource set is considered disabled when ALL nested resources are disabled.">
-  <superclass name="ResourceSet"/>
+ <class name="ExcludableEntitySetAND" description="This resource set is considered disabled when ALL nested resources are disabled.">
+  <superclass name="ExcludableEntitySet"/>
  </class>
 
- <class name="ResourceSetOR" description="This resource set is considered disabled when ANY nested resource is disabled.">
-  <superclass name="ResourceSet"/>
+ <class name="ExcludableEntitySetOR" description="This resource set is considered disabled when ANY nested resource is disabled.">
+  <superclass name="ExcludableEntitySet"/>
  </class>
 
  <class name="ResourcesInfoConfig" description="Describes full configuration of ResourceInfo service. An instance of that class to be linked with Partition object to enable the service.">
