@@ -8,7 +8,10 @@
 
 enum class tablepositions
 {
-  classname, classinstances, filename = 1, filepermission
+  classname,
+  classinstances,
+  filename = 1,
+  filepermission
 };
 
 #endif // MACROS_H

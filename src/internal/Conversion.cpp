@@ -9,508 +9,563 @@
 namespace dbe {
 namespace convert {
 
-template<> QStringList to<QStringList>(std::vector<std::string> const & x) {
-    QStringList ret;
+template<>
+QStringList
+to<QStringList>(std::vector<std::string> const& x)
+{
+  QStringList ret;
 
-    for(std::string const & a : x) {
-        ret.append(QString::fromStdString(a));
-    }
+  for (std::string const& a : x) {
+    ret.append(QString::fromStdString(a));
+  }
 
-    return ret;
+  return ret;
 }
 
 template<>
-std::string to<std::string>(QStringList const & DataList) {
-    std::string rString;
+std::string
+to<std::string>(QStringList const& DataList)
+{
+  std::string rString;
 
-    for(int i = 0; i < DataList.size(); ++i) {
-        rString = DataList.at(i).toStdString();
-    }
+  for (int i = 0; i < DataList.size(); ++i) {
+    rString = DataList.at(i).toStdString();
+  }
 
-    return rString;
+  return rString;
 }
 
 template<>
-std::vector<std::string> to<std::vector<std::string> >(QStringList const & DataList) {
-    std::vector<std::string> rVector;
+std::vector<std::string>
+to<std::vector<std::string>>(QStringList const& DataList)
+{
+  std::vector<std::string> rVector;
 
-    for(int i = 0; i < DataList.size(); ++i) {
-        rVector.push_back(DataList.at(i).toStdString());
-    }
+  for (int i = 0; i < DataList.size(); ++i) {
+    rVector.push_back(DataList.at(i).toStdString());
+  }
 
-    return rVector;
+  return rVector;
 }
 
 template<>
-std::string to<std::string>(QStringList const & DataList, dunedaq::conffwk::int_format_t Format) {
-    Q_UNUSED (Format)
+std::string
+to<std::string>(QStringList const& DataList, dunedaq::conffwk::int_format_t Format)
+{
+  Q_UNUSED(Format)
 
-    std::string rString;
+  std::string rString;
 
-    for(int i = 0; i < DataList.size(); ++i) {
-        rString = DataList.at(i).toStdString();
-    }
+  for (int i = 0; i < DataList.size(); ++i) {
+    rString = DataList.at(i).toStdString();
+  }
 
-    return rString;
+  return rString;
 }
 
 template<>
-std::vector<std::string> to<std::vector<std::string>>(QStringList const & DataList, dunedaq::conffwk::int_format_t Format) {
-    Q_UNUSED (Format)
+std::vector<std::string>
+to<std::vector<std::string>>(QStringList const& DataList, dunedaq::conffwk::int_format_t Format)
+{
+  Q_UNUSED(Format)
 
-    std::vector<std::string> rVector;
+  std::vector<std::string> rVector;
 
-    for(int i = 0; i < DataList.size(); ++i) {
-        rVector.push_back(DataList.at(i).toStdString());
-    }
+  for (int i = 0; i < DataList.size(); ++i) {
+    rVector.push_back(DataList.at(i).toStdString());
+  }
 
-    return rVector;
+  return rVector;
 }
 
 template<>
-u_int8_t to<u_int8_t>(QStringList const & DataList, dunedaq::conffwk::int_format_t Format) {
+u_int8_t
+to<u_int8_t>(QStringList const& DataList, dunedaq::conffwk::int_format_t Format)
+{
+  bool ok = false;
+  u_int8_t uChar = 0;
+
+  if (DataList.size() > 0) {
+    if (Format == dunedaq::conffwk::dec_int_format) {
+      uChar = (u_int8_t)(DataList.at(0).toULong(&ok, 10));
+    } else if (Format == dunedaq::conffwk::hex_int_format) {
+      uChar = (u_int8_t)(DataList.at(0).toULong(&ok, 16));
+    } else if (Format == dunedaq::conffwk::oct_int_format) {
+      uChar = (u_int8_t)(DataList.at(0).toULong(&ok, 8));
+    } else if (Format == dunedaq::conffwk::na_int_format) {
+      uChar = (u_int8_t)(DataList.at(0).toULong(&ok));
+    }
+  }
+
+  return uChar;
+}
+
+template<>
+std::vector<u_int8_t>
+to<std::vector<u_int8_t>>(QStringList const& DataList, dunedaq::conffwk::int_format_t Format)
+{
+  std::vector<u_int8_t> rVector;
+
+  for (int i = 0; i < DataList.size(); ++i) {
     bool ok = false;
     u_int8_t uChar = 0;
 
-    if(DataList.size() > 0) {
-        if(Format == dunedaq::conffwk::dec_int_format) {
-            uChar = (u_int8_t) (DataList.at(0).toULong(&ok, 10));
-        } else if(Format == dunedaq::conffwk::hex_int_format) {
-            uChar = (u_int8_t) (DataList.at(0).toULong(&ok, 16));
-        } else if(Format == dunedaq::conffwk::oct_int_format) {
-            uChar = (u_int8_t) (DataList.at(0).toULong(&ok, 8));
-        } else if(Format == dunedaq::conffwk::na_int_format) {
-            uChar = (u_int8_t) (DataList.at(0).toULong(&ok));
-        }
+    if (Format == dunedaq::conffwk::dec_int_format) {
+      uChar = (u_int8_t)(DataList.at(i).toULong(&ok, 10));
+    } else if (Format == dunedaq::conffwk::hex_int_format) {
+      uChar = (u_int8_t)(DataList.at(i).toULong(&ok, 16));
+    } else if (Format == dunedaq::conffwk::oct_int_format) {
+      uChar = (u_int8_t)(DataList.at(i).toULong(&ok, 8));
+    } else if (Format == dunedaq::conffwk::na_int_format) {
+      uChar = (u_int8_t)(DataList.at(i).toULong(&ok));
     }
 
-    return uChar;
+    rVector.push_back(uChar);
+  }
+
+  return rVector;
 }
 
 template<>
-std::vector<u_int8_t> to<std::vector<u_int8_t> >(QStringList const & DataList, dunedaq::conffwk::int_format_t Format) {
-    std::vector<u_int8_t> rVector;
+int8_t
+to<int8_t>(QStringList const& DataList, dunedaq::conffwk::int_format_t Format)
+{
+  bool ok = false;
+  int8_t sChar = 0;
 
-    for(int i = 0; i < DataList.size(); ++i) {
-        bool ok = false;
-        u_int8_t uChar = 0;
-
-        if(Format == dunedaq::conffwk::dec_int_format) {
-            uChar = (u_int8_t) (DataList.at(i).toULong(&ok, 10));
-        } else if(Format == dunedaq::conffwk::hex_int_format) {
-            uChar = (u_int8_t) (DataList.at(i).toULong(&ok, 16));
-        } else if(Format == dunedaq::conffwk::oct_int_format) {
-            uChar = (u_int8_t) (DataList.at(i).toULong(&ok, 8));
-        } else if(Format == dunedaq::conffwk::na_int_format) {
-            uChar = (u_int8_t) (DataList.at(i).toULong(&ok));
-        }
-
-        rVector.push_back(uChar);
+  if (DataList.size() > 0) {
+    if (Format == dunedaq::conffwk::dec_int_format) {
+      sChar = (int8_t)(DataList.at(0).toLong(&ok, 10));
+    } else if (Format == dunedaq::conffwk::hex_int_format) {
+      sChar = (int8_t)(DataList.at(0).toLong(&ok, 16));
+    } else if (Format == dunedaq::conffwk::oct_int_format) {
+      sChar = (int8_t)(DataList.at(0).toLong(&ok, 8));
+    } else if (Format == dunedaq::conffwk::na_int_format) {
+      sChar = (int8_t)(DataList.at(0).toLong(&ok));
     }
+  }
 
-    return rVector;
+  return sChar;
 }
 
 template<>
-int8_t to<int8_t>(QStringList const & DataList, dunedaq::conffwk::int_format_t Format) {
+std::vector<int8_t>
+to<std::vector<int8_t>>(QStringList const& DataList, dunedaq::conffwk::int_format_t Format)
+{
+  std::vector<int8_t> rVector;
+
+  for (int i = 0; i < DataList.size(); ++i) {
     bool ok = false;
     int8_t sChar = 0;
 
-    if(DataList.size() > 0) {
-        if(Format == dunedaq::conffwk::dec_int_format) {
-            sChar = (int8_t) (DataList.at(0).toLong(&ok, 10));
-        } else if(Format == dunedaq::conffwk::hex_int_format) {
-            sChar = (int8_t) (DataList.at(0).toLong(&ok, 16));
-        } else if(Format == dunedaq::conffwk::oct_int_format) {
-            sChar = (int8_t) (DataList.at(0).toLong(&ok, 8));
-        } else if(Format == dunedaq::conffwk::na_int_format) {
-            sChar = (int8_t) (DataList.at(0).toLong(&ok));
-        }
+    if (Format == dunedaq::conffwk::dec_int_format) {
+      sChar = (int8_t)(DataList.at(i).toLong(&ok, 10));
+    } else if (Format == dunedaq::conffwk::hex_int_format) {
+      sChar = (int8_t)(DataList.at(i).toLong(&ok, 16));
+    } else if (Format == dunedaq::conffwk::oct_int_format) {
+      sChar = (int8_t)(DataList.at(i).toLong(&ok, 8));
+    } else if (Format == dunedaq::conffwk::na_int_format) {
+      sChar = (int8_t)(DataList.at(i).toLong(&ok));
     }
 
-    return sChar;
+    rVector.push_back(sChar);
+  }
+
+  return rVector;
 }
 
 template<>
-std::vector<int8_t> to<std::vector<int8_t>>(QStringList const & DataList, dunedaq::conffwk::int_format_t Format) {
-    std::vector<int8_t> rVector;
+u_int16_t
+to<u_int16_t>(QStringList const& DataList, dunedaq::conffwk::int_format_t Format)
+{
+  bool ok = false;
+  u_int16_t uShort = 0;
 
-    for(int i = 0; i < DataList.size(); ++i) {
-        bool ok = false;
-        int8_t sChar = 0;
-
-        if(Format == dunedaq::conffwk::dec_int_format) {
-            sChar = (int8_t) (DataList.at(i).toLong(&ok, 10));
-        } else if(Format == dunedaq::conffwk::hex_int_format) {
-            sChar = (int8_t) (DataList.at(i).toLong(&ok, 16));
-        } else if(Format == dunedaq::conffwk::oct_int_format) {
-            sChar = (int8_t) (DataList.at(i).toLong(&ok, 8));
-        } else if(Format == dunedaq::conffwk::na_int_format) {
-            sChar = (int8_t) (DataList.at(i).toLong(&ok));
-        }
-
-        rVector.push_back(sChar);
+  if (DataList.size() > 0) {
+    if (Format == dunedaq::conffwk::dec_int_format) {
+      uShort = DataList.at(0).toUShort(&ok, 10);
+    } else if (Format == dunedaq::conffwk::hex_int_format) {
+      uShort = DataList.at(0).toUShort(&ok, 16);
+    } else if (Format == dunedaq::conffwk::oct_int_format) {
+      uShort = DataList.at(0).toUShort(&ok, 8);
+    } else if (Format == dunedaq::conffwk::na_int_format) {
+      uShort = DataList.at(0).toUShort(&ok);
     }
+  }
 
-    return rVector;
+  return uShort;
 }
 
 template<>
-u_int16_t to<u_int16_t>(QStringList const & DataList, dunedaq::conffwk::int_format_t Format) {
+std::vector<u_int16_t>
+to<std::vector<u_int16_t>>(QStringList const& DataList, dunedaq::conffwk::int_format_t Format)
+{
+  std::vector<u_int16_t> rVector;
+
+  for (int i = 0; i < DataList.size(); ++i) {
     bool ok = false;
     u_int16_t uShort = 0;
 
-    if(DataList.size() > 0) {
-        if(Format == dunedaq::conffwk::dec_int_format) {
-            uShort = DataList.at(0).toUShort(&ok, 10);
-        } else if(Format == dunedaq::conffwk::hex_int_format) {
-            uShort = DataList.at(0).toUShort(&ok, 16);
-        } else if(Format == dunedaq::conffwk::oct_int_format) {
-            uShort = DataList.at(0).toUShort(&ok, 8);
-        } else if(Format == dunedaq::conffwk::na_int_format) {
-            uShort = DataList.at(0).toUShort(&ok);
-        }
+    if (Format == dunedaq::conffwk::dec_int_format) {
+      uShort = DataList.at(i).toUShort(&ok, 10);
+    } else if (Format == dunedaq::conffwk::hex_int_format) {
+      uShort = DataList.at(i).toUShort(&ok, 16);
+    } else if (Format == dunedaq::conffwk::oct_int_format) {
+      uShort = DataList.at(i).toUShort(&ok, 8);
+    } else if (Format == dunedaq::conffwk::na_int_format) {
+      uShort = DataList.at(i).toUShort(&ok);
     }
 
-    return uShort;
+    rVector.push_back(uShort);
+  }
+
+  return rVector;
 }
 
 template<>
-std::vector<u_int16_t> to<std::vector<u_int16_t>>(QStringList const & DataList, dunedaq::conffwk::int_format_t Format) {
-    std::vector<u_int16_t> rVector;
+int16_t
+to<int16_t>(QStringList const& DataList, dunedaq::conffwk::int_format_t Format)
+{
+  bool ok = false;
+  int16_t sShort = 0;
 
-    for(int i = 0; i < DataList.size(); ++i) {
-        bool ok = false;
-        u_int16_t uShort = 0;
-
-        if(Format == dunedaq::conffwk::dec_int_format) {
-            uShort = DataList.at(i).toUShort(&ok, 10);
-        } else if(Format == dunedaq::conffwk::hex_int_format) {
-            uShort = DataList.at(i).toUShort(&ok, 16);
-        } else if(Format == dunedaq::conffwk::oct_int_format) {
-            uShort = DataList.at(i).toUShort(&ok, 8);
-        } else if(Format == dunedaq::conffwk::na_int_format) {
-            uShort = DataList.at(i).toUShort(&ok);
-        }
-
-        rVector.push_back(uShort);
+  if (DataList.size() > 0) {
+    if (Format == dunedaq::conffwk::dec_int_format) {
+      sShort = DataList.at(0).toShort(&ok, 10);
+    } else if (Format == dunedaq::conffwk::hex_int_format) {
+      sShort = DataList.at(0).toShort(&ok, 16);
+    } else if (Format == dunedaq::conffwk::oct_int_format) {
+      sShort = DataList.at(0).toShort(&ok, 8);
+    } else if (Format == dunedaq::conffwk::na_int_format) {
+      sShort = DataList.at(0).toShort(&ok);
     }
+  }
 
-    return rVector;
+  return sShort;
 }
 
 template<>
-int16_t to<int16_t>(QStringList const & DataList, dunedaq::conffwk::int_format_t Format) {
+std::vector<int16_t>
+to<std::vector<int16_t>>(QStringList const& DataList, dunedaq::conffwk::int_format_t Format)
+{
+  std::vector<int16_t> rVector;
+
+  for (int i = 0; i < DataList.size(); ++i) {
     bool ok = false;
     int16_t sShort = 0;
 
-    if(DataList.size() > 0) {
-        if(Format == dunedaq::conffwk::dec_int_format) {
-            sShort = DataList.at(0).toShort(&ok, 10);
-        } else if(Format == dunedaq::conffwk::hex_int_format) {
-            sShort = DataList.at(0).toShort(&ok, 16);
-        } else if(Format == dunedaq::conffwk::oct_int_format) {
-            sShort = DataList.at(0).toShort(&ok, 8);
-        } else if(Format == dunedaq::conffwk::na_int_format) {
-            sShort = DataList.at(0).toShort(&ok);
-        }
+    if (Format == dunedaq::conffwk::dec_int_format) {
+      sShort = DataList.at(i).toShort(&ok, 10);
+    } else if (Format == dunedaq::conffwk::hex_int_format) {
+      sShort = DataList.at(i).toShort(&ok, 16);
+    } else if (Format == dunedaq::conffwk::oct_int_format) {
+      sShort = DataList.at(i).toShort(&ok, 8);
+    } else if (Format == dunedaq::conffwk::na_int_format) {
+      sShort = DataList.at(i).toShort(&ok);
     }
 
-    return sShort;
+    rVector.push_back(sShort);
+  }
+
+  return rVector;
 }
 
 template<>
-std::vector<int16_t> to<std::vector<int16_t>>(QStringList const & DataList, dunedaq::conffwk::int_format_t Format) {
-    std::vector<int16_t> rVector;
+u_int32_t
+to<u_int32_t>(QStringList const& DataList, dunedaq::conffwk::int_format_t Format)
+{
+  bool ok = false;
+  u_int32_t uLong = 0;
 
-    for(int i = 0; i < DataList.size(); ++i) {
-        bool ok = false;
-        int16_t sShort = 0;
-
-        if(Format == dunedaq::conffwk::dec_int_format) {
-            sShort = DataList.at(i).toShort(&ok, 10);
-        } else if(Format == dunedaq::conffwk::hex_int_format) {
-            sShort = DataList.at(i).toShort(&ok, 16);
-        } else if(Format == dunedaq::conffwk::oct_int_format) {
-            sShort = DataList.at(i).toShort(&ok, 8);
-        } else if(Format == dunedaq::conffwk::na_int_format) {
-            sShort = DataList.at(i).toShort(&ok);
-        }
-
-        rVector.push_back(sShort);
+  if (DataList.size() > 0) {
+    if (Format == dunedaq::conffwk::dec_int_format) {
+      uLong = DataList.at(0).toULong(&ok, 10);
+    } else if (Format == dunedaq::conffwk::hex_int_format) {
+      uLong = DataList.at(0).toULong(&ok, 16);
+    } else if (Format == dunedaq::conffwk::oct_int_format) {
+      uLong = DataList.at(0).toULong(&ok, 8);
+    } else if (Format == dunedaq::conffwk::na_int_format) {
+      uLong = DataList.at(0).toULong(&ok);
     }
+  }
 
-    return rVector;
+  return uLong;
 }
 
 template<>
-u_int32_t to<u_int32_t>(QStringList const & DataList, dunedaq::conffwk::int_format_t Format) {
+std::vector<u_int32_t>
+to<std::vector<u_int32_t>>(QStringList const& DataList, dunedaq::conffwk::int_format_t Format)
+{
+  std::vector<u_int32_t> rVector;
+
+  for (int i = 0; i < DataList.size(); ++i) {
     bool ok = false;
     u_int32_t uLong = 0;
 
-    if(DataList.size() > 0) {
-        if(Format == dunedaq::conffwk::dec_int_format) {
-            uLong = DataList.at(0).toULong(&ok, 10);
-        } else if(Format == dunedaq::conffwk::hex_int_format) {
-            uLong = DataList.at(0).toULong(&ok, 16);
-        } else if(Format == dunedaq::conffwk::oct_int_format) {
-            uLong = DataList.at(0).toULong(&ok, 8);
-        } else if(Format == dunedaq::conffwk::na_int_format) {
-            uLong = DataList.at(0).toULong(&ok);
-        }
+    if (Format == dunedaq::conffwk::dec_int_format) {
+      uLong = DataList.at(i).toULong(&ok, 10);
+    } else if (Format == dunedaq::conffwk::hex_int_format) {
+      uLong = DataList.at(i).toULong(&ok, 16);
+    } else if (Format == dunedaq::conffwk::oct_int_format) {
+      uLong = DataList.at(i).toULong(&ok, 8);
+    } else if (Format == dunedaq::conffwk::na_int_format) {
+      uLong = DataList.at(i).toULong(&ok);
     }
 
-    return uLong;
+    rVector.push_back(uLong);
+  }
+
+  return rVector;
 }
 
 template<>
-std::vector<u_int32_t> to<std::vector<u_int32_t>>(QStringList const & DataList, dunedaq::conffwk::int_format_t Format) {
-    std::vector<u_int32_t> rVector;
+int32_t
+to<int32_t>(QStringList const& DataList, dunedaq::conffwk::int_format_t Format)
+{
+  bool ok = false;
+  int32_t sLong = 0;
 
-    for(int i = 0; i < DataList.size(); ++i) {
-        bool ok = false;
-        u_int32_t uLong = 0;
-
-        if(Format == dunedaq::conffwk::dec_int_format) {
-            uLong = DataList.at(i).toULong(&ok, 10);
-        } else if(Format == dunedaq::conffwk::hex_int_format) {
-            uLong = DataList.at(i).toULong(&ok, 16);
-        } else if(Format == dunedaq::conffwk::oct_int_format) {
-            uLong = DataList.at(i).toULong(&ok, 8);
-        } else if(Format == dunedaq::conffwk::na_int_format) {
-            uLong = DataList.at(i).toULong(&ok);
-        }
-
-        rVector.push_back(uLong);
+  if (DataList.size() > 0) {
+    if (Format == dunedaq::conffwk::dec_int_format) {
+      sLong = DataList.at(0).toLong(&ok, 10);
+    } else if (Format == dunedaq::conffwk::hex_int_format) {
+      sLong = DataList.at(0).toLong(&ok, 16);
+    } else if (Format == dunedaq::conffwk::oct_int_format) {
+      sLong = DataList.at(0).toLong(&ok, 8);
+    } else if (Format == dunedaq::conffwk::na_int_format) {
+      sLong = DataList.at(0).toLong(&ok);
     }
+  }
 
-    return rVector;
+  return sLong;
 }
 
 template<>
-int32_t to<int32_t>(QStringList const & DataList, dunedaq::conffwk::int_format_t Format) {
+std::vector<int32_t>
+to<std::vector<int32_t>>(QStringList const& DataList, dunedaq::conffwk::int_format_t Format)
+{
+  std::vector<int32_t> rVector;
+
+  for (int i = 0; i < DataList.size(); ++i) {
     bool ok = false;
     int32_t sLong = 0;
 
-    if(DataList.size() > 0) {
-        if(Format == dunedaq::conffwk::dec_int_format) {
-            sLong = DataList.at(0).toLong(&ok, 10);
-        } else if(Format == dunedaq::conffwk::hex_int_format) {
-            sLong = DataList.at(0).toLong(&ok, 16);
-        } else if(Format == dunedaq::conffwk::oct_int_format) {
-            sLong = DataList.at(0).toLong(&ok, 8);
-        } else if(Format == dunedaq::conffwk::na_int_format) {
-            sLong = DataList.at(0).toLong(&ok);
-        }
+    if (Format == dunedaq::conffwk::dec_int_format) {
+      sLong = DataList.at(i).toLong(&ok, 10);
+    } else if (Format == dunedaq::conffwk::hex_int_format) {
+      sLong = DataList.at(i).toLong(&ok, 16);
+    } else if (Format == dunedaq::conffwk::oct_int_format) {
+      sLong = DataList.at(i).toLong(&ok, 8);
+    } else if (Format == dunedaq::conffwk::na_int_format) {
+      sLong = DataList.at(i).toLong(&ok, 10);
     }
 
-    return sLong;
+    rVector.push_back(sLong);
+  }
+
+  return rVector;
 }
 
 template<>
-std::vector<int32_t> to<std::vector<int32_t>>(QStringList const & DataList, dunedaq::conffwk::int_format_t Format) {
-    std::vector<int32_t> rVector;
+u_int64_t
+to<u_int64_t>(QStringList const& DataList, dunedaq::conffwk::int_format_t Format)
+{
+  bool ok = false;
+  u_int64_t u64 = 0;
 
-    for(int i = 0; i < DataList.size(); ++i) {
-        bool ok = false;
-        int32_t sLong = 0;
-
-        if(Format == dunedaq::conffwk::dec_int_format) {
-            sLong = DataList.at(i).toLong(&ok, 10);
-        } else if(Format == dunedaq::conffwk::hex_int_format) {
-            sLong = DataList.at(i).toLong(&ok, 16);
-        } else if(Format == dunedaq::conffwk::oct_int_format) {
-            sLong = DataList.at(i).toLong(&ok, 8);
-        } else if(Format == dunedaq::conffwk::na_int_format) {
-            sLong = DataList.at(i).toLong(&ok, 10);
-        }
-
-        rVector.push_back(sLong);
+  if (DataList.size() > 0) {
+    if (Format == dunedaq::conffwk::dec_int_format) {
+      u64 = (uint64_t)(DataList.at(0).toULongLong(&ok, 10));
+    } else if (Format == dunedaq::conffwk::hex_int_format) {
+      u64 = (uint64_t)(DataList.at(0).toULongLong(&ok, 16));
+    } else if (Format == dunedaq::conffwk::oct_int_format) {
+      u64 = (uint64_t)(DataList.at(0).toULongLong(&ok, 8));
+    } else if (Format == dunedaq::conffwk::na_int_format) {
+      u64 = (uint64_t)(DataList.at(0).toULongLong(&ok, 10));
     }
+  }
 
-    return rVector;
+  return u64;
 }
 
 template<>
-u_int64_t to<u_int64_t>(QStringList const & DataList, dunedaq::conffwk::int_format_t Format) {
+std::vector<u_int64_t>
+to<std::vector<u_int64_t>>(QStringList const& DataList, dunedaq::conffwk::int_format_t Format)
+{
+  std::vector<u_int64_t> rVector;
+
+  for (int i = 0; i < DataList.size(); ++i) {
     bool ok = false;
     u_int64_t u64 = 0;
 
-    if(DataList.size() > 0) {
-        if(Format == dunedaq::conffwk::dec_int_format) {
-            u64 = (uint64_t) (DataList.at(0).toULongLong(&ok, 10));
-        } else if(Format == dunedaq::conffwk::hex_int_format) {
-            u64 = (uint64_t) (DataList.at(0).toULongLong(&ok, 16));
-        } else if(Format == dunedaq::conffwk::oct_int_format) {
-            u64 = (uint64_t) (DataList.at(0).toULongLong(&ok, 8));
-        } else if(Format == dunedaq::conffwk::na_int_format) {
-            u64 = (uint64_t) (DataList.at(0).toULongLong(&ok, 10));
-        }
+    if (Format == dunedaq::conffwk::dec_int_format) {
+      u64 = (uint64_t)(DataList.at(i).toULongLong(&ok, 10));
+    } else if (Format == dunedaq::conffwk::hex_int_format) {
+      u64 = (uint64_t)(DataList.at(i).toULongLong(&ok, 16));
+    } else if (Format == dunedaq::conffwk::oct_int_format) {
+      u64 = (uint64_t)(DataList.at(i).toULongLong(&ok, 8));
+    } else if (Format == dunedaq::conffwk::na_int_format) {
+      u64 = (uint64_t)(DataList.at(i).toULongLong(&ok, 10));
     }
 
-    return u64;
+    rVector.push_back(u64);
+  }
+
+  return rVector;
 }
 
 template<>
-std::vector<u_int64_t> to<std::vector<u_int64_t>>(QStringList const & DataList, dunedaq::conffwk::int_format_t Format) {
-    std::vector<u_int64_t> rVector;
+int64_t
+to<int64_t>(QStringList const& DataList, dunedaq::conffwk::int_format_t Format)
+{
+  bool ok = false;
+  int64_t i64 = 0;
 
-    for(int i = 0; i < DataList.size(); ++i) {
-        bool ok = false;
-        u_int64_t u64 = 0;
-
-        if(Format == dunedaq::conffwk::dec_int_format) {
-            u64 = (uint64_t) (DataList.at(i).toULongLong(&ok, 10));
-        } else if(Format == dunedaq::conffwk::hex_int_format) {
-            u64 = (uint64_t) (DataList.at(i).toULongLong(&ok, 16));
-        } else if(Format == dunedaq::conffwk::oct_int_format) {
-            u64 = (uint64_t) (DataList.at(i).toULongLong(&ok, 8));
-        } else if(Format == dunedaq::conffwk::na_int_format) {
-            u64 = (uint64_t) (DataList.at(i).toULongLong(&ok, 10));
-        }
-
-        rVector.push_back(u64);
+  if (DataList.size() > 0) {
+    if (Format == dunedaq::conffwk::dec_int_format) {
+      i64 = (int64_t)(DataList.at(0).toLongLong(&ok, 10));
+    } else if (Format == dunedaq::conffwk::hex_int_format) {
+      i64 = (int64_t)(DataList.at(0).toLongLong(&ok, 16));
+    } else if (Format == dunedaq::conffwk::oct_int_format) {
+      i64 = (int64_t)(DataList.at(0).toLongLong(&ok, 8));
+    } else if (Format == dunedaq::conffwk::na_int_format) {
+      i64 = (int64_t)(DataList.at(0).toLongLong(&ok, 10));
     }
+  }
 
-    return rVector;
+  return i64;
 }
 
 template<>
-int64_t to<int64_t>(QStringList const & DataList, dunedaq::conffwk::int_format_t Format) {
+std::vector<int64_t>
+to<std::vector<int64_t>>(QStringList const& DataList, dunedaq::conffwk::int_format_t Format)
+{
+  std::vector<int64_t> rVector;
+
+  for (int i = 0; i < DataList.size(); ++i) {
     bool ok = false;
     int64_t i64 = 0;
 
-    if(DataList.size() > 0) {
-        if(Format == dunedaq::conffwk::dec_int_format) {
-            i64 = (int64_t) (DataList.at(0).toLongLong(&ok, 10));
-        } else if(Format == dunedaq::conffwk::hex_int_format) {
-            i64 = (int64_t) (DataList.at(0).toLongLong(&ok, 16));
-        } else if(Format == dunedaq::conffwk::oct_int_format) {
-            i64 = (int64_t) (DataList.at(0).toLongLong(&ok, 8));
-        } else if(Format == dunedaq::conffwk::na_int_format) {
-            i64 = (int64_t) (DataList.at(0).toLongLong(&ok, 10));
-        }
+    if (Format == dunedaq::conffwk::dec_int_format) {
+      i64 = (int64_t)(DataList.at(i).toLongLong(&ok, 10));
+    } else if (Format == dunedaq::conffwk::hex_int_format) {
+      i64 = (int64_t)(DataList.at(i).toLongLong(&ok, 16));
+    } else if (Format == dunedaq::conffwk::oct_int_format) {
+      i64 = (int64_t)(DataList.at(i).toLongLong(&ok, 8));
+    } else if (Format == dunedaq::conffwk::na_int_format) {
+      i64 = (int64_t)(DataList.at(i).toLongLong(&ok, 10));
     }
 
-    return i64;
+    rVector.push_back(i64);
+  }
+
+  return rVector;
 }
 
 template<>
-std::vector<int64_t> to<std::vector<int64_t>>(QStringList const & DataList, dunedaq::conffwk::int_format_t Format) {
-    std::vector<int64_t> rVector;
+float
+to<float>(QStringList const& DataList, dunedaq::conffwk::int_format_t Format)
+{
+  Q_UNUSED(Format)
 
-    for(int i = 0; i < DataList.size(); ++i) {
-        bool ok = false;
-        int64_t i64 = 0;
+  float f{ 0 };
 
-        if(Format == dunedaq::conffwk::dec_int_format) {
-            i64 = (int64_t) (DataList.at(i).toLongLong(&ok, 10));
-        } else if(Format == dunedaq::conffwk::hex_int_format) {
-            i64 = (int64_t) (DataList.at(i).toLongLong(&ok, 16));
-        } else if(Format == dunedaq::conffwk::oct_int_format) {
-            i64 = (int64_t) (DataList.at(i).toLongLong(&ok, 8));
-        } else if(Format == dunedaq::conffwk::na_int_format) {
-            i64 = (int64_t) (DataList.at(i).toLongLong(&ok, 10));
-        }
+  for (auto i = 0; i < DataList.size(); ++i) {
+    f = DataList.at(i).toFloat();
+  }
 
-        rVector.push_back(i64);
-    }
-
-    return rVector;
+  return f;
 }
 
 template<>
-float to<float>(QStringList const & DataList, dunedaq::conffwk::int_format_t Format) {
-    Q_UNUSED (Format)
+std::vector<float>
+to<std::vector<float>>(QStringList const& DataList, dunedaq::conffwk::int_format_t Format)
+{
+  Q_UNUSED(Format)
 
-    float f {0};
+  std::vector<float> rVector;
 
-    for(auto i = 0; i < DataList.size(); ++i) {
-        f = DataList.at(i).toFloat();
-    }
+  for (int i = 0; i < DataList.size(); ++i) {
+    rVector.push_back(DataList.at(i).toFloat());
+  }
 
-    return f;
+  return rVector;
 }
 
 template<>
-std::vector<float> to<std::vector<float>>(QStringList const & DataList, dunedaq::conffwk::int_format_t Format) {
-    Q_UNUSED (Format)
+double
+to<double>(QStringList const& DataList, dunedaq::conffwk::int_format_t Format)
+{
+  Q_UNUSED(Format)
 
-    std::vector<float> rVector;
+  double d{ 0 };
 
-    for(int i = 0; i < DataList.size(); ++i) {
-        rVector.push_back(DataList.at(i).toFloat());
-    }
+  for (int i = 0; i < DataList.size(); ++i) {
+    d = DataList.at(i).toDouble();
+  }
 
-    return rVector;
+  return d;
 }
 
 template<>
-double to<double>(QStringList const & DataList, dunedaq::conffwk::int_format_t Format) {
-    Q_UNUSED (Format)
+std::vector<double>
+to<std::vector<double>>(QStringList const& DataList, dunedaq::conffwk::int_format_t Format)
+{
+  Q_UNUSED(Format)
 
-    double d {0};
+  std::vector<double> rVector;
 
-    for(int i = 0; i < DataList.size(); ++i) {
-        d = DataList.at(i).toDouble();
-    }
+  for (int i = 0; i < DataList.size(); ++i) {
+    rVector.push_back(DataList.at(i).toDouble());
+  }
 
-    return d;
+  return rVector;
 }
 
 template<>
-std::vector<double> to<std::vector<double>>(QStringList const & DataList, dunedaq::conffwk::int_format_t Format) {
-    Q_UNUSED (Format)
+bool
+to<bool>(QStringList const& DataList, dunedaq::conffwk::int_format_t Format)
+{
+  bool b = false;
+  Q_UNUSED(Format)
 
-    std::vector<double> rVector;
-
-    for(int i = 0; i < DataList.size(); ++i) {
-        rVector.push_back(DataList.at(i).toDouble());
+  for (int i = 0; i < DataList.size(); ++i) {
+    if (QString::compare(DataList.at(i), QString("true"), Qt::CaseInsensitive) == 0 ||
+        QString::compare(DataList.at(i), QString("1"), Qt::CaseInsensitive) == 0) {
+      b = true;
+    } else if (QString::compare(DataList.at(i), QString("false"), Qt::CaseInsensitive) == 0 ||
+               QString::compare(DataList.at(i), QString("0"), Qt::CaseInsensitive) == 0) {
+      b = false;
+    } else {
+      std::string message = "Conversion to enum of " + DataList.at(i).toStdString() + " is not possible!";
+      throw daq::dbe::BadConversion(ERS_HERE, message.c_str());
     }
+  }
 
-    return rVector;
+  return b;
 }
 
 template<>
-bool to<bool>(QStringList const & DataList, dunedaq::conffwk::int_format_t Format) {
-    bool b = false;
-    Q_UNUSED (Format)
+std::vector<bool>
+to<std::vector<bool>>(QStringList const& DataList, dunedaq::conffwk::int_format_t Format)
+{
+  std::vector<bool> rVector;
+  Q_UNUSED(Format)
 
-    for(int i = 0; i < DataList.size(); ++i) {
-        if(QString::compare(DataList.at(i), QString("true"), Qt::CaseInsensitive) == 0
-                || QString::compare(DataList.at(i), QString("1"), Qt::CaseInsensitive) == 0) {
-            b = true;
-        } else if(QString::compare(DataList.at(i), QString("false"), Qt::CaseInsensitive) == 0
-                || QString::compare(DataList.at(i), QString("0"), Qt::CaseInsensitive) == 0) {
-            b = false;
-        } else {
-            std::string message = "Conversion to enum of " + DataList.at(i).toStdString() + " is not possible!";
-            throw daq::dbe::BadConversion( ERS_HERE, message.c_str() );
-        }
+  for (int i = 0; i < DataList.size(); ++i) {
+    if (QString::compare(DataList.at(i), QString("true"), Qt::CaseInsensitive) == 0 ||
+        QString::compare(DataList.at(i), QString("1"), Qt::CaseInsensitive) == 0) {
+      rVector.push_back(true);
+    } else if (QString::compare(DataList.at(i), QString("false"), Qt::CaseInsensitive) == 0 ||
+               QString::compare(DataList.at(i), QString("0"), Qt::CaseInsensitive) == 0) {
+      rVector.push_back(false);
+    } else {
+      std::string message = "Conversion to enum of " + DataList.at(i).toStdString() + " is not possible!";
+      throw daq::dbe::BadConversion(ERS_HERE, message.c_str());
     }
+  }
 
-    return b;
-}
-
-template<>
-std::vector<bool> to<std::vector<bool>>(QStringList const & DataList, dunedaq::conffwk::int_format_t Format) {
-    std::vector<bool> rVector;
-    Q_UNUSED (Format)
-
-    for(int i = 0; i < DataList.size(); ++i) {
-        if(QString::compare(DataList.at(i), QString("true"), Qt::CaseInsensitive) == 0
-                || QString::compare(DataList.at(i), QString("1"), Qt::CaseInsensitive) == 0) {
-            rVector.push_back(true);
-        } else if(QString::compare(DataList.at(i), QString("false"), Qt::CaseInsensitive) == 0
-                || QString::compare(DataList.at(i), QString("0"), Qt::CaseInsensitive) == 0) {
-            rVector.push_back(false);
-        } else {
-            std::string message = "Conversion to enum of " + DataList.at(i).toStdString() + " is not possible!";
-            throw daq::dbe::BadConversion( ERS_HERE, message.c_str() );
-        }
-    }
-
-    return rVector;
+  return rVector;
 }
 
 }

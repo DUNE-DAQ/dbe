@@ -6,22 +6,20 @@
 #ifndef ORACLEWIDGET_H
 #define ORACLEWIDGET_H
 
-#include <memory>
 #include <QWidget>
+#include <memory>
 
-namespace dbe
-{
-namespace Ui
-{
+namespace dbe {
+namespace Ui {
 class OracleWidget;
-}  // namespace Ui
+} // namespace Ui
 
-class OracleWidget: public QWidget
+class OracleWidget : public QWidget
 {
   Q_OBJECT
 public:
   ~OracleWidget();
-  explicit OracleWidget ( QWidget * parent = 0 );
+  explicit OracleWidget(QWidget* parent = 0);
 
 private:
   void SetController();
@@ -32,8 +30,8 @@ private slots:
   void ProcessOracleCommand();
 
 signals:
-  void OpenOracleConfig ( const QString & ConfigStream );
+  void OpenOracleConfig(const QString& ConfigStream);
 };
 
-}  // namespace dbe
+} // namespace dbe
 #endif // ORACLEWIDGET_H

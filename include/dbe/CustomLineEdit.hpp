@@ -9,23 +9,22 @@
 #include <QLineEdit>
 #include <QValidator>
 
-namespace dbe
-{
-class CustomLineEdit: public QLineEdit
+namespace dbe {
+class CustomLineEdit : public QLineEdit
 {
   Q_OBJECT
 public:
-  explicit CustomLineEdit ( QWidget * parent = 0, bool IsNull = true, bool IsMulti = false );
+  explicit CustomLineEdit(QWidget* parent = 0, bool IsNull = true, bool IsMulti = false);
   ~CustomLineEdit();
-  void SetNullCheck ( bool IsNull );
-  void SetMultiCheck ( bool IsMulti );
+  void SetNullCheck(bool IsNull);
+  void SetMultiCheck(bool IsMulti);
   bool IsNullCheck();
   bool IsValid();
-  void SetCheckDefault ( bool Default );
-  void SetDefaultValue ( QString ValueDefault );
+  void SetCheckDefault(bool Default);
+  void SetDefaultValue(QString ValueDefault);
   void ValidateText();
-  void SetLoadedDefaultFlag ( bool Loaded );
-  void SetValidator ( QValidator * ValidatorSet );
+  void SetLoadedDefaultFlag(bool Loaded);
+  void SetValidator(QValidator* ValidatorSet);
   void SetPopupMenu();
   void CreateActions();
 signals:
@@ -35,23 +34,25 @@ signals:
   void HexChange();
   void OctChange();
 public slots:
-  void TryValidate ( QString Dummy );
+  void TryValidate(QString Dummy);
   void EmitDecSlot();
   void EmitOctSlot();
   void EmitHexSlot();
+
 protected:
-  void contextMenuEvent ( QContextMenuEvent * Event );
+  void contextMenuEvent(QContextMenuEvent* Event);
+
 private:
   bool Valid;
   bool NullCheck;
   bool CheckDefault;
   bool PopupMenu;
   bool IsMultiValue;
-  QMenu * ContextMenu;
-  QAction * Dec;
-  QAction * Oct;
-  QAction * Hex;
-  QValidator * Validator;
+  QMenu* ContextMenu;
+  QAction* Dec;
+  QAction* Oct;
+  QAction* Hex;
+  QValidator* Validator;
   QString DefaultValue;
 };
 } // end namespace dbe

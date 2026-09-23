@@ -2,55 +2,53 @@
 #define SCHEMAGRAPHICOBJECT_H
 
 /// Including QT Headers
+#include <QColor>
+#include <QFont>
 #include <QGraphicsObject>
 #include <QGraphicsSceneHoverEvent>
-#include <QFont>
-#include <QColor>
 #include <QPen>
 
 /// Including Oks Headers
 #include "oks/class.hpp"
 
-namespace dbse
-{
+namespace dbse {
 
 class SchemaGraphicSegmentedArrow;
 class SchemaGraphicsScene;
 
-class SchemaGraphicObject: public QGraphicsObject
+class SchemaGraphicObject : public QGraphicsObject
 {
   Q_OBJECT
 public:
-  explicit SchemaGraphicObject ( QString & ClassName,
-                                 SchemaGraphicsScene* scene,
-                                 QGraphicsObject * parent = nullptr );
+  explicit SchemaGraphicObject(QString& ClassName, SchemaGraphicsScene* scene, QGraphicsObject* parent = nullptr);
   ~SchemaGraphicObject();
 
-  [[nodiscard]] dunedaq::oks::OksClass * GetClass() const;
+  [[nodiscard]] dunedaq::oks::OksClass* GetClass() const;
   [[nodiscard]] QString GetClassName() const;
   void GetInfo();
   /// Graphic API
   void toggle_highlight_class();
   [[nodiscard]] QRectF boundingRect() const override;
   [[nodiscard]] QPainterPath shape() const override;
-  void paint ( QPainter * painter, const QStyleOptionGraphicsItem * option,
-               QWidget * widget ) override;
+  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
   /// Arrow API
-  void AddArrow ( SchemaGraphicSegmentedArrow * Arrow );
-  void RemoveArrow ( SchemaGraphicSegmentedArrow * Arrow );
+  void AddArrow(SchemaGraphicSegmentedArrow* Arrow);
+  void RemoveArrow(SchemaGraphicSegmentedArrow* Arrow);
   void RemoveArrows();
-  bool HasArrow ( SchemaGraphicObject * Dest ) const;
+  bool HasArrow(SchemaGraphicObject* Dest) const;
   void update_arrows();
-  bool highlighted() const {return m_highlight_class;};
+  bool highlighted() const { return m_highlight_class; };
+
 protected:
-  QVariant itemChange ( GraphicsItemChange change, const QVariant & value );
-  void hoverEnterEvent ( QGraphicsSceneHoverEvent* ev );
-  void hoverLeaveEvent ( QGraphicsSceneHoverEvent* ev );
-  void mouseDoubleClickEvent ( QGraphicsSceneMouseEvent* ev );
+  QVariant itemChange(GraphicsItemChange change, const QVariant& value);
+  void hoverEnterEvent(QGraphicsSceneHoverEvent* ev);
+  void hoverLeaveEvent(QGraphicsSceneHoverEvent* ev);
+  void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* ev);
+
 private:
   void set_font();
   SchemaGraphicsScene* m_scene;
-  dunedaq::oks::OksClass * m_class_info;
+  dunedaq::oks::OksClass* m_class_info;
   QString m_class_object_name;
   QStringList m_class_attributes;
   QStringList m_class_attribute_values;
@@ -61,19 +59,19 @@ private:
   QStringList m_class_inherited_relationhips;
   QStringList m_class_inherited_methods;
 
-  bool m_inherited_properties_visible;  
-  bool m_highlight_active{false};
-  bool m_highlight_class{false};
+  bool m_inherited_properties_visible;
+  bool m_highlight_active{ false };
+  bool m_highlight_class{ false };
   QFont m_font;
   QFont m_bold_font;
 
   double LineOffsetX;
   double LineOffsetY;
-  QList<SchemaGraphicSegmentedArrow *> m_arrows;
+  QList<SchemaGraphicSegmentedArrow*> m_arrows;
 private slots:
-  void UpdateObject ( QString Name );
-  void RemoveObject ( QString Name );
+  void UpdateObject(QString Name);
+  void RemoveObject(QString Name);
 };
 
-}  // namespace dbse
+} // namespace dbse
 #endif // SCHEMAGRAPHICOBJECT_H

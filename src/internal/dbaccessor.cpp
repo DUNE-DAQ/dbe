@@ -16,20 +16,21 @@ using namespace dunedaq::conffwk;
 
 //------------------------------------------------------------------------------------------
 dbe::dbholder::t_mutex dbe::dbholder::database_lock;
-Configuration * dbe::dbholder::database = nullptr;
-cptr<Configuration> dbe::dbholder::database_concurrent_ptr = cptr<Configuration> (
-                                                               dbe::dbholder::database );
+Configuration* dbe::dbholder::database = nullptr;
+cptr<Configuration> dbe::dbholder::database_concurrent_ptr = cptr<Configuration>(dbe::dbholder::database);
 //------------------------------------------------------------------------------------------
-cptr<Configuration> dbe::dbaccessor::dbptr()
+cptr<Configuration>
+dbe::dbaccessor::dbptr()
 {
-  t_lock l ( dbholder::database_lock );
+  t_lock l(dbholder::database_lock);
   return dbholder::database_concurrent_ptr;
 }
 //------------------------------------------------------------------------------------------
 
 //------------------------------------------------------------------------------------------
-bool dbe::dbaccessor::is_loaded()
+bool
+dbe::dbaccessor::is_loaded()
 {
-return dbaccessor::dbptr().get() != nullptr;
+  return dbaccessor::dbptr().get() != nullptr;
 }
 //------------------------------------------------------------------------------------------

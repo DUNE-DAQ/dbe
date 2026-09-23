@@ -11,5 +11,3 @@
  */
 
 #include "dbe/model_common_interface.hpp"
-
-

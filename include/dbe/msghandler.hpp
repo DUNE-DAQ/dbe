@@ -19,21 +19,19 @@
 #ifndef LUTILS_MSGHANDLER_H_
 #define LUTILS_MSGHANDLER_H_
 
-#include <memory>
-#include <mutex>
-#include <thread>
 #include <condition_variable>
-#include <queue>
 #include <fstream>
 #include <iostream>
+#include <memory>
+#include <mutex>
+#include <queue>
+#include <thread>
 #include <vector>
 
 #include "dbe/macro.hpp"
 
-namespace lutils
-{
-namespace program
-{
+namespace lutils {
+namespace program {
 
 /**
  * Class providing message handling capabilities to multiple sources
@@ -50,7 +48,7 @@ public:
    *
    * @return a reference to a singleton msghandler
    */
-  static msghandler & ref();
+  static msghandler& ref();
 
   /**
    * Sets the logfile.
@@ -59,7 +57,7 @@ public:
    * @param logfile
    * @return a reference to a singleton msghandler
    */
-  void set ( t_str const & logfile );
+  void set(t_str const& logfile);
 
   /**
    * Sets the minimum level of messages that the message handler will
@@ -68,14 +66,14 @@ public:
    * @param level is a string that defines the minimum level
    * @param levels is a vector of strings in order of imporance
    */
-  void setlevel ( t_str const & level, t_levels levels );
+  void setlevel(t_str const& level, t_levels levels);
 
   /**
    * Add a message to the queue to be served
    *
    * @param a string as a message
    */
-  void message ( t_str const & messagein );
+  void message(t_str const& messagein);
 
   /**
    * Add a message to the queue to be served
@@ -83,7 +81,7 @@ public:
    * @param messagein is the message content to be displayed
    * @param msglevel is a tag representing the level of the message
    */
-  void message ( t_str const & msglevel, t_str const & messagein );
+  void message(t_str const& msglevel, t_str const& messagein);
 
 private:
   typedef B t_bool;
@@ -96,7 +94,8 @@ private:
   typedef std::ofstream t_file;
   typedef std::unique_ptr<t_file> t_file_ptr;
 
-  template<typename E> using t_container = std::queue<E>;
+  template<typename E>
+  using t_container = std::queue<E>;
   typedef t_container<std::pair<t_str, t_str>> t_messages;
 
   t_messages m_messages;
@@ -106,11 +105,10 @@ private:
   std::condition_variable m_condition;
   std::mutex m_cond_lock;
 
-
   t_str_ptr m_logfile;
   t_file_ptr m_file;
 
-  t_thread * m_handler;
+  t_thread* m_handler;
 
   t_bool m_running;
   t_bool m_have_messages;
@@ -131,16 +129,16 @@ private:
    * Sends message to standard output or the provided UI::post method
    * @param m is the message to send
    */
-  template<typename TR = UI> typename TR::default_post_ret_type post ( t_str const & m,
-                                                                       t_str const & l );
-  template<typename TR = UI> typename TR::post_ret_type post ( t_str const & m,
-                                                               t_str const & l );
+  template<typename TR = UI>
+  typename TR::default_post_ret_type post(t_str const& m, t_str const& l);
+  template<typename TR = UI>
+  typename TR::post_ret_type post(t_str const& m, t_str const& l);
 
   /**
    * Send message to file
    * @param the filename to write to
    */
-  void file ( t_str const & );
+  void file(t_str const&);
 
   /**
    * Checks the level of a message and return true if the level of the
@@ -149,18 +147,18 @@ private:
    * @param level of a message
    * @return true or false
    */
-  bool levelcheck ( t_str const & level ) const;
+  bool levelcheck(t_str const& level) const;
 
   /**
    * Opens a designated file
    * @param the filename to open
    */
-  void reopen ( t_str const & );
+  void reopen(t_str const&);
 
   ~msghandler();
   msghandler();
-  msghandler ( msghandler const & ) = delete;
-  msghandler & operator= ( msghandler const & ) = delete;
+  msghandler(msghandler const&) = delete;
+  msghandler& operator=(msghandler const&) = delete;
 };
 
 }

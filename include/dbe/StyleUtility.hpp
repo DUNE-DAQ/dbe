@@ -11,8 +11,7 @@
 #include <QPalette>
 #include <QSettings>
 
-namespace dbe
-{
+namespace dbe {
 
 class StyleUtility
 {
@@ -41,5 +40,5 @@ public:
   static QPalette LoadedDefault;
 };
 
-}  // namespace dbe
+} // namespace dbe
 #endif // STYLEUTILITY_H

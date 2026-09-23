@@ -7,30 +7,29 @@
 #define CREATEDATABASEWIDGET_H
 
 /// Including QT Headers
-#include <QWidget>
-#include <QStatusBar>
 #include <QFileInfo>
+#include <QStatusBar>
+#include <QWidget>
 /// Including Ui Files
 #include "ui_CreateDatabaseWidget.h"
 
-namespace dbe
-{
+namespace dbe {
 
-namespace Ui
-{
+namespace Ui {
 class CreateDatabaseWidget;
-}  // namespace Ui
+} // namespace Ui
 
-class CreateDatabaseWidget: public QWidget, private dbe::Ui::CreateDatabaseWidget
+class CreateDatabaseWidget
+  : public QWidget
+  , private dbe::Ui::CreateDatabaseWidget
 {
   Q_OBJECT
 public:
-  CreateDatabaseWidget ( QWidget * parent = nullptr, bool Include = false,
-                         const QString & CreateDir = QString() );
+  CreateDatabaseWidget(QWidget* parent = nullptr, bool Include = false, const QString& CreateDir = QString());
 
 signals:
-  void CanLoadDatabase ( const QString & DatabasePath );
-  void CanIncludeDatabase ( const QString & DatabasePath );
+  void CanLoadDatabase(const QString& DatabasePath);
+  void CanIncludeDatabase(const QString& DatabasePath);
 
 private:
   QFileInfo DatabaseFile;

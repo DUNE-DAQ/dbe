@@ -13,17 +13,15 @@
 #ifndef DBE_CONFIG_API_INFO_H_
 #define DBE_CONFIG_API_INFO_H_
 
-#include "dbe/config_reference.hpp"
 #include "conffwk/Schema.hpp"
+#include "dbe/config_reference.hpp"
 
 #include <QString>
 #include <string>
 #include <vector>
 
-namespace dunedaq
-{
-namespace config
-{
+namespace dunedaq {
+namespace config {
 struct attribute_t;
 struct class_t;
 struct relationship_t;
@@ -31,18 +29,15 @@ struct relationship_t;
 } /* namespace daq */
 
 //------------------------------------------------------------------------------------------
-namespace dbe
-{
-namespace config
-{
-namespace api
-{
-namespace info
-{
+namespace dbe {
+namespace config {
+namespace api {
+namespace info {
 //------------------------------------------------------------------------------------------
 //                                                 INFO NAMESPACE
 //------------------------------------------------------------------------------------------
-bool has_obj ( std::string const & classname, std::string const & object_uid );
+bool
+has_obj(std::string const& classname, std::string const& object_uid);
 
 /**
  * Retrieve attribute information for a given attribute name of a class
@@ -50,10 +45,10 @@ bool has_obj ( std::string const & classname, std::string const & object_uid );
  * @param Class name
  * @return the attribute information
  */
- dunedaq::conffwk::attribute_t attributematch ( QString const &, QString const & );
+dunedaq::conffwk::attribute_t
+attributematch(QString const&, QString const&);
 
-namespace relation
-{
+namespace relation {
 /**
  * Retrieve relation information for a given relation name of a class
  *
@@ -61,12 +56,16 @@ namespace relation
  * @param Class name
  * @return  the relation information
  */
-template<typename T> dunedaq::conffwk::relationship_t match ( T const & , T const &);
+template<typename T>
+dunedaq::conffwk::relationship_t
+match(T const&, T const&);
 
 template<>
-dunedaq::conffwk::relationship_t match<QString>( QString const &, QString const & );
+dunedaq::conffwk::relationship_t
+match<QString>(QString const&, QString const&);
 template<>
-dunedaq::conffwk::relationship_t match<std::string>( std::string const &, std::string const & );
+dunedaq::conffwk::relationship_t
+match<std::string>(std::string const&, std::string const&);
 
 /**
  * Returns true if the underlying relation takes values only possible for a simple edge
@@ -74,7 +73,8 @@ dunedaq::conffwk::relationship_t match<std::string>( std::string const &, std::s
  * @param a dunedaq::conffwk::relationship_t to evaluate
  * @return true in case it is a simple edge
  */
-bool is_simple ( dunedaq::conffwk::relationship_t const & );
+bool
+is_simple(dunedaq::conffwk::relationship_t const&);
 }
 
 class onclass
@@ -85,7 +85,8 @@ public:
    *
    * @return
    */
-  template<typename T> static inline T allnames();
+  template<typename T>
+  static inline T allnames();
   /**
    * Get class information from class name
    * @param cn is the class name to retrieve information for
@@ -93,7 +94,7 @@ public:
    *        attribute , sub-class and superclass information
    * @return a class information object
    */
-  static dunedaq::conffwk::class_t definition ( std::string const & cn, bool direct_only );
+  static dunedaq::conffwk::class_t definition(std::string const& cn, bool direct_only);
 
   /**
    * Retrieve references to config objects of a given class
@@ -103,8 +104,8 @@ public:
    * @return a vector of references
    */
   template<bool SORTED = true>
-  static std::vector<dbe::inner::configobject::tref>
-  objects ( std::string const & cname, bool const keep_inherited = true );
+  static std::vector<dbe::inner::configobject::tref> objects(std::string const& cname,
+                                                             bool const keep_inherited = true);
 
   /**
    * Determine if a class is derived from another
@@ -112,11 +113,11 @@ public:
    * @param aclass is the classname of the candidate class to be derived from inclass
    * @return true if aclass is derived fromclass
    */
-  static bool derived ( std::string const & fromclass, std::string const & aclass );
+  static bool derived(std::string const& fromclass, std::string const& aclass);
 };
 
 //------------------------------------------------------------------------------------------
-}// end namespace info
+} // end namespace info
 }
 }
 }

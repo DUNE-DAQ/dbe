@@ -15,12 +15,9 @@
 
 #include <mutex>
 
-namespace dbe
-{
-namespace types
-{
-namespace common
-{
+namespace dbe {
+namespace types {
+namespace common {
 
 typedef std::mutex type_mutex;
 typedef std::lock_guard<type_mutex> type_lock;

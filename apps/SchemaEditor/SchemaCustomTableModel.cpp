@@ -1,70 +1,69 @@
 // DUNE DAQ modification notice:
 // This file has been modified from the original ATLAS dbe source for the DUNE DAQ project.
 // Fork baseline commit: dbe-02-12-17 (2022-05-12).
-// Renamed since fork: yes (from src/SchemaEditor/SchemaCustomTableModel.cpp to apps/SchemaEditor/SchemaCustomTableModel.cpp).
+// Renamed since fork: yes (from src/SchemaEditor/SchemaCustomTableModel.cpp to
+// apps/SchemaEditor/SchemaCustomTableModel.cpp).
 
 #include "dbe/SchemaCustomTableModel.hpp"
 #include "dbe/SchemaKernelWrapper.hpp"
 #include "dbe/SchemaStyle.hpp"
-#include <QIODevice>
 #include <QDataStream>
+#include <QIODevice>
 
 using namespace dunedaq::oks;
 
-dbse::CustomTableModel::CustomTableModel ( QStringList Headers, QObject * parent )
-  : QAbstractTableModel ( parent ),
-    HeaderList ( Headers )
+dbse::CustomTableModel::CustomTableModel(QStringList Headers, QObject* parent)
+  : QAbstractTableModel(parent)
+  , HeaderList(Headers)
 {
   setupModel();
 }
 
-dbse::CustomTableModel::~CustomTableModel()
-{
-}
+dbse::CustomTableModel::~CustomTableModel() {}
 
-int dbse::CustomTableModel::rowCount ( const QModelIndex & parent ) const
+int
+dbse::CustomTableModel::rowCount(const QModelIndex& parent) const
 {
-  Q_UNUSED ( parent );
+  Q_UNUSED(parent);
   return m_data.size();
 }
 
-int dbse::CustomTableModel::columnCount ( const QModelIndex & parent ) const
+int
+dbse::CustomTableModel::columnCount(const QModelIndex& parent) const
 {
-  Q_UNUSED ( parent );
+  Q_UNUSED(parent);
   return HeaderList.size();
 }
 
-Qt::ItemFlags dbse::CustomTableModel::flags ( const QModelIndex & index ) const
+Qt::ItemFlags
+dbse::CustomTableModel::flags(const QModelIndex& index) const
 {
-  Q_UNUSED ( index );
+  Q_UNUSED(index);
   return Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsDragEnabled;
 }
 
-QVariant dbse::CustomTableModel::headerData ( int section, Qt::Orientation orientation,
-                                              int role ) const
+QVariant
+dbse::CustomTableModel::headerData(int section, Qt::Orientation orientation, int role) const
 {
-  if ( role != Qt::DisplayRole )
-  {
+  if (role != Qt::DisplayRole) {
     return QVariant();
   }
 
-  if ( orientation == Qt::Horizontal )
-  {
-    return HeaderList.at ( section );
+  if (orientation == Qt::Horizontal) {
+    return HeaderList.at(section);
   }
 
   return QVariant();
 }
 
-QVariant dbse::CustomTableModel::data ( const QModelIndex & index, int role ) const
+QVariant
+dbse::CustomTableModel::data(const QModelIndex& index, int role) const
 {
-  if ( role == Qt::DisplayRole )
-  {
-    return m_data.value ( index.row() ).value ( index.column() );
+  if (role == Qt::DisplayRole) {
+    return m_data.value(index.row()).value(index.column());
   }
-  if ( role == Qt::ToolTipRole )
-  {
-    return m_tooltips.value ( index.row() ).value ( index.column() );
+  if (role == Qt::ToolTipRole) {
+    return m_tooltips.value(index.row()).value(index.column());
   }
   if (role == Qt::ForegroundRole) {
     return m_brushes.at(index.row());
@@ -76,68 +75,66 @@ QVariant dbse::CustomTableModel::data ( const QModelIndex & index, int role ) co
   return QVariant();
 }
 
-QStringList dbse::CustomTableModel::getRowFromIndex ( QModelIndex & index )
+QStringList
+dbse::CustomTableModel::getRowFromIndex(QModelIndex& index)
 {
-  if ( !index.isValid() )
-  {
+  if (!index.isValid()) {
     return QStringList();
   }
 
-  return m_data.at ( index.row() );
+  return m_data.at(index.row());
 }
 
-void dbse::CustomTableModel::setupModel()
+void
+dbse::CustomTableModel::setupModel()
 {
-  std::vector<OksClass *> ClassList;
-  KernelWrapper::GetInstance().GetClassList ( ClassList );
+  std::vector<OksClass*> ClassList;
+  KernelWrapper::GetInstance().GetClassList(ClassList);
 
-  for ( unsigned int i = 0; i < ClassList.size(); ++i )
-  {
+  for (unsigned int i = 0; i < ClassList.size(); ++i) {
     QList<QString> Row;
-    OksClass * Class = ClassList.at ( i );
-    Row.append ( QString ( Class->get_name().c_str() ) );
-    m_data.append ( Row );
-    m_tooltips.append (QStringList {QString ( Class->get_description().c_str() )});
+    OksClass* Class = ClassList.at(i);
+    Row.append(QString(Class->get_name().c_str()));
+    m_data.append(Row);
+    m_tooltips.append(QStringList{ QString(Class->get_description().c_str()) });
 
     auto fn = Class->get_file()->get_full_file_name();
-    if (!KernelWrapper::GetInstance().IsFileWritable (fn)) {
+    if (!KernelWrapper::GetInstance().IsFileWritable(fn)) {
       m_brushes.emplace_back(QBrush(SchemaStyle::get_color("foreground", "readonly")));
       m_backgrounds.emplace_back(SchemaStyle::get_color("background", "readonly"));
-    }
-    else if (fn == KernelWrapper::GetInstance().GetActiveSchema()) {
+    } else if (fn == KernelWrapper::GetInstance().GetActiveSchema()) {
       m_brushes.emplace_back(QBrush(SchemaStyle::get_color("foreground", "active_file")));
       m_backgrounds.emplace_back(SchemaStyle::get_color("background", "active_file"));
-    }
-    else {
+    } else {
       m_brushes.emplace_back(QBrush(SchemaStyle::get_color("foreground", "default")));
       m_backgrounds.emplace_back(SchemaStyle::get_color("background", "default"));
     }
   }
 }
 
-QStringList dbse::CustomTableModel::mimeTypes() const
+QStringList
+dbse::CustomTableModel::mimeTypes() const
 {
   QStringList types;
   types << "application/vnd.text.list";
   return types;
 }
 
-QMimeData * dbse::CustomTableModel::mimeData ( const QModelIndexList & indexes ) const
+QMimeData*
+dbse::CustomTableModel::mimeData(const QModelIndexList& indexes) const
 {
-  QMimeData * mimeData = new QMimeData();
+  QMimeData* mimeData = new QMimeData();
   QByteArray encodedData;
 
-  QDataStream stream ( &encodedData, QIODevice::WriteOnly );
+  QDataStream stream(&encodedData, QIODevice::WriteOnly);
 
-  foreach ( QModelIndex index, indexes )
-  {
-    if ( index.isValid() && index.column() == 0 )
-    {
-      QString ClassName = data ( index, Qt::DisplayRole ).toString();
+  foreach (QModelIndex index, indexes) {
+    if (index.isValid() && index.column() == 0) {
+      QString ClassName = data(index, Qt::DisplayRole).toString();
       stream << ClassName;
     }
   }
 
-  mimeData->setData ( "application/vnd.text.list", encodedData );
+  mimeData->setData("application/vnd.text.list", encodedData);
   return mimeData;
 }

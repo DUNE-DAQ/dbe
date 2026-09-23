@@ -13,8 +13,7 @@
 #ifndef DBE_DBINFO_H_
 #define DBE_DBINFO_H_
 
-namespace dbe
-{
+namespace dbe {
 //------------------------------------------------------------------------------------------
 enum class dbinfo
 {

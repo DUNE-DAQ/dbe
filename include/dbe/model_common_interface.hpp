@@ -13,30 +13,27 @@
 #ifndef DBE_MODEL_COMMON_INTERFACE_H_
 #define DBE_MODEL_COMMON_INTERFACE_H_
 
-#include "dbe/confaccessor.hpp"
 #include "conffwk/ConfigObject.hpp"
+#include "dbe/confaccessor.hpp"
 
-#include <QString>
 #include <QModelIndex>
+#include <QString>
 #include <QUuid>
 
-#include <vector>
 #include <set>
+#include <vector>
 
 #define MODEL_COMMON_INTERFACE_UUID_DEF QUuid const uuid;
 #define MODEL_COMMON_INTERFACE_UUID_DECL uuid(QUuid::createUuid())
 
-#define MODEL_COMMON_TYPES_TOPLEVEL_DEFINITIONS\
-    typedef QModelIndex type_index;\
-    typedef std::vector<type_index> type_indices;\
-    typedef dbe::tref type_object_ref;\
-    typedef dbe::dref type_object_info;\
-    typedef dunedaq::conffwk::class_t type_class_info;\
-    \
+#define MODEL_COMMON_TYPES_TOPLEVEL_DEFINITIONS                                                                        \
+  typedef QModelIndex type_index;                                                                                      \
+  typedef std::vector<type_index> type_indices;                                                                        \
+  typedef dbe::tref type_object_ref;                                                                                   \
+  typedef dbe::dref type_object_info;                                                                                  \
+  typedef dunedaq::conffwk::class_t type_class_info;
 
-
-namespace dbe
-{
+namespace dbe {
 //------------------------------------------------------------------------------------------
 
 class model_common_slots
@@ -57,7 +54,7 @@ private:
    * @param A string describing a UUID of the class that initiated the deletion
    * @param A descriptor of the config object that has been deleted
    */
-  virtual void slot_remove_object ( QString const &, dref const & ) = 0;
+  virtual void slot_remove_object(QString const&, dref const&) = 0;
 
   /**
    * Slot to notify that an object has been renamed from another class
@@ -68,7 +65,7 @@ private:
    * @param A descripto of the config object that has been renamed, the new name
    *              can be retrieved by dereferencing the ConfigObject and retrieving the new name
    */
-  virtual void slot_rename_object ( QString const &, dref const & ) = 0;
+  virtual void slot_rename_object(QString const&, dref const&) = 0;
 
   /**
    * Slot to notify that an object has been updated from another class
@@ -79,7 +76,7 @@ private:
    * @param A descriptor of the ConfigObject that has been renamed, the new values
    *              can be retrieved by dereferencing the ConfigObject and retrieving them directly
    */
-  virtual void slot_update_object ( QString const &, dref const & ) = 0;
+  virtual void slot_update_object(QString const&, dref const&) = 0;
 
   /**
    * Slot to notify that an object has been created from another class
@@ -90,7 +87,7 @@ private:
    * @param A descriptor of the ConfigObject that has been renamed, the new values
    *              can be retrieved by dereferencing the ConfigObject and retrieving them directly
    */
-  virtual void slot_create_object ( QString const &, dref const & ) = 0;
+  virtual void slot_create_object(QString const&, dref const&) = 0;
 };
 //------------------------------------------------------------------------------------------
 
@@ -99,11 +96,11 @@ struct model_common_data_access_interface
 {
   MODEL_COMMON_TYPES_TOPLEVEL_DEFINITIONS
 public:
-  virtual type_object_ref getobject ( type_index const & index ) const = 0;
+  virtual type_object_ref getobject(type_index const& index) const = 0;
 
-  virtual type_class_info getclass ( type_index const & index ) const = 0;
+  virtual type_class_info getclass(type_index const& index) const = 0;
 
-  virtual QAbstractItemModel * ReturnSourceModel() const = 0;
+  virtual QAbstractItemModel* ReturnSourceModel() const = 0;
 
   virtual ~model_common_data_access_interface() = default;
 };
@@ -125,9 +122,9 @@ public:
    * @param iterator to the beginning of container with model indices for removal
    * @param iterator to the end of container with model indices for removal
    */
-  virtual bool delete_objects ( type_indices::iterator, type_indices::iterator ) = 0;
-  virtual bool update_objects ( type_indices::iterator, type_indices::iterator ) = 0;
-  virtual bool create_objects ( type_indices::iterator, type_indices::iterator ) = 0;
+  virtual bool delete_objects(type_indices::iterator, type_indices::iterator) = 0;
+  virtual bool update_objects(type_indices::iterator, type_indices::iterator) = 0;
+  virtual bool create_objects(type_indices::iterator, type_indices::iterator) = 0;
 };
 //------------------------------------------------------------------------------------------
 
@@ -135,14 +132,15 @@ public:
 /**
  * Abstract class of the interface shared across table and tree models
  */
-class model_common_interface:
-  public model_initiate_actions_interface,
-  public model_common_data_access_interface,
-  private model_common_slots
+class model_common_interface
+  : public model_initiate_actions_interface
+  , public model_common_data_access_interface
+  , private model_common_slots
 {
   MODEL_COMMON_TYPES_TOPLEVEL_DEFINITIONS
 
   friend class model_common_slots;
+
 public:
   virtual ~model_common_interface() = default;
 
@@ -152,7 +150,7 @@ protected:
    *
    * @param is the index of the object that needs to be removed
    */
-  virtual void remove_deleted_object ( type_index const & index ) = 0;
+  virtual void remove_deleted_object(type_index const& index) = 0;
 
   /**
    * Cause model information related to a specific object to be updated after an object
@@ -161,8 +159,7 @@ protected:
    * @param index is the current index of the object to be renamed
    * @param obj is the object information reference which permits to retrieve the new name
    */
-  virtual void rename_contained_object ( type_index const & index,
-                                         type_object_info const & obj ) = 0;
+  virtual void rename_contained_object(type_index const& index, type_object_info const& obj) = 0;
 
   /**
    * Cause model to update information about an object in the given index
@@ -171,8 +168,7 @@ protected:
    * @param obj is the information reference to the object that contains the
    * updated information
    */
-  virtual void update_contained_object ( type_index const & index,
-                                         type_object_info const & obj ) = 0;
+  virtual void update_contained_object(type_index const& index, type_object_info const& obj) = 0;
   /**
    * Cause model to create information about a new object that should be included in this
    * object
@@ -180,8 +176,7 @@ protected:
    * @param index where the new object should be included
    * @param obj is the information reference to the new object
    */
-  virtual void create_contained_object ( type_index const & index,
-                                         type_object_info const & obj ) = 0;
+  virtual void create_contained_object(type_index const& index, type_object_info const& obj) = 0;
 
   /**
    * Lookup an object and retrieve its matching model index
@@ -189,7 +184,7 @@ protected:
    * @param the object description to be removed
    * @return the model index linked to a matching configobject
    */
-  virtual type_index lookup ( type_object_info const & ) = 0;
+  virtual type_index lookup(type_object_info const&) = 0;
 
   QUuid getuuid() const;
 };
@@ -204,13 +199,12 @@ protected:
  * amount of user inputs that would need be handled in an asynchronous manner, and would
  * require a controller to be linked to this model-view type interface.
  */
-template<typename T> class model_common_impl:
-  public model_common_interface
+template<typename T>
+class model_common_impl : public model_common_interface
 {
   MODEL_COMMON_TYPES_TOPLEVEL_DEFINITIONS
 
 public:
-
   /**
    * Given a range of indices issue commands to delete the related objects
    *
@@ -218,7 +212,7 @@ public:
    * @param end iterator of the range
    * @return false in case of error
    */
-  bool delete_objects ( type_indices::iterator, type_indices::iterator ) override;
+  bool delete_objects(type_indices::iterator, type_indices::iterator) override;
 
   /**
    *
@@ -226,7 +220,7 @@ public:
    * @param
    * @return
    */
-  bool update_objects ( type_indices::iterator, type_indices::iterator ) override;
+  bool update_objects(type_indices::iterator, type_indices::iterator) override;
 
   /**
    * Create a range of objects
@@ -234,12 +228,12 @@ public:
    * @param
    * @return
    */
-  bool create_objects ( type_indices::iterator, type_indices::iterator ) override;
+  bool create_objects(type_indices::iterator, type_indices::iterator) override;
 
-//  private:
-//  FOR FUTURE USE
-//    static std::vector<type_object_info> filter_indices(type_indices::iterator,
-//                                                        type_indices::iterator);
+  //  private:
+  //  FOR FUTURE USE
+  //    static std::vector<type_object_info> filter_indices(type_indices::iterator,
+  //                                                        type_indices::iterator);
 };
 //------------------------------------------------------------------------------------------
 
@@ -256,7 +250,8 @@ public:
  *
  * T::slot_remove_object -> remove_object -> T::remove_deleted_object
  */
-template<typename T> class model_common_async_operations
+template<typename T>
+class model_common_async_operations
 {
 public:
   MODEL_COMMON_TYPES_TOPLEVEL_DEFINITIONS
@@ -271,7 +266,8 @@ public:
   void model_common_connections();
 
 protected:
-  //-------------------------- BACK CHAIN -------------------------------------------------------------------------------
+  //-------------------------- BACK CHAIN
+  //-------------------------------------------------------------------------------
   // Back end functionality that permits to implicitly act on an object  referenced  in this model
   // These methods should NOT take action onto the database but only on the referenced model
 
@@ -280,18 +276,17 @@ protected:
    *
    * @param the object to be matched and removed from the index
    */
-  void remove_object  ( type_object_info const & );
-  void create_object  ( type_object_info const & );
-  void rename_object  ( type_object_info const & );
-  void update_object  ( type_object_info const & );
-  void update_multiple_objects ( std::vector<type_object_info> const & );
+  void remove_object(type_object_info const&);
+  void create_object(type_object_info const&);
+  void rename_object(type_object_info const&);
+  void update_object(type_object_info const&);
+  void update_multiple_objects(std::vector<type_object_info> const&);
 
   MODEL_COMMON_INTERFACE_UUID_DEF
-
 };
 //------------------------------------------------------------------------------------------
 
-}// namespace dbe
+} // namespace dbe
 
 #include "dbe/model_common_interface_macros.hpp"
 #include "dbe/model_common_operations.hpp"

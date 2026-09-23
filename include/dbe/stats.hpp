@@ -13,16 +13,12 @@
 #ifndef SRC_GRAPHTOOL_STATS_H_
 #define SRC_GRAPHTOOL_STATS_H_
 
-namespace dbe
-{
-namespace tool
-{
-namespace graph
-{
+namespace dbe {
+namespace tool {
+namespace graph {
 
 class stats
-{
-};
+{};
 
 } /* namespace graph */
 } /* namespace tool */

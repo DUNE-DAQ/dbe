@@ -11,10 +11,10 @@
  */
 
 #include "dbe/config_api_info.hpp"
+#include "conffwk/Schema.hpp"
+#include "dbe/Sorting.hpp"
 #include "dbe/config_api.hpp"
 #include "dbe/treenode.hpp"
-#include "dbe/Sorting.hpp"
-#include "conffwk/Schema.hpp"
 #include <QString>
 //------------------------------------------------------------------------------------------
 //                                    DBE::CONFIG::API::INFO NAMESPACE
@@ -23,70 +23,58 @@
  * This namespace groups methods for providing information about config related
  * structures and objects
  */
-namespace dbe
-{
-namespace config
-{
-namespace api
-{
-namespace info
-{
+namespace dbe {
+namespace config {
+namespace api {
+namespace info {
 //------------------------------------------------------------------------------------------
 template<>
-std::vector<dbe::tref> onclass::objects<true> ( std::string const & cname,
-                                                bool const keep_inherited )
+std::vector<dbe::tref>
+onclass::objects<true>(std::string const& cname, bool const keep_inherited)
 {
-  std::vector<dbe::tref> objectrefs = inner::dbcontroller::gets ( cname );
+  std::vector<dbe::tref> objectrefs = inner::dbcontroller::gets(cname);
 
-  if ( not keep_inherited )
-  {
-    objectrefs.erase (
-      std::remove_if ( objectrefs.begin(), objectrefs.end(),
-                       [&cname] ( dbe::tref anobject )
-    {
-      return ( anobject.class_name() != cname );
-    } ),
-    objectrefs.end() );
+  if (not keep_inherited) {
+    objectrefs.erase(std::remove_if(objectrefs.begin(),
+                                    objectrefs.end(),
+                                    [&cname](dbe::tref anobject) { return (anobject.class_name() != cname); }),
+                     objectrefs.end());
   }
 
-  std::sort ( objectrefs.begin(), objectrefs.end(), SortObjects() );
+  std::sort(objectrefs.begin(), objectrefs.end(), SortObjects());
 
   return objectrefs;
 }
-template std::vector<dbe::tref> onclass::objects<true> ( std::string const &, bool const );
+template std::vector<dbe::tref>
+onclass::objects<true>(std::string const&, bool const);
 
 template<>
-std::vector<dbe::tref> onclass::objects<false> ( std::string const & cname,
-                                                 bool const keep_inherited )
+std::vector<dbe::tref>
+onclass::objects<false>(std::string const& cname, bool const keep_inherited)
 {
-  std::vector<dbe::tref> objectrefs = inner::dbcontroller::gets ( cname );
+  std::vector<dbe::tref> objectrefs = inner::dbcontroller::gets(cname);
 
-  if ( not keep_inherited )
-  {
-    objectrefs.erase (
-      std::remove_if ( objectrefs.begin(), objectrefs.end(),
-                       [&cname] ( dbe::tref anobject )
-    {
-      return ( anobject.class_name() != cname );
-    } ),
-    objectrefs.end() );
+  if (not keep_inherited) {
+    objectrefs.erase(std::remove_if(objectrefs.begin(),
+                                    objectrefs.end(),
+                                    [&cname](dbe::tref anobject) { return (anobject.class_name() != cname); }),
+                     objectrefs.end());
   }
 
   return objectrefs;
 }
-template std::vector<dbe::tref> onclass::objects<false> ( std::string const &, bool const );
+template std::vector<dbe::tref>
+onclass::objects<false>(std::string const&, bool const);
 //------------------------------------------------------------------------------------------
 
 //------------------------------------------------------------------------------------------
-bool onclass::derived ( std::string const & fromclass, std::string const & aclass )
+bool
+onclass::derived(std::string const& fromclass, std::string const& aclass)
 {
-  dunedaq::conffwk::class_t aclassdef
-  { dbe::config::api::info::onclass::definition ( aclass, false ) };
+  dunedaq::conffwk::class_t aclassdef{ dbe::config::api::info::onclass::definition(aclass, false) };
 
-  for ( std::string const & x : aclassdef.p_superclasses )
-  {
-    if ( fromclass == x )
-    {
+  for (std::string const& x : aclassdef.p_superclasses) {
+    if (fromclass == x) {
       return true;
     }
   }
@@ -96,15 +84,12 @@ bool onclass::derived ( std::string const & fromclass, std::string const & aclas
 //------------------------------------------------------------------------------------------
 
 //------------------------------------------------------------------------------------------
-bool has_obj ( std::string const & classname, std::string const & object_uid )
+bool
+has_obj(std::string const& classname, std::string const& object_uid)
 {
-  try
-  {
-    return not inner::dbcontroller::get (
-    { object_uid, classname} ).is_null();
-  }
-  catch ( daq::dbe::config_object_retrieval_result_is_null const & e )
-  {
+  try {
+    return not inner::dbcontroller::get({ object_uid, classname }).is_null();
+  } catch (daq::dbe::config_object_retrieval_result_is_null const& e) {
     return false;
   }
 
@@ -113,31 +98,27 @@ bool has_obj ( std::string const & classname, std::string const & object_uid )
 //------------------------------------------------------------------------------------------
 
 //------------------------------------------------------------------------------------------
-dunedaq::conffwk::class_t onclass::definition ( const std::string & cn, bool direct_only )
+dunedaq::conffwk::class_t
+onclass::definition(const std::string& cn, bool direct_only)
 {
-  try
-  {
-    return dbaccessor::dbptr()->get_class_info ( cn, direct_only );
-  }
-  catch ( dunedaq::conffwk::NotFound const & Ex )
-  {
+  try {
+    return dbaccessor::dbptr()->get_class_info(cn, direct_only);
+  } catch (dunedaq::conffwk::NotFound const& Ex) {
     return dunedaq::conffwk::class_t();
   }
 }
 //------------------------------------------------------------------------------------------
 
 //------------------------------------------------------------------------------------------
-dunedaq::conffwk::attribute_t attributematch ( QString const & AttributeName,
-                                          QString const & ClassName )
+dunedaq::conffwk::attribute_t
+attributematch(QString const& AttributeName, QString const& ClassName)
 {
-  const dunedaq::conffwk::class_t & ClassInfo = dbe::config::api::info::onclass::definition (
-                                             ClassName.toStdString(), false );
+  const dunedaq::conffwk::class_t& ClassInfo =
+    dbe::config::api::info::onclass::definition(ClassName.toStdString(), false);
   const std::vector<dunedaq::conffwk::attribute_t> AttributeList = ClassInfo.p_attributes;
 
-  for ( auto & Attribute : AttributeList )
-  {
-    if ( Attribute.p_name == AttributeName.toStdString() )
-    {
+  for (auto& Attribute : AttributeList) {
+    if (Attribute.p_name == AttributeName.toStdString()) {
       return Attribute;
     }
   }
@@ -147,47 +128,42 @@ dunedaq::conffwk::attribute_t attributematch ( QString const & AttributeName,
 //------------------------------------------------------------------------------------------
 
 //------------------------------------------------------------------------------------------
-bool relation::is_simple ( dunedaq::conffwk::relationship_t const & relation )
+bool
+relation::is_simple(dunedaq::conffwk::relationship_t const& relation)
 {
-  return ( relation.p_cardinality == dunedaq::conffwk::only_one )
-         or ( relation.p_cardinality == dunedaq::conffwk::zero_or_one );
+  return (relation.p_cardinality == dunedaq::conffwk::only_one) or
+         (relation.p_cardinality == dunedaq::conffwk::zero_or_one);
 }
 //------------------------------------------------------------------------------------------
 
 //------------------------------------------------------------------------------------------
-template<> dunedaq::conffwk::relationship_t info::relation::match<std::string> (
-	std::string const & arelation,
-	std::string const & aclass )
+template<>
+dunedaq::conffwk::relationship_t
+info::relation::match<std::string>(std::string const& arelation, std::string const& aclass)
 {
-  dunedaq::conffwk::class_t const & aninfo_for_class =
-  		dbe::config::api::info::onclass::definition ( aclass, false );
-  std::vector<dunedaq::conffwk::relationship_t> const relations =
-  		aninfo_for_class.p_relationships;
+  dunedaq::conffwk::class_t const& aninfo_for_class = dbe::config::api::info::onclass::definition(aclass, false);
+  std::vector<dunedaq::conffwk::relationship_t> const relations = aninfo_for_class.p_relationships;
 
-  for ( auto & r : relations )
-  {
-    if ( r.p_name == arelation )
-    {
+  for (auto& r : relations) {
+    if (r.p_name == arelation) {
       return r;
     }
   }
   return dunedaq::conffwk::relationship_t();
 }
-template dunedaq::conffwk::relationship_t info::relation::match<std::string> (
-	std::string const & ,
-	std::string const & );
+template dunedaq::conffwk::relationship_t
+info::relation::match<std::string>(std::string const&, std::string const&);
 //------------------------------------------------------------------------------------------
 
 //------------------------------------------------------------------------------------------
-template<> dunedaq::conffwk::relationship_t info::relation::match<QString>(
-	QString const & arelation,
-	QString const & aclass )
+template<>
+dunedaq::conffwk::relationship_t
+info::relation::match<QString>(QString const& arelation, QString const& aclass)
 {
-	return match(aclass.toStdString(), arelation.toStdString());
+  return match(aclass.toStdString(), arelation.toStdString());
 }
-template dunedaq::conffwk::relationship_t info::relation::match<QString>(
-	QString const & ,
-	QString const & );
+template dunedaq::conffwk::relationship_t
+info::relation::match<QString>(QString const&, QString const&);
 //------------------------------------------------------------------------------------------
 }
 }

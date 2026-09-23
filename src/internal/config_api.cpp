@@ -11,8 +11,8 @@
  */
 
 #include "dbe/Exceptions.hpp"
-#include "dbe/version.hpp"
 #include "dbe/config_api_version.hpp"
+#include "dbe/version.hpp"
 
 #include "conffwk/Errors.hpp"
 #include "ers/Issue.hpp"
@@ -20,18 +20,14 @@
 #include <sstream>
 #include <string>
 
-char const * const dbe_lib_config_api_version = dbe_compiled_version;
+char const* const dbe_lib_config_api_version = dbe_compiled_version;
 
 //------------------------------------------------------------------------------------------
 //                                      DBE::CONFIG::ERRORS NAMESPACE
 //------------------------------------------------------------------------------------------
-namespace dbe
-{
-namespace config
-{
-namespace errors
-{
-
+namespace dbe {
+namespace config {
+namespace errors {
 
 /**
  * Unwind all causes linked to this exception
@@ -39,26 +35,22 @@ namespace errors
  * @param ex the exception to process
  * @return a string
  */
-std::string const unwind ( ers::Issue const & exception )
+std::string const
+unwind(ers::Issue const& exception)
 {
 
-  if ( ers::Issue const * cause = exception.cause() )
-  {
+  if (ers::Issue const* cause = exception.cause()) {
     std::stringstream s;
 
-    while ( cause != nullptr )
-    {
+    while (cause != nullptr) {
       s << cause->what() << "\n";
       cause = cause->cause();
     }
 
     return s.str();
+  } else {
+    return topcause(exception);
   }
-  else
-  {
-    return topcause ( exception );
-  }
-
 }
 
 /**
@@ -67,7 +59,8 @@ std::string const unwind ( ers::Issue const & exception )
  * @param ex is the exception to process
  * @return a string
  */
-std::string const reason ( ers::Issue const & exception )
+std::string const
+reason(ers::Issue const& exception)
 {
   return exception.what();
 }
@@ -78,14 +71,12 @@ std::string const reason ( ers::Issue const & exception )
  * @param ex is the exception to process
  * @return a string
  */
-std::string const topcause ( ers::Issue const & exception )
+std::string const
+topcause(ers::Issue const& exception)
 {
-  if ( ers::Issue const * cause = exception.cause() )
-  {
+  if (ers::Issue const* cause = exception.cause()) {
     return cause->what();
-  }
-  else
-  {
+  } else {
     return exception.what();
   }
 }
@@ -95,16 +86,18 @@ std::string const topcause ( ers::Issue const & exception )
  * @param ex is the exception to process
  * @return a string
  */
-std::string const dump ( ers::Issue const & exception )
+std::string const
+dump(ers::Issue const& exception)
 {
   std::stringstream s;
   s << exception;
   return s.str();
 }
 
-std::string const parse ( ers::Issue const & exception )
+std::string const
+parse(ers::Issue const& exception)
 {
-  return unwind ( exception );
+  return unwind(exception);
 }
 
 //------------------------------------------------------------------------------------------
@@ -112,4 +105,3 @@ std::string const parse ( ers::Issue const & exception )
 }
 }
 //------------------------------------------------------------------------------------------
-

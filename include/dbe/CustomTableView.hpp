@@ -6,29 +6,30 @@
 #ifndef CUSTOMTABLEVIEW_H
 #define CUSTOMTABLEVIEW_H
 
+#include "conffwk/ConfigObject.hpp"
 #include "dbe/table.hpp"
 #include "dbe/view_common_interface.hpp"
-#include "conffwk/ConfigObject.hpp"
 
-#include <QTableView>
-#include <QPushButton>
-#include <QUuid>
 #include <QPainter>
+#include <QPushButton>
 #include <QStyleOptionViewItem>
+#include <QTableView>
+#include <QUuid>
 
-namespace dbe
-{
+namespace dbe {
 
-class CustomTableView: public QTableView, public view_common_interface
+class CustomTableView
+  : public QTableView
+  , public view_common_interface
 {
   Q_OBJECT
 
 signals:
-  void OpenEditor ( tref Object );
+  void OpenEditor(tref Object);
 
 public:
-  explicit CustomTableView ( QWidget * parent = 0 );
-  void contextMenuEvent ( QContextMenuEvent * Event );
+  explicit CustomTableView(QWidget* parent = 0);
+  void contextMenuEvent(QContextMenuEvent* Event);
 
 private slots:
   void slot_delete_objects();
@@ -41,7 +42,7 @@ private slots:
   void slot_go_to_object();
   void GoToNext();
 
-  void EditedSearchString ( QString Text );
+  void EditedSearchString(QString Text);
 
   void referencedBy_OnlyComposite();
   void referencedBy_All();
@@ -49,21 +50,21 @@ private slots:
 private:
   void CreateActions();
 
-  void referencedBy ( tref obj, bool onlyComposite );
+  void referencedBy(tref obj, bool onlyComposite);
 
-  QMenu * m_context_menu;
-  QAction * FindObject;
-  QAction * editObject;
-  QAction * deleteObjectAc;
-  QAction * refByAc;
-  QAction * refByAcOnlyComp;
-  QAction * copyObjectAc;
+  QMenu* m_context_menu;
+  QAction* FindObject;
+  QAction* editObject;
+  QAction* deleteObjectAc;
+  QAction* refByAc;
+  QAction* refByAcOnlyComp;
+  QAction* copyObjectAc;
 
   /// File Dialog
-  QDialog * m_find_object_dialog;
-  QLineEdit * LineEdit;
-  QPushButton * NextButton;
-  QPushButton * GoButton;
+  QDialog* m_find_object_dialog;
+  QLineEdit* LineEdit;
+  QPushButton* NextButton;
+  QPushButton* GoButton;
 
   /// Match Variables
   int ListIndex;

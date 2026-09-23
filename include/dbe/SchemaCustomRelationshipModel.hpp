@@ -12,19 +12,19 @@
 /// Including Schema
 #include "dbe/SchemaCustomModelInterface.hpp"
 
-namespace dbse
-{
+namespace dbse {
 
-class CustomRelationshipModel: public CustomModelInterface
+class CustomRelationshipModel : public CustomModelInterface
 {
 public:
-  CustomRelationshipModel ( dunedaq::oks::OksClass * ClassInfo, QStringList Headers, bool Derived = false );
+  CustomRelationshipModel(dunedaq::oks::OksClass* ClassInfo, QStringList Headers, bool Derived = false);
   ~CustomRelationshipModel();
   void setupModel();
+
 private:
-  dunedaq::oks::OksClass * SchemaClass;
+  dunedaq::oks::OksClass* SchemaClass;
   bool SchemaDerived;
 };
 
-}  // namespace dbse
+} // namespace dbse
 #endif // CUSTOMRELATIONSHIPMODEL_H

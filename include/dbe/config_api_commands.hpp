@@ -13,31 +13,27 @@
 #ifndef DBE_CONFIG_API_COMMANDS_H_
 #define DBE_CONFIG_API_COMMANDS_H_
 
-#include "dbe/confobject_desc.hpp"
 #include "dbe/config_reference.hpp"
+#include "dbe/confobject_desc.hpp"
 
-#include "conffwk/Schema.hpp"
 #include "conffwk/ConfigObject.hpp"
+#include "conffwk/Schema.hpp"
 
 #include <QMap>
-#include <QUuid>
 #include <QStringList>
+#include <QUuid>
 
+#include <algorithm>
 #include <string>
 #include <vector>
-#include <algorithm>
 
-namespace dbe
-{
-namespace config
-{
-namespace api
-{
+namespace dbe {
+namespace config {
+namespace api {
 //------------------------------------------------------------------------------------------
 //                              COMMANDS NAMESPACE
 //------------------------------------------------------------------------------------------
-namespace commands
-{
+namespace commands {
 /*
  * Enclose methods for the creation of actions related to database / object operations
  */
@@ -54,11 +50,13 @@ namespace commands
  * @param attributes is the attribute map
  * @param relations is the relational map
  */
-void newobj ( std::string const & fn, std::string const & class_name,
-              std::string const & UID,
-              dbe::t_config_object_preimage::type_attrmap const & attributes,
-              dbe::t_config_object_preimage::type_relmap const & relations,
-              QUuid const & src );
+void
+newobj(std::string const& fn,
+       std::string const& class_name,
+       std::string const& UID,
+       dbe::t_config_object_preimage::type_attrmap const& attributes,
+       dbe::t_config_object_preimage::type_relmap const& relations,
+       QUuid const& src);
 
 /**
  * Create a command that once activated it will delete an object and when undone
@@ -70,7 +68,8 @@ void newobj ( std::string const & fn, std::string const & class_name,
  * @param src is the internal uuid of the object reqesting the change
  * @return false in case of error
  *  */
-bool delobj ( inner::configobject::tref obj, QUuid const & src );
+bool
+delobj(inner::configobject::tref obj, QUuid const& src);
 
 /**
  * Create a command that once activated will rename an object and when undone the
@@ -82,8 +81,8 @@ bool delobj ( inner::configobject::tref obj, QUuid const & src );
  * @param newuuid is the unique name assigned to the object
  * @return false in case of error
  */
-bool renobj ( inner::configobject::tref obj, std::string const & newuuid,
-              QUuid const & src );
+bool
+renobj(inner::configobject::tref obj, std::string const& newuuid, QUuid const& src);
 
 /**
  * Creates a command object holding move from current file to new file and undoing capabilities
@@ -92,8 +91,8 @@ bool renobj ( inner::configobject::tref obj, std::string const & newuuid,
  * @param destination that the object is going to be moved to
  * @return true in case that the move was successful
  */
-bool movobj ( inner::configobject::tref obj, std::string const & destination,
-              QUuid const & src );
+bool
+movobj(inner::configobject::tref obj, std::string const& destination, QUuid const& src);
 
 /**
  * Set a RELATION to new values , causes the Object and the objects designated by the new
@@ -105,8 +104,10 @@ bool movobj ( inner::configobject::tref obj, std::string const & destination,
  * @param link to set between object that others
  * @param others are the objects to be connected to object
  */
-void modobj ( inner::configobject::tref obj, dunedaq::conffwk::relationship_t const & link,
-              std::vector<std::string> const & others );
+void
+modobj(inner::configobject::tref obj,
+       dunedaq::conffwk::relationship_t const& link,
+       std::vector<std::string> const& others);
 
 /**
  * Set an ATTRIBUTE to a specific value by generating appropriately modification commands
@@ -116,14 +117,15 @@ void modobj ( inner::configobject::tref obj, dunedaq::conffwk::relationship_t co
  * @param value to be assigned to the new object
  */
 template<typename T>
-void modobj ( inner::configobject::tref obj, dunedaq::conffwk::attribute_t const & attr,
-              T value );
+void
+modobj(inner::configobject::tref obj, dunedaq::conffwk::attribute_t const& attr, T value);
 
-namespace file
-{
-void add ( QString const & db, QString const & fn );
+namespace file {
+void
+add(QString const& db, QString const& fn);
 
-void remove ( QString const & db, QString const & fn );
+void
+remove(QString const& db, QString const& fn);
 }
 
 }

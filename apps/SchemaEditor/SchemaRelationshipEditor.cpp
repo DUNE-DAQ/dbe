@@ -1,170 +1,146 @@
 // DUNE DAQ modification notice:
 // This file has been modified from the original ATLAS dbe source for the DUNE DAQ project.
 // Fork baseline commit: dbe-02-12-17 (2022-05-12).
-// Renamed since fork: yes (from src/SchemaEditor/SchemaRelationshipEditor.cpp to apps/SchemaEditor/SchemaRelationshipEditor.cpp).
+// Renamed since fork: yes (from src/SchemaEditor/SchemaRelationshipEditor.cpp to
+// apps/SchemaEditor/SchemaRelationshipEditor.cpp).
 
 #include <QMessageBox>
 /// Including Schema
-#include "dbe/SchemaRelationshipEditor.hpp"
 #include "dbe/SchemaKernelWrapper.hpp"
+#include "dbe/SchemaRelationshipEditor.hpp"
 #include "ui_SchemaRelationshipEditor.h"
 
 using namespace dunedaq::oks;
 
 dbse::SchemaRelationshipEditor::~SchemaRelationshipEditor() = default;
 
-dbse::SchemaRelationshipEditor::SchemaRelationshipEditor ( OksClass * Class,
-                                                           OksRelationship * Relationship,
-                                                           QWidget * parent )
-  : QWidget ( parent ),
-    ui ( new Ui::SchemaRelationshipEditor ),
-    SchemaRelationship ( Relationship ),
-    SchemaClass ( Class ),
-    UsedNew ( false ),
-    GraphScene ( false )
+dbse::SchemaRelationshipEditor::SchemaRelationshipEditor(OksClass* Class,
+                                                         OksRelationship* Relationship,
+                                                         QWidget* parent)
+  : QWidget(parent)
+  , ui(new Ui::SchemaRelationshipEditor)
+  , SchemaRelationship(Relationship)
+  , SchemaClass(Class)
+  , UsedNew(false)
+  , GraphScene(false)
 {
   QWidget::setAttribute(Qt::WA_DeleteOnClose);
 
   m_writable = KernelWrapper::GetInstance().IsFileWritable(Class->get_file()->get_full_file_name());
 
-  ui->setupUi ( this );
+  ui->setupUi(this);
   auto title = SchemaClass->get_name() + "::" + SchemaRelationship->get_name();
-  setWindowTitle (
-    QString ( "Relationship Editor : %1" ).arg ( title.c_str() ) );
+  setWindowTitle(QString("Relationship Editor : %1").arg(title.c_str()));
   InitialSettings();
   SetController();
 }
 
-dbse::SchemaRelationshipEditor::SchemaRelationshipEditor ( OksClass * Class,
-                                                           QWidget * parent )
-  : QWidget ( parent ),
-    ui ( new Ui::SchemaRelationshipEditor ),
-    SchemaRelationship ( nullptr ),
-    SchemaClass ( Class ),
-    UsedNew ( true ),
-    GraphScene ( false )
+dbse::SchemaRelationshipEditor::SchemaRelationshipEditor(OksClass* Class, QWidget* parent)
+  : QWidget(parent)
+  , ui(new Ui::SchemaRelationshipEditor)
+  , SchemaRelationship(nullptr)
+  , SchemaClass(Class)
+  , UsedNew(true)
+  , GraphScene(false)
 {
   QWidget::setAttribute(Qt::WA_DeleteOnClose);
-  ui->setupUi ( this );
+  ui->setupUi(this);
   m_writable = true;
-  setWindowTitle (QString("Relationship Editor : %1  New Relationship")
-                  .arg(SchemaClass->get_name().c_str()));
+  setWindowTitle(QString("Relationship Editor : %1  New Relationship").arg(SchemaClass->get_name().c_str()));
   InitialSettings();
   SetController();
 }
 
-dbse::SchemaRelationshipEditor::SchemaRelationshipEditor ( OksClass * Class,
-                                                           QString ClassType,
-                                                           QWidget * parent )
-  : QWidget ( parent ),
-    ui ( new Ui::SchemaRelationshipEditor ),
-    SchemaRelationship ( nullptr ),
-    SchemaClass ( Class ),
-    UsedNew ( true ),
-    GraphScene ( true )
+dbse::SchemaRelationshipEditor::SchemaRelationshipEditor(OksClass* Class, QString ClassType, QWidget* parent)
+  : QWidget(parent)
+  , ui(new Ui::SchemaRelationshipEditor)
+  , SchemaRelationship(nullptr)
+  , SchemaClass(Class)
+  , UsedNew(true)
+  , GraphScene(true)
 {
   QWidget::setAttribute(Qt::WA_DeleteOnClose);
   m_writable = true;
-  ui->setupUi ( this );
-  setWindowTitle (QString("Relationship Editor : %1  New Relationship")
-                  .arg(SchemaClass->get_name().c_str()));
+  ui->setupUi(this);
+  setWindowTitle(QString("Relationship Editor : %1  New Relationship").arg(SchemaClass->get_name().c_str()));
   InitialSettings();
   SetController();
-  ui->RelationshipTypeComboBox->setCurrentIndex (
-    ui->RelationshipTypeComboBox->findData ( ClassType, Qt::DisplayRole ) );
+  ui->RelationshipTypeComboBox->setCurrentIndex(ui->RelationshipTypeComboBox->findData(ClassType, Qt::DisplayRole));
 }
-void dbse::SchemaRelationshipEditor::ClassUpdated( QString ClassName )
+void
+dbse::SchemaRelationshipEditor::ClassUpdated(QString ClassName)
 {
-    if(!UsedNew && ClassName.toStdString() == SchemaClass->get_name()) {
-        if(SchemaClass->find_direct_relationship(SchemaRelationship->get_name()) == nullptr) {
-            QWidget::close();
-        } else {
-            FillInfo();
-        }
+  if (!UsedNew && ClassName.toStdString() == SchemaClass->get_name()) {
+    if (SchemaClass->find_direct_relationship(SchemaRelationship->get_name()) == nullptr) {
+      QWidget::close();
+    } else {
+      FillInfo();
     }
+  }
 }
 
-void dbse::SchemaRelationshipEditor::FillInfo()
+void
+dbse::SchemaRelationshipEditor::FillInfo()
 {
-    auto name = SchemaClass->get_name() + "::" + SchemaRelationship->get_name();
-    setObjectName ( QString::fromStdString ( name ) );
-    ui->RelationshipNameLineEdit->setText (
-      QString::fromStdString ( SchemaRelationship->get_name() ) );
-    ui->RelationshipTypeComboBox->setCurrentIndex (
-      ui->RelationshipTypeComboBox->findData (
-        QString::fromStdString ( SchemaRelationship->get_type() ), Qt::DisplayRole ) );
-    ui->RelationshipDescriptionTextEdit->setPlainText (
-      QString::fromStdString ( SchemaRelationship->get_description() ) );
+  auto name = SchemaClass->get_name() + "::" + SchemaRelationship->get_name();
+  setObjectName(QString::fromStdString(name));
+  ui->RelationshipNameLineEdit->setText(QString::fromStdString(SchemaRelationship->get_name()));
+  ui->RelationshipTypeComboBox->setCurrentIndex(
+    ui->RelationshipTypeComboBox->findData(QString::fromStdString(SchemaRelationship->get_type()), Qt::DisplayRole));
+  ui->RelationshipDescriptionTextEdit->setPlainText(QString::fromStdString(SchemaRelationship->get_description()));
 
-    if ( SchemaRelationship->get_is_composite() )
-    {
-      ui->IsCompositeCombo->setCurrentIndex ( 0 );
-    }
-    else
-    {
-      ui->IsCompositeCombo->setCurrentIndex ( 1 );
-    }
+  if (SchemaRelationship->get_is_composite()) {
+    ui->IsCompositeCombo->setCurrentIndex(0);
+  } else {
+    ui->IsCompositeCombo->setCurrentIndex(1);
+  }
 
-    if ( SchemaRelationship->get_is_exclusive() )
-    {
-      ui->IsExclusiveCombo->setCurrentIndex ( 0 );
-    }
-    else
-    {
-      ui->IsExclusiveCombo->setCurrentIndex ( 1 );
-    }
+  if (SchemaRelationship->get_is_exclusive()) {
+    ui->IsExclusiveCombo->setCurrentIndex(0);
+  } else {
+    ui->IsExclusiveCombo->setCurrentIndex(1);
+  }
 
-    if ( SchemaRelationship->get_is_dependent() )
-    {
-      ui->IsDependentCombo->setCurrentIndex ( 0 );
-    }
-    else
-    {
-      ui->IsDependentCombo->setCurrentIndex ( 1 );
-    }
+  if (SchemaRelationship->get_is_dependent()) {
+    ui->IsDependentCombo->setCurrentIndex(0);
+  } else {
+    ui->IsDependentCombo->setCurrentIndex(1);
+  }
 
-    if ( SchemaRelationship->get_low_cardinality_constraint() ==
-         OksRelationship::CardinalityConstraint::Zero ) ui
-      ->LowCcCombo->setCurrentIndex ( 0 );
-    else if ( SchemaRelationship->get_low_cardinality_constraint()
-              == OksRelationship::CardinalityConstraint::One )
-    {
-      ui->LowCcCombo->setCurrentIndex ( 1 );
-    }
-    else
-    {
-      ui->LowCcCombo->setCurrentIndex ( 2 );
-    }
+  if (SchemaRelationship->get_low_cardinality_constraint() == OksRelationship::CardinalityConstraint::Zero)
+    ui->LowCcCombo->setCurrentIndex(0);
+  else if (SchemaRelationship->get_low_cardinality_constraint() == OksRelationship::CardinalityConstraint::One) {
+    ui->LowCcCombo->setCurrentIndex(1);
+  } else {
+    ui->LowCcCombo->setCurrentIndex(2);
+  }
 
-    if ( SchemaRelationship->get_high_cardinality_constraint() ==
-         OksRelationship::CardinalityConstraint::Zero ) ui
-      ->HighCcCombo->setCurrentIndex ( 0 );
-    else if ( SchemaRelationship->get_high_cardinality_constraint()
-              == OksRelationship::CardinalityConstraint::One )
-    {
-      ui->HighCcCombo->setCurrentIndex ( 1 );
-    }
-    else
-    {
-      ui->HighCcCombo->setCurrentIndex ( 2 );
-    }
+  if (SchemaRelationship->get_high_cardinality_constraint() == OksRelationship::CardinalityConstraint::Zero)
+    ui->HighCcCombo->setCurrentIndex(0);
+  else if (SchemaRelationship->get_high_cardinality_constraint() == OksRelationship::CardinalityConstraint::One) {
+    ui->HighCcCombo->setCurrentIndex(1);
+  } else {
+    ui->HighCcCombo->setCurrentIndex(2);
+  }
 }
 
-void dbse::SchemaRelationshipEditor::keyPressEvent(QKeyEvent* event) {
+void
+dbse::SchemaRelationshipEditor::keyPressEvent(QKeyEvent* event)
+{
   if (event->key() == Qt::Key_Escape) {
     close();
   }
   QWidget::keyPressEvent(event);
 }
 
-
-void dbse::SchemaRelationshipEditor::InitialSettings()
+void
+dbse::SchemaRelationshipEditor::InitialSettings()
 {
   QStringList ClassList;
-  KernelWrapper::GetInstance().GetClassListString ( ClassList );
-  ui->RelationshipTypeComboBox->addItems ( ClassList );
+  KernelWrapper::GetInstance().GetClassListString(ClassList);
+  ui->RelationshipTypeComboBox->addItems(ClassList);
   auto name = SchemaClass->get_name() + "::";
-  setObjectName ( QString::fromStdString(name) );
+  setObjectName(QString::fromStdString(name));
 
   if (!m_writable) {
     ui->RelationshipTypeComboBox->setEnabled(false);
@@ -177,28 +153,26 @@ void dbse::SchemaRelationshipEditor::InitialSettings()
     ui->RelationshipNameLineEdit->setEnabled(false);
   }
 
-  if ( !UsedNew )
-  {
-      FillInfo();
+  if (!UsedNew) {
+    FillInfo();
   }
 }
 
-void dbse::SchemaRelationshipEditor::SetController()
+void
+dbse::SchemaRelationshipEditor::SetController()
 {
   if (m_writable) {
-    connect ( ui->buttonBox, SIGNAL ( accepted() ), this, SLOT ( ProxySlot() ) );
+    connect(ui->buttonBox, SIGNAL(accepted()), this, SLOT(ProxySlot()));
+  } else {
+    connect(ui->buttonBox, SIGNAL(accepted()), this, SLOT(close()));
   }
-  else {
-    connect ( ui->buttonBox, SIGNAL ( accepted() ), this, SLOT ( close() ) );
-  }
-  connect ( ui->buttonBox, SIGNAL ( rejected() ), this, SLOT ( close() ) );
-  connect ( &KernelWrapper::GetInstance(), SIGNAL ( ClassCreated(QString) ), this,
-            SLOT ( UpdateClassCombo() ) );
-  connect ( &KernelWrapper::GetInstance(), SIGNAL ( ClassUpdated ( QString ) ), this,
-            SLOT ( ClassUpdated ( QString ) ) );
+  connect(ui->buttonBox, SIGNAL(rejected()), this, SLOT(close()));
+  connect(&KernelWrapper::GetInstance(), SIGNAL(ClassCreated(QString)), this, SLOT(UpdateClassCombo()));
+  connect(&KernelWrapper::GetInstance(), SIGNAL(ClassUpdated(QString)), this, SLOT(ClassUpdated(QString)));
 }
 
-void dbse::SchemaRelationshipEditor::ParseToSave()
+void
+dbse::SchemaRelationshipEditor::ParseToSave()
 {
   bool changed = false;
   QString RelationshipName = ui->RelationshipNameLineEdit->text();
@@ -207,132 +181,104 @@ void dbse::SchemaRelationshipEditor::ParseToSave()
 
   bool IsComposite;
 
-  if ( ui->IsCompositeCombo->currentIndex() == 0 )
-  {
+  if (ui->IsCompositeCombo->currentIndex() == 0) {
     IsComposite = true;
-  }
-  else
-  {
+  } else {
     IsComposite = false;
   }
 
   bool IsExclusive;
 
-  if ( ui->IsExclusiveCombo->currentIndex() == 0 )
-  {
+  if (ui->IsExclusiveCombo->currentIndex() == 0) {
     IsExclusive = true;
-  }
-  else
-  {
+  } else {
     IsExclusive = false;
   }
 
   bool IsDependent;
 
-  if ( ui->IsDependentCombo->currentIndex() == 0 )
-  {
+  if (ui->IsDependentCombo->currentIndex() == 0) {
     IsDependent = true;
-  }
-  else
-  {
+  } else {
     IsDependent = false;
   }
 
   OksRelationship::CardinalityConstraint RelationshipHighCardinality;
   OksRelationship::CardinalityConstraint RelationshipLowCardinality;
 
-  if ( ui->HighCcCombo->currentIndex() == 0 ) RelationshipHighCardinality =
-      OksRelationship::CardinalityConstraint::Zero;
-  else if ( ui->HighCcCombo->currentIndex() == 1 ) RelationshipHighCardinality =
-      OksRelationship::CardinalityConstraint::One;
-  else
-  {
+  if (ui->HighCcCombo->currentIndex() == 0)
+    RelationshipHighCardinality = OksRelationship::CardinalityConstraint::Zero;
+  else if (ui->HighCcCombo->currentIndex() == 1)
+    RelationshipHighCardinality = OksRelationship::CardinalityConstraint::One;
+  else {
     RelationshipHighCardinality = OksRelationship::CardinalityConstraint::Many;
   }
 
-  if ( ui->LowCcCombo->currentIndex() == 0 ) RelationshipLowCardinality =
-      OksRelationship::CardinalityConstraint::Zero;
-  else if ( ui->LowCcCombo->currentIndex() == 1 ) RelationshipLowCardinality =
-      OksRelationship::CardinalityConstraint::One;
-  else
-  {
+  if (ui->LowCcCombo->currentIndex() == 0)
+    RelationshipLowCardinality = OksRelationship::CardinalityConstraint::Zero;
+  else if (ui->LowCcCombo->currentIndex() == 1)
+    RelationshipLowCardinality = OksRelationship::CardinalityConstraint::One;
+  else {
     RelationshipLowCardinality = OksRelationship::CardinalityConstraint::Many;
   }
 
-  if ( RelationshipName != QString::fromStdString ( SchemaRelationship->get_name() ) )
-  {
-    KernelWrapper::GetInstance().PushSetNameRelationshipCommand (
-      SchemaClass, SchemaRelationship, RelationshipName.toStdString() );
+  if (RelationshipName != QString::fromStdString(SchemaRelationship->get_name())) {
+    KernelWrapper::GetInstance().PushSetNameRelationshipCommand(
+      SchemaClass, SchemaRelationship, RelationshipName.toStdString());
     changed = true;
   }
 
-  if ( RelationshipType != QString::fromStdString ( SchemaRelationship->get_type() ) )
-  {
-    KernelWrapper::GetInstance().PushSetClassTypeRelationshipCommand (
-      SchemaClass, SchemaRelationship, RelationshipType.toStdString() );
+  if (RelationshipType != QString::fromStdString(SchemaRelationship->get_type())) {
+    KernelWrapper::GetInstance().PushSetClassTypeRelationshipCommand(
+      SchemaClass, SchemaRelationship, RelationshipType.toStdString());
     changed = true;
   }
 
-  if ( RelationshipDescription != QString::fromStdString (
-         SchemaRelationship->get_description() ) )
-  {
-    KernelWrapper::GetInstance().PushSetDescriptionRelationshipCommand (
-      SchemaClass, SchemaRelationship, RelationshipDescription.toStdString() );
+  if (RelationshipDescription != QString::fromStdString(SchemaRelationship->get_description())) {
+    KernelWrapper::GetInstance().PushSetDescriptionRelationshipCommand(
+      SchemaClass, SchemaRelationship, RelationshipDescription.toStdString());
     changed = true;
   }
 
-  if ( SchemaRelationship->get_is_composite() != IsComposite )
-  {
-    KernelWrapper::GetInstance().PushSetIsCompositeRelationshipCommand ( SchemaClass,
-                                                                         SchemaRelationship,
-                                                                         IsComposite );
+  if (SchemaRelationship->get_is_composite() != IsComposite) {
+    KernelWrapper::GetInstance().PushSetIsCompositeRelationshipCommand(SchemaClass, SchemaRelationship, IsComposite);
     changed = true;
   }
 
-  if ( SchemaRelationship->get_is_exclusive() != IsExclusive )
-  {
-    KernelWrapper::GetInstance().PushSetIsExclusiveRelationshipCommand ( SchemaClass,
-                                                                         SchemaRelationship,
-                                                                         IsExclusive );
+  if (SchemaRelationship->get_is_exclusive() != IsExclusive) {
+    KernelWrapper::GetInstance().PushSetIsExclusiveRelationshipCommand(SchemaClass, SchemaRelationship, IsExclusive);
     changed = true;
   }
 
-  if ( SchemaRelationship->get_is_dependent() != IsDependent )
-  {
-    KernelWrapper::GetInstance().PushSetIsDependentRelationshipCommand ( SchemaClass,
-                                                                         SchemaRelationship,
-                                                                         IsDependent );
+  if (SchemaRelationship->get_is_dependent() != IsDependent) {
+    KernelWrapper::GetInstance().PushSetIsDependentRelationshipCommand(SchemaClass, SchemaRelationship, IsDependent);
     changed = true;
   }
 
-  if ( RelationshipHighCardinality != SchemaRelationship->get_high_cardinality_constraint() )
-  {
-    KernelWrapper::GetInstance().PushSetHighCcRelationshipCommand (
-      SchemaClass, SchemaRelationship, RelationshipHighCardinality );
+  if (RelationshipHighCardinality != SchemaRelationship->get_high_cardinality_constraint()) {
+    KernelWrapper::GetInstance().PushSetHighCcRelationshipCommand(
+      SchemaClass, SchemaRelationship, RelationshipHighCardinality);
     changed = true;
   }
 
-  if ( RelationshipLowCardinality != SchemaRelationship->get_low_cardinality_constraint() )
-  {
-    KernelWrapper::GetInstance().PushSetLowCcRelationshipCommand (
-      SchemaClass, SchemaRelationship, RelationshipLowCardinality );
+  if (RelationshipLowCardinality != SchemaRelationship->get_low_cardinality_constraint()) {
+    KernelWrapper::GetInstance().PushSetLowCcRelationshipCommand(
+      SchemaClass, SchemaRelationship, RelationshipLowCardinality);
     changed = true;
   }
 
-  if ( changed )
-  {
+  if (changed) {
     emit RebuildModel();
   }
 
   close();
 }
 
-void dbse::SchemaRelationshipEditor::ParseToCreate()
+void
+dbse::SchemaRelationshipEditor::ParseToCreate()
 {
-  if ( ui->RelationshipNameLineEdit->text().isEmpty() )
-  {
-    QMessageBox::warning ( 0, "Schema editor",
-                           QString ( "Please Provide a name for the relationship !" ) );
+  if (ui->RelationshipNameLineEdit->text().isEmpty()) {
+    QMessageBox::warning(0, "Schema editor", QString("Please Provide a name for the relationship !"));
     return;
   }
 
@@ -342,94 +288,82 @@ void dbse::SchemaRelationshipEditor::ParseToCreate()
 
   bool IsComposite;
 
-  if ( ui->IsCompositeCombo->currentIndex() == 0 )
-  {
+  if (ui->IsCompositeCombo->currentIndex() == 0) {
     IsComposite = true;
-  }
-  else
-  {
+  } else {
     IsComposite = false;
   }
 
   bool IsExclusive;
 
-  if ( ui->IsExclusiveCombo->currentIndex() == 0 )
-  {
+  if (ui->IsExclusiveCombo->currentIndex() == 0) {
     IsExclusive = true;
-  }
-  else
-  {
+  } else {
     IsExclusive = false;
   }
 
   bool IsDependent;
 
-  if ( ui->IsDependentCombo->currentIndex() == 0 )
-  {
+  if (ui->IsDependentCombo->currentIndex() == 0) {
     IsDependent = true;
-  }
-  else
-  {
+  } else {
     IsDependent = false;
   }
 
   OksRelationship::CardinalityConstraint RelationshipHighCardinality;
   OksRelationship::CardinalityConstraint RelationshipLowCardinality;
 
-  if ( ui->HighCcCombo->currentIndex() == 0 ) RelationshipHighCardinality =
-      OksRelationship::CardinalityConstraint::Zero;
-  else if ( ui->HighCcCombo->currentIndex() == 1 ) RelationshipHighCardinality =
-      OksRelationship::CardinalityConstraint::One;
-  else
-  {
+  if (ui->HighCcCombo->currentIndex() == 0)
+    RelationshipHighCardinality = OksRelationship::CardinalityConstraint::Zero;
+  else if (ui->HighCcCombo->currentIndex() == 1)
+    RelationshipHighCardinality = OksRelationship::CardinalityConstraint::One;
+  else {
     RelationshipHighCardinality = OksRelationship::CardinalityConstraint::Many;
   }
 
-  if ( ui->LowCcCombo->currentIndex() == 0 ) RelationshipLowCardinality =
-      OksRelationship::CardinalityConstraint::Zero;
-  else if ( ui->LowCcCombo->currentIndex() == 1 ) RelationshipLowCardinality =
-      OksRelationship::CardinalityConstraint::One;
-  else
-  {
+  if (ui->LowCcCombo->currentIndex() == 0)
+    RelationshipLowCardinality = OksRelationship::CardinalityConstraint::Zero;
+  else if (ui->LowCcCombo->currentIndex() == 1)
+    RelationshipLowCardinality = OksRelationship::CardinalityConstraint::One;
+  else {
     RelationshipLowCardinality = OksRelationship::CardinalityConstraint::Many;
   }
 
-  KernelWrapper::GetInstance().PushAddRelationship ( SchemaClass,
-                                                     RelationshipName.toStdString(),
-                                                     RelationshipDescription.toStdString(),
-                                                     RelationshipType.toStdString(),
-                                                     IsComposite, IsExclusive, IsDependent,
-                                                     RelationshipLowCardinality,
-                                                     RelationshipHighCardinality );
+  KernelWrapper::GetInstance().PushAddRelationship(SchemaClass,
+                                                   RelationshipName.toStdString(),
+                                                   RelationshipDescription.toStdString(),
+                                                   RelationshipType.toStdString(),
+                                                   IsComposite,
+                                                   IsExclusive,
+                                                   IsDependent,
+                                                   RelationshipLowCardinality,
+                                                   RelationshipHighCardinality);
   emit RebuildModel();
 
-  if ( GraphScene ) emit MakeGraphConnection ( QString::fromStdString (
-                                                   SchemaClass->get_name() ),
-                                                 ui->RelationshipTypeComboBox->currentText(),
-                                                 RelationshipName );
+  if (GraphScene)
+    emit MakeGraphConnection(
+      QString::fromStdString(SchemaClass->get_name()), ui->RelationshipTypeComboBox->currentText(), RelationshipName);
 
   close();
 }
 
-void dbse::SchemaRelationshipEditor::ProxySlot()
+void
+dbse::SchemaRelationshipEditor::ProxySlot()
 {
-  if ( UsedNew )
-  {
+  if (UsedNew) {
     ParseToCreate();
-  }
-  else
-  {
+  } else {
     ParseToSave();
   }
 }
 
-void dbse::SchemaRelationshipEditor::UpdateClassCombo()
+void
+dbse::SchemaRelationshipEditor::UpdateClassCombo()
 {
   QStringList ClassList;
-  KernelWrapper::GetInstance().GetClassListString ( ClassList );
+  KernelWrapper::GetInstance().GetClassListString(ClassList);
   ui->RelationshipTypeComboBox->clear();
-  ui->RelationshipTypeComboBox->addItems ( ClassList );
-  ui->RelationshipTypeComboBox->setCurrentIndex (
-    ui->RelationshipTypeComboBox->findData (
-      QString::fromStdString ( SchemaRelationship->get_type() ), Qt::DisplayRole ) );
+  ui->RelationshipTypeComboBox->addItems(ClassList);
+  ui->RelationshipTypeComboBox->setCurrentIndex(
+    ui->RelationshipTypeComboBox->findData(QString::fromStdString(SchemaRelationship->get_type()), Qt::DisplayRole));
 }

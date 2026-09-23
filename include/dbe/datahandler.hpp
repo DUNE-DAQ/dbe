@@ -6,8 +6,8 @@
 #ifndef DATAHANDLER_H
 #define DATAHANDLER_H
 
-#include "dbe/TableNode.hpp"
 #include "dbe/GraphicalClass.hpp"
+#include "dbe/TableNode.hpp"
 #include "dbe/dbcontroller.hpp"
 
 #include "conffwk/ConfigObject.hpp"
@@ -16,10 +16,8 @@
 #include <QObject>
 #include <QString>
 
-namespace dbe
-{
-namespace models
-{
+namespace dbe {
+namespace models {
 class table;
 class tree;
 }
@@ -41,8 +39,7 @@ struct ViewConfiguration
   bool DefaultView;
 };
 
-class datahandler:
-  public QObject
+class datahandler : public QObject
 {
   friend class dbe::models::tree;
   friend class dbe::models::table;
@@ -57,35 +54,35 @@ public:
    * Get the root node
    * @return a treenode pointer to the root node
    */
-  treenode * getnode() const;
+  treenode* getnode() const;
   /**
    * Get a tree node to a class
    * @param ClassName of the class to retrieve treenode to
    * @return the treenode to the class
    */
-  treenode * getnode ( QString const & ClassName ) const;
-  treenode * getnode ( std::string const & ClassName ) const;
+  treenode* getnode(QString const& ClassName) const;
+  treenode* getnode(std::string const& ClassName) const;
   /**
    * Get a treenode to an object of a class
    * @param ClassName of the class the object belongs to
    * @param ObjectName of the object to retrieve
    * @return
    */
-  treenode * getnode ( QString const & ClassName, QString const & ObjectName ) const;
-  treenode * getnode ( std::string const & ClassName, std::string const & ObjectName ) const;
+  treenode* getnode(QString const& ClassName, QString const& ObjectName) const;
+  treenode* getnode(std::string const& ClassName, std::string const& ObjectName) const;
 
-  static treenode * findchild ( treenode * top, QString const & name );
+  static treenode* findchild(treenode* top, QString const& name);
 
-  void FetchMore ( const treenode * ClassNode );
+  void FetchMore(const treenode* ClassNode);
   void ResetData();
 
 private:
   /// Tree data structure
-  treenode * root;
+  treenode* root;
 
 signals:
-  void FetchMoreData ( const treenode * ClassNode );
+  void FetchMoreData(const treenode* ClassNode);
 };
 
-} //end namespace dbe
+} // end namespace dbe
 #endif // DATAHANDLER_H

@@ -18,12 +18,12 @@
 #ifndef LUTILS_CPTR_HPP
 #define LUTILS_CPTR_HPP
 
-#include <utility>
-#include <iostream>
-#include <mutex>
-#include <memory>
-#include <thread>
 #include <chrono>
+#include <iostream>
+#include <memory>
+#include <mutex>
+#include <thread>
+#include <utility>
 
 template<typename T, typename M>
 class cptr_proxy;
@@ -51,25 +51,25 @@ class cptr_proxy;
  *
  *
  */
-template<typename T, typename M = std::recursive_mutex, int N = 100> class cptr
+template<typename T, typename M = std::recursive_mutex, int N = 100>
+class cptr
 {
 protected:
   std::shared_ptr<M> llock;
 
-  T * base;
+  T* base;
 
 public:
-  explicit cptr ( T * p )
-    : llock ( new M() ),
-      base ( p )
+  explicit cptr(T* p)
+    : llock(new M())
+    , base(p)
   {
   }
 
   cptr_proxy<T, M> operator->()
   {
-    while ( !llock->try_lock() )
-    {
-      std::this_thread::sleep_for ( std::chrono::nanoseconds ( N ) );
+    while (!llock->try_lock()) {
+      std::this_thread::sleep_for(std::chrono::nanoseconds(N));
     }
 
     return *this;
@@ -77,28 +77,21 @@ public:
 
   cptr_proxy<T, M> operator->() const
   {
-    while ( !llock->try_lock() )
-    {
-      std::this_thread::sleep_for ( std::chrono::nanoseconds ( N ) );
+    while (!llock->try_lock()) {
+      std::this_thread::sleep_for(std::chrono::nanoseconds(N));
     }
 
     return *this;
   }
 
-  T * get()
-  {
-    return base;
-  }
+  T* get() { return base; }
 
-  T * get() const
-  {
-    return base;
-  }
+  T* get() const { return base; }
 
-  friend class cptr_proxy<T, M> ;
+  friend class cptr_proxy<T, M>;
 };
 //-----------------------------------------------------------------------------------------------------
-//template<typename T, typename M, int N> M cptr<T,M,N>::llock;
+// template<typename T, typename M, int N> M cptr<T,M,N>::llock;
 //-----------------------------------------------------------------------------------------------------
 /**
  * This is a proxy class of the concurrent pointer, the object is returned only by the arrow operator of
@@ -111,26 +104,20 @@ template<typename T, typename M>
 class cptr_proxy
 {
 private:
-  T * that;
+  T* that;
 
   std::shared_ptr<M> llock_ptr;
 
 public:
-  cptr_proxy ( cptr<T, M> const & cp )
-    : that ( cp.base ),
-      llock_ptr ( cp.llock )
+  cptr_proxy(cptr<T, M> const& cp)
+    : that(cp.base)
+    , llock_ptr(cp.llock)
   {
   }
 
-  T * operator->()
-  {
-    return that;
-  }
+  T* operator->() { return that; }
 
-  ~cptr_proxy()
-  {
-    llock_ptr->unlock();
-  }
+  ~cptr_proxy() { llock_ptr->unlock(); }
 };
 //-----------------------------------------------------------------------------------------------------
 

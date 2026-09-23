@@ -11,8 +11,7 @@
 /// Including config
 #include "conffwk/Schema.hpp"
 
-namespace dbe
-{
+namespace dbe {
 
 struct InitAttributeFromEnv
 {
@@ -52,40 +51,39 @@ struct Window
   bool ShowChildren;
 };
 
-class GraphicalObject: public QGraphicsObject
+class GraphicalObject : public QGraphicsObject
 {
   Q_OBJECT
 public:
-  explicit GraphicalObject ( bool Used, QString ObjectName, GraphicalClass GraphInfo,
-                             QGraphicsObject * parent = 0 );
+  explicit GraphicalObject(bool Used, QString ObjectName, GraphicalClass GraphInfo, QGraphicsObject* parent = 0);
   ~GraphicalObject();
   QRectF boundingRect() const;
-  void paint ( QPainter * painter, const QStyleOptionGraphicsItem * option,
-               QWidget * widget );
+  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget);
   QPainterPath shape() const;
   /// Event Handler
-  void mouseDoubleClickEvent ( QGraphicsSceneMouseEvent * event );
-  void mousePressEvent ( QGraphicsSceneMouseEvent * event );
-  void mouseMoveEvent ( QGraphicsSceneMouseEvent * event );
-  void dropEvent ( QGraphicsSceneDragDropEvent * event );
+  void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event);
+  void mousePressEvent(QGraphicsSceneMouseEvent* event);
+  void mouseMoveEvent(QGraphicsSceneMouseEvent* event);
+  void dropEvent(QGraphicsSceneDragDropEvent* event);
   /// Graphics
   void AddGraphicChildren();
   void ShowGraphicsChildren();
   void HideGraphicsChildren();
   double GetExpandedX() const;
   double GetExpandedY() const;
-  void SetExpandedX ( double dx );
-  void SetExpandedY ( double dy );
+  void SetExpandedX(double dx);
+  void SetExpandedY(double dy);
   /// Some Api
-  void GetOffsetX ( QGraphicsItem * Item, double & Offset );
-  void GetOffsetY ( QGraphicsItem * Item, double & Offset );
-  void LocateTopMostItem ( QGraphicsItem * Auxiliary );
+  void GetOffsetX(QGraphicsItem* Item, double& Offset);
+  void GetOffsetY(QGraphicsItem* Item, double& Offset);
+  void LocateTopMostItem(QGraphicsItem* Auxiliary);
   QString GetDatabaseClassName() const;
   QString GetDatabaseUidName() const;
+
 private:
   GraphicalClass GraphicalInfo;
-  QGraphicsPixmapItem * IconItem;
-  QGraphicsTextItem * TextItem;
+  QGraphicsPixmapItem* IconItem;
+  QGraphicsTextItem* TextItem;
   QString DatabaseClassName;
   QString DatabaseUidName;
   bool IsExpanded;
@@ -95,29 +93,30 @@ private:
   double expandedY;
 };
 
-class GraphicalRelationship: public QGraphicsObject
+class GraphicalRelationship : public QGraphicsObject
 {
   Q_OBJECT
 public:
-  explicit GraphicalRelationship ( QString ObjectName, QString ClassName,
-                                   dunedaq::conffwk::relationship_t & Data, QGraphicsObject * parent =
-                                     0 );
+  explicit GraphicalRelationship(QString ObjectName,
+                                 QString ClassName,
+                                 dunedaq::conffwk::relationship_t& Data,
+                                 QGraphicsObject* parent = 0);
   ~GraphicalRelationship();
   QRectF boundingRect() const;
-  void paint ( QPainter * painter, const QStyleOptionGraphicsItem * option,
-               QWidget * widget );
+  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget);
   QPainterPath shape() const;
   /// Event Handler
-  void mouseDoubleClickEvent ( QGraphicsSceneMouseEvent * event );
-  void mousePressEvent ( QGraphicsSceneMouseEvent * event );
-  void mouseMoveEvent ( QGraphicsSceneMouseEvent * event );
+  void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event);
+  void mousePressEvent(QGraphicsSceneMouseEvent* event);
+  void mouseMoveEvent(QGraphicsSceneMouseEvent* event);
   /// Graphics
   void AddGraphicChildren();
+
 private:
   QString DatabaseClassName;
   QString DatabaseUidName;
   dunedaq::conffwk::relationship_t RelationshipData;
-  QGraphicsTextItem * TextItem;
+  QGraphicsTextItem* TextItem;
 };
 
 } // end namespace dbe

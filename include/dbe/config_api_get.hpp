@@ -23,31 +23,24 @@
 #include <string>
 #include <vector>
 
-namespace dbe
-{
-namespace ui
-{
-namespace config
-{
+namespace dbe {
+namespace ui {
+namespace config {
 class info;
 } /* namespace config */
 } /* namespace ui */
 } /* namespace dbe */
 
-namespace dbe
-{
-namespace config
-{
-namespace api
-{
+namespace dbe {
+namespace config {
+namespace api {
 //------------------------------------------------------------------------------------------
 //                                                 GET NAMESPACE
 //------------------------------------------------------------------------------------------
 /*
  * Retrieve config related structures
  */
-namespace get
-{
+namespace get {
 class file
 {
 public:
@@ -58,8 +51,7 @@ public:
    * @param root filename
    * @return a list of files
    */
-  static QStringList inclusions ( QStringList const & candidates, QStringList files =
-                                    { } );
+  static QStringList inclusions(QStringList const& candidates, QStringList files = {});
 
   /**
    * Retrieve a list of of files from a single file
@@ -67,7 +59,7 @@ public:
    * @param the file name to process
    * @return the list of files
    */
-  static QStringList inclusions_singlefile ( QString const & );
+  static QStringList inclusions_singlefile(QString const&);
 };
 
 class direct;
@@ -85,8 +77,8 @@ class attribute
    * @param the attribute to read from the given objects
    * @return a string representation of values
    */
-  template<typename T> inline static std::vector<std::string> read (
-    dunedaq::conffwk::ConfigObject &, dunedaq::conffwk::attribute_t const & );
+  template<typename T>
+  inline static std::vector<std::string> read(dunedaq::conffwk::ConfigObject&, dunedaq::conffwk::attribute_t const&);
 
   /**
    * Read values associated with an attribute of a given object
@@ -95,10 +87,10 @@ class attribute
    * @param the attribute to read from the given objects
    * @return a string representation of values
    */
-  template<typename T>  static std::vector<std::string> read (
-    inner::configobject::tref, dunedaq::conffwk::attribute_t const & );
-public:
+  template<typename T>
+  static std::vector<std::string> read(inner::configobject::tref, dunedaq::conffwk::attribute_t const&);
 
+public:
   /**
    * Retrieve a list from of an unspecified type of the values of the attribute of an object
    *
@@ -106,19 +98,17 @@ public:
    * @param attr is the Attribute type information structure
    * @return a list of type T with the attribute values
    */
-  template<typename T>  static T list ( dbe::inner::configobject::tref obj,
-                                              dunedaq::conffwk::attribute_t const & attr );
-
+  template<typename T>
+  static T list(dbe::inner::configobject::tref obj, dunedaq::conffwk::attribute_t const& attr);
 };
 
-namespace defaults
-{
+namespace defaults {
 /**
  * Retrieve default values for objects
  */
 struct attribute
 {
-  static QStringList value ( dunedaq::conffwk::attribute_t const & );
+  static QStringList value(dunedaq::conffwk::attribute_t const&);
 };
 }
 
@@ -130,7 +120,8 @@ class direct
   friend class dbe::ui::config::info;
   friend class dbe::config::api::get::attribute;
 
-  template<typename T> static T attribute ( dunedaq::conffwk::ConfigObject &, dunedaq::conffwk::attribute_t const & );
+  template<typename T>
+  static T attribute(dunedaq::conffwk::ConfigObject&, dunedaq::conffwk::attribute_t const&);
 };
 
 }
