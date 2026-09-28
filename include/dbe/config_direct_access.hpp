@@ -13,21 +13,18 @@
 #ifndef DBE_CONFIG_DIRECT_ACCESS_H_
 #define DBE_CONFIG_DIRECT_ACCESS_H_
 
-#include "dbe/dbcontroller.hpp"
 #include "dbe/confobject_desc.hpp"
+#include "dbe/dbcontroller.hpp"
 
 #include "conffwk/ConfigObject.hpp"
 
 #include <string>
 
-namespace dbe
-{
+namespace dbe {
 
-namespace config
-{
+namespace config {
 
-namespace api
-{
+namespace api {
 
 /**
  * Direct access to Config layer through ConfigObjects
@@ -41,8 +38,8 @@ class rwdacc
    * @param query is a regular expression to match against the objects in the given class
    * @return  a list of configobjects
    */
-  static std::vector<dunedaq::conffwk::ConfigObject> query_class ( std::string const & classname,
-                                                 std::string const & query );
+  static std::vector<dunedaq::conffwk::ConfigObject> query_class(std::string const& classname,
+                                                                 std::string const& query);
 
   /**
    * Creates the object in the database ( changes are not committed)
@@ -55,8 +52,9 @@ class rwdacc
    *
    * @return a copy of the thin wrapper ConfigObject
    */
-  static dunedaq::conffwk::ConfigObject create_object ( std::string const & fn, std::string const & cn,
-                                      std::string const & name );
+  static dunedaq::conffwk::ConfigObject create_object(std::string const& fn,
+                                                      std::string const& cn,
+                                                      std::string const& name);
 
   /**
    * Retrieve an object by class name and uid
@@ -65,7 +63,7 @@ class rwdacc
    * @param object uid
    * @return a config object that is not null only if it exists in the database
    */
-  static dunedaq::conffwk::ConfigObject get_object ( std::string const &, std::string const & );
+  static dunedaq::conffwk::ConfigObject get_object(std::string const&, std::string const&);
 
   /**
    * Given a reference to an object set its attributes and relations
@@ -75,10 +73,9 @@ class rwdacc
    * @param relations to set in the object
    * @return an empty tref in case of failure
    */
-  static tref set_object ( tref newobj,
-                           dbe::t_config_object_preimage::type_attrmap const & attributes,
-                           dbe::t_config_object_preimage::type_relmap const & relations );
-
+  static tref set_object(tref newobj,
+                         dbe::t_config_object_preimage::type_attrmap const& attributes,
+                         dbe::t_config_object_preimage::type_relmap const& relations);
 
   /**
    * Rename an object in the database
@@ -87,21 +84,21 @@ class rwdacc
    * @param newname as a string
    * @return a reference with the object
    */
-  static void rename_object ( dunedaq::conffwk::ConfigObject & object, std::string const & newname );
+  static void rename_object(dunedaq::conffwk::ConfigObject& object, std::string const& newname);
 
   /**
    * Destroys the object in the online database ( changes are not committed)
    *
    * @param the object definition to create in the database
    */
-  static void destroy_object ( dunedaq::conffwk::ConfigObject & );
+  static void destroy_object(dunedaq::conffwk::ConfigObject&);
 
   friend class inner::dbcontroller;
 };
 
-}  // namespace api
+} // namespace api
 
-}  // namespace config
+} // namespace config
 
 } // namespace dbe
 

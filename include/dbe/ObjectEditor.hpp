@@ -6,43 +6,40 @@
 #ifndef OBJECTEDITOR_H
 #define OBJECTEDITOR_H
 
-#include "dbe/confaccessor.hpp"
 #include "dbe/BuildingBlockEditors.hpp"
 #include "dbe/CustomFileView.hpp"
 #include "dbe/FileModel.hpp"
+#include "dbe/confaccessor.hpp"
 
-#include <QWidget>
-#include <QStatusBar>
-#include <QSplitter>
-#include <QFormLayout>
 #include <QDialog>
+#include <QFormLayout>
+#include <QSplitter>
+#include <QStatusBar>
 #include <QTableWidget>
 #include <QUuid>
+#include <QWidget>
 
-#include <memory>
 #include <map>
+#include <memory>
 
-namespace dbe
-{
-namespace Ui
-{
+namespace dbe {
+namespace Ui {
 class ObjectEditor;
-}  // namespace Ui
+} // namespace Ui
 
-class ObjectEditor:
-  public QWidget
+class ObjectEditor : public QWidget
 {
   Q_OBJECT
 
 public:
-  explicit ObjectEditor(QWidget * parent = nullptr);
-  ObjectEditor ( std::string const & classname, QWidget * parent = nullptr );
+  explicit ObjectEditor(QWidget* parent = nullptr);
+  ObjectEditor(std::string const& classname, QWidget* parent = nullptr);
 
-  ObjectEditor ( tref const & objref, QWidget * parent = nullptr, bool const iscopy = false );
+  ObjectEditor(tref const& objref, QWidget* parent = nullptr, bool const iscopy = false);
 
   ~ObjectEditor();
 
-  void HideDetailWidget ( bool Hide );
+  void HideDetailWidget(bool Hide);
 
   bool CanCloseWindow();
 
@@ -50,9 +47,9 @@ public:
 
   bool WasObjectChanged() const;
 
-  bool ParseToCreate ( std::string const & name, std::string const & filename );
+  bool ParseToCreate(std::string const& name, std::string const& filename);
 
-  void SetUsedForCopy ( bool Used );
+  void SetUsedForCopy(bool Used);
 
 private:
   void keyPressEvent(QKeyEvent* event) override;
@@ -61,13 +58,13 @@ private:
   void SetController();
   void BuildWidgets();
 
-  void set_tooltip ( dunedaq::conffwk::attribute_t const &, widgets::editors::base * );
-  void set_tooltip ( dunedaq::conffwk::relationship_t const &, widgets::editors::base * );
+  void set_tooltip(dunedaq::conffwk::attribute_t const&, widgets::editors::base*);
+  void set_tooltip(dunedaq::conffwk::relationship_t const&, widgets::editors::base*);
 
-  void set_attribute_widget ( dunedaq::conffwk::attribute_t const &, widgets::editors::base * );
+  void set_attribute_widget(dunedaq::conffwk::attribute_t const&, widgets::editors::base*);
 
-  void register_attribute_widget ( QString const & name, widgets::editors::base * widget );
-  void register_relation_widget ( QString const & name, widgets::editors::base * widget );
+  void register_attribute_widget(QString const& name, widgets::editors::base* widget);
+  void register_relation_widget(QString const& name, widgets::editors::base* widget);
 
   void BuildFileInfo();
 
@@ -77,37 +74,33 @@ private:
 
   std::string classname;
   std::unique_ptr<dref> m_object_to_edit;
-  bool m_readonly{false};
+  bool m_readonly{ false };
 
-  tref Object()
-  {
-    return m_object_to_edit->ref();
-  }
+  tref Object() { return m_object_to_edit->ref(); }
 
-  QStatusBar * StatusBar;
+  QStatusBar* StatusBar;
 
-  std::map<QString, widgets::editors::base *> this_widgets;
+  std::map<QString, widgets::editors::base*> this_widgets;
 
-  bool IsValid, this_is_in_copy_mode, this_editor_is_owned, this_is_in_creation_mode,
-       this_editor_values_changed;
+  bool IsValid, this_is_in_copy_mode, this_editor_is_owned, this_is_in_creation_mode, this_editor_values_changed;
 
   int CurrentRow;
 
   QString FilePermission;
 
-  QHBoxLayout * MainLayout;
-  QTableWidget * WidgetTable;
+  QHBoxLayout* MainLayout;
+  QTableWidget* WidgetTable;
 
   /// Rename widget
-  QDialog * RenameWidget;
-  QLineEdit * LineEdit;
-  QPushButton * GoButton;
+  QDialog* RenameWidget;
+  QLineEdit* LineEdit;
+  QPushButton* GoButton;
 
   /// Move widget
-  QDialog * MoveWidget;
-  CustomFileView * FileView;
-  FileModel * IncludedFileModel;
-  QPushButton * MoveGoButton;
+  QDialog* MoveWidget;
+  CustomFileView* FileView;
+  FileModel* IncludedFileModel;
+  QPushButton* MoveGoButton;
 
   QString ActivateFile;
   QStringList HorizontalHeaders;
@@ -123,13 +116,13 @@ private slots:
   void LaunchRenameObject();
   void LaunchMoveObject();
   void RenameObject();
-  void slot_external_rename_object ( QString const & src, dref const & obj );
+  void slot_external_rename_object(QString const& src, dref const& obj);
   void MoveObject();
-  void ActiveFileChanged ( const QString & File );
-  void UpdateObjectEditor ( QString const &, dref );
-  void UpdateObjectEditor (const QList<QPair<QString, QString>>&);
-  void UpdateObjectEditor ();
-  void ShouldCloseThisWindow ( QString src, dref key );
+  void ActiveFileChanged(const QString& File);
+  void UpdateObjectEditor(QString const&, dref);
+  void UpdateObjectEditor(const QList<QPair<QString, QString>>&);
+  void UpdateObjectEditor();
+  void ShouldCloseThisWindow(QString src, dref key);
 
 signals:
   void LoadedInitials();
@@ -137,7 +130,6 @@ signals:
 
 private:
   QUuid const uuid;
-
 };
-}  // namespace dbe
+} // namespace dbe
 #endif // OBJECTEDITOR_H

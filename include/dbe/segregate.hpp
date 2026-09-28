@@ -16,12 +16,9 @@
 #include "dbe/graphtool.hpp"
 #include "dbe/gtool.hpp"
 
-namespace dbe
-{
-namespace tool
-{
-namespace graph
-{
+namespace dbe {
+namespace tool {
+namespace graph {
 
 class segregated_graph_write
 {
@@ -34,10 +31,9 @@ public:
    * @param minc is the minimum size for a component to be considered
    * @param maxc is the maximum sized component to be included in the output
    */
-  segregated_graph_write ( std::string const & ofn_prefix, size_t const minc = 0,
-                           size_t const maxc = 0 );
+  segregated_graph_write(std::string const& ofn_prefix, size_t const minc = 0, size_t const maxc = 0);
 
-  int operator() ( gtool const & ) const;
+  int operator()(gtool const&) const;
 
 private:
   std::string const this_dest_prefix;

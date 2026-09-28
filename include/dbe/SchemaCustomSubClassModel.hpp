@@ -12,18 +12,18 @@
 /// Including Schema
 #include "dbe/SchemaCustomModelInterface.hpp"
 
-namespace dbse
-{
+namespace dbse {
 
-class CustomSubClassModel: public CustomModelInterface
+class CustomSubClassModel : public CustomModelInterface
 {
 public:
-  CustomSubClassModel ( dunedaq::oks::OksClass * ClassInfo, QStringList Headers);
+  CustomSubClassModel(dunedaq::oks::OksClass* ClassInfo, QStringList Headers);
   ~CustomSubClassModel();
   void setupModel();
+
 private:
-  dunedaq::oks::OksClass * SchemaClass;
+  dunedaq::oks::OksClass* SchemaClass;
 };
 
-}  // namespace dbse
+} // namespace dbse
 #endif // CUSTOMSUBCLASSMODEL_H

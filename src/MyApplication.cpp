@@ -14,48 +14,37 @@
 #include "dbe/messenger.hpp"
 #include "dbe/version.hpp"
 
-char const * const dbe_lib_core_version = dbe_compiled_version;
+char const* const dbe_lib_core_version = dbe_compiled_version;
 
-bool dbe::MyApplication::notify ( QObject * rec, QEvent * ev )
+bool
+dbe::MyApplication::notify(QObject* rec, QEvent* ev)
 {
-  HERE_AUTO_DEF ( notify );
+  HERE_AUTO_DEF(notify);
 
-  try
-  {
-    return QApplication::notify ( rec, ev );
-  }
-  catch ( dunedaq::conffwk::Exception const & err )
-  {
-    TLOG() << "MyApplication: dunedaq::conffwk::Exception: " << err ;
-    ERROR ( "Unexpected error occurred", dbe::config::errors::unwind(err), "dunedaq::conffwk::Exception caught at", HERE );
+  try {
+    return QApplication::notify(rec, ev);
+  } catch (dunedaq::conffwk::Exception const& err) {
+    TLOG() << "MyApplication: dunedaq::conffwk::Exception: " << err;
+    ERROR("Unexpected error occurred", dbe::config::errors::unwind(err), "dunedaq::conffwk::Exception caught at", HERE);
     return false;
-  }
-  catch ( ers::Issue const & err )
-  {
-    TLOG() << "MyApplication: ers::Issue: " << err ;
-    ERROR ( "ers::Issue occurred", dbe::config::errors::unwind(err), "\n\nCaught at:", HERE );
+  } catch (ers::Issue const& err) {
+    TLOG() << "MyApplication: ers::Issue: " << err;
+    ERROR("ers::Issue occurred", dbe::config::errors::unwind(err), "\n\nCaught at:", HERE);
     return false;
-  }
-  catch ( std::exception const & err )
-  {
-    TLOG() << "MyApplication: std::exception: " ;
-    ERROR ( "Error sending event", err.what(), "for object", typeid ( *ev ).name(), "Receiver",
-            typeid ( *rec ).name() );
+  } catch (std::exception const& err) {
+    TLOG() << "MyApplication: std::exception: ";
+    ERROR("Error sending event", err.what(), "for object", typeid(*ev).name(), "Receiver", typeid(*rec).name());
     return false;
-  }
-  catch ( char const * str )
-  {
-    TLOG() << "MyApplication: EXCEPTION: " << str << std::endl ;
-    ERROR ( "Unknown exception", str, "\n\nCaught at: ", HERE );
+  } catch (char const* str) {
+    TLOG() << "MyApplication: EXCEPTION: " << str << std::endl;
+    ERROR("Unknown exception", str, "\n\nCaught at: ", HERE);
     return false;
-  }
-  catch ( ... )
-  {
-    TLOG_DEBUG(0) <<  "MyApplication: Unknown exception!"  ;
-    ERROR ( "Unknown exception", "\n\nCaught at: ", HERE );
+  } catch (...) {
+    TLOG_DEBUG(0) << "MyApplication: Unknown exception!";
+    ERROR("Unknown exception", "\n\nCaught at: ", HERE);
     return false;
   }
 
-  TLOG() << "MyApplication: outside catch..." ;
+  TLOG() << "MyApplication: outside catch...";
   return false;
 }

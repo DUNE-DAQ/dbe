@@ -14,56 +14,54 @@
 #include "dbe/TableNode.hpp"
 #include "dbe/model_common_interface.hpp"
 
-namespace dbe
-{
-namespace models
-{
+namespace dbe {
+namespace models {
 
-class tableselection:
-  public QSortFilterProxyModel,
-  public model_common_impl<tableselection>,
-  public model_common_async_operations<tableselection>
+class tableselection
+  : public QSortFilterProxyModel
+  , public model_common_impl<tableselection>
+  , public model_common_async_operations<tableselection>
 {
   Q_OBJECT
 
-  MODEL_COMMON_IMPL_REQ_DEF ( tableselection )
+  MODEL_COMMON_IMPL_REQ_DEF(tableselection)
 
-public :
-
+public:
   typedef TableNode type_datum;
 
   enum FilterType
   {
-    RegExpFilter = 1, ExactFilter = 2
+    RegExpFilter = 1,
+    ExactFilter = 2
   };
 
-  tableselection ( QObject * parent = 0 );
+  tableselection(QObject* parent = 0);
 
-  void SetFilterType ( FilterType Filter );
+  void SetFilterType(FilterType Filter);
 
-  TableNode * getnode ( const QModelIndex & index ) const;
+  TableNode* getnode(const QModelIndex& index) const;
 
-  bool setData ( const QModelIndex & index, const QVariant & value, int role );
+  bool setData(const QModelIndex& index, const QVariant& value, int role);
 
   void ResetModel();
 
 protected:
-  bool filterAcceptsRow ( int sourceRow, const QModelIndex & sourceParent ) const;
+  bool filterAcceptsRow(int sourceRow, const QModelIndex& sourceParent) const;
 
-  bool lessThan ( const QModelIndex & left, const QModelIndex & right ) const;
+  bool lessThan(const QModelIndex& left, const QModelIndex& right) const;
 
 private:
   QVariant LastSavedValue;
   FilterType Type;
 
 private slots:
-  void slot_create_object ( QString const & src, dref const & obj );
-  void slot_remove_object ( QString const & src, dref const & obj );
-  void slot_update_object ( QString const & src, dref const & obj );
-  void slot_rename_object ( QString const & src, dref const & obj );
+  void slot_create_object(QString const& src, dref const& obj);
+  void slot_remove_object(QString const& src, dref const& obj);
+  void slot_update_object(QString const& src, dref const& obj);
+  void slot_rename_object(QString const& src, dref const& obj);
 };
 
 }
 // namespace models
-}// namespace dbe
+} // namespace dbe
 #endif // TABLESELECTIONMODEL_H

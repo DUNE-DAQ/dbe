@@ -13,21 +13,18 @@
 #ifndef DBE_CONFIG_UI_INFO_H_
 #define DBE_CONFIG_UI_INFO_H_
 
-#include "dbe/datahandler.hpp"
-#include "dbe/GraphicalClass.hpp"
 #include "conffwk/ConfigObject.hpp"
 #include "conffwk/Configuration.hpp"
-#include <memory>
-#include <vector>
-#include <string>
+#include "dbe/GraphicalClass.hpp"
+#include "dbe/datahandler.hpp"
 #include <map>
+#include <memory>
+#include <string>
+#include <vector>
 
-namespace dbe
-{
-namespace ui
-{
-namespace config
-{
+namespace dbe {
+namespace ui {
+namespace config {
 
 /**
  * Class used to read the current partition configuration in order to retrieve
@@ -36,11 +33,11 @@ namespace config
 class info
 {
 public:
-  info ( std::vector<std::string> const & file );
+  info(std::vector<std::string> const& file);
 
-  GraphicalClass graphical ( std::string const & ) const;
-  ViewConfiguration view ( std::string const & ) const;
-  Window window ( std::string const & ) const;
+  GraphicalClass graphical(std::string const&) const;
+  ViewConfiguration view(std::string const&) const;
+  Window window(std::string const&) const;
 
   std::vector<Window> windows() const;
   std::vector<ViewConfiguration> views() const;
@@ -48,8 +45,8 @@ public:
 
 private:
   void parse();
-  void parse_graphical ( std::shared_ptr<dunedaq::conffwk::Configuration> , dunedaq::conffwk::ConfigObject & );
-  void parse_window ( std::shared_ptr<dunedaq::conffwk::Configuration> , dunedaq::conffwk::ConfigObject & );
+  void parse_graphical(std::shared_ptr<dunedaq::conffwk::Configuration>, dunedaq::conffwk::ConfigObject&);
+  void parse_window(std::shared_ptr<dunedaq::conffwk::Configuration>, dunedaq::conffwk::ConfigObject&);
 
   std::map<std::string, Window> this_windows;
   std::map<std::string, GraphicalClass> this_graphical;

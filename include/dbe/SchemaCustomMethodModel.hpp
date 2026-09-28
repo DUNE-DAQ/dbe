@@ -14,20 +14,20 @@
 #include "oks/class.hpp"
 #include "oks/method.hpp"
 
-namespace dbse
-{
+namespace dbse {
 
-class CustomMethodModel: public CustomModelInterface
+class CustomMethodModel : public CustomModelInterface
 {
 public:
-  CustomMethodModel ( dunedaq::oks::OksClass * ClassInfo, QStringList Headers, bool Derived = false );
+  CustomMethodModel(dunedaq::oks::OksClass* ClassInfo, QStringList Headers, bool Derived = false);
   ~CustomMethodModel();
   void setupModel();
+
 private:
-  dunedaq::oks::OksClass * SchemaClass;
+  dunedaq::oks::OksClass* SchemaClass;
   bool SchemaDerived;
 };
 
-}  // namespace dbse
+} // namespace dbse
 
 #endif // CUSTOMMETHODMODEL_H

@@ -9,26 +9,27 @@
 /// Including Qt Headers
 #include <QComboBox>
 
-namespace dbe
-{
+namespace dbe {
 
-class SearchComboBox: public QComboBox
+class SearchComboBox : public QComboBox
 {
   Q_OBJECT
 public:
-  explicit SearchComboBox ( QWidget * parent = 0 );
+  explicit SearchComboBox(QWidget* parent = 0);
+
 protected:
-  void focusInEvent ( QFocusEvent * Event );
-  void keyPressEvent ( QKeyEvent * Event );
+  void focusInEvent(QFocusEvent* Event);
+  void keyPressEvent(QKeyEvent* Event);
+
 private:
   QString UserText;
 private slots:
-  void ChangeToolTip ( const QString & Text );
+  void ChangeToolTip(const QString& Text);
 signals:
   void ReturnPressed();
-  void TextModified ( const QString & );
+  void TextModified(const QString&);
 };
 
-}  // namespace dbe
+} // namespace dbe
 
 #endif // SEARCHCOMBOBOX_H

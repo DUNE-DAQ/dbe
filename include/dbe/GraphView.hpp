@@ -7,8 +7,8 @@
 #define GRAPHVIEW_H
 
 /// Including QT Headers
-#include <QWidget>
 #include <QUuid>
+#include <QWidget>
 
 /// Including DBE
 #include "dbe/GraphicalClass.hpp"
@@ -17,27 +17,27 @@
 
 #include "dbe/confaccessor.hpp"
 
-namespace dbe
-{
-namespace Ui
-{
+namespace dbe {
+namespace Ui {
 class GraphView;
-}  // namespace Ui
+} // namespace Ui
 
-class GraphView: public QWidget, private Ui::GraphView
+class GraphView
+  : public QWidget
+  , private Ui::GraphView
 {
   Q_OBJECT
 public:
   ~GraphView();
-  explicit GraphView ( QWidget * parent = nullptr );
+  explicit GraphView(QWidget* parent = nullptr);
 
   void ConnectActions();
   void SetupView();
-  void contextMenuEvent ( QContextMenuEvent * Event );
+  void contextMenuEvent(QContextMenuEvent* Event);
 
 private slots:
   void GetWindowConfiguration();
-  void RedrawObject ( tref Object );
+  void RedrawObject(tref Object);
   void RedrawObject();
   void CreateActions();
   void editThisObject();
@@ -48,14 +48,14 @@ private slots:
 
 private:
   Window WindowConfiguration;
-  //Qt::DropActions supportedDropActions() const;
-  QMenu * ContextMenu;
-  QAction * editObject;
-  QAction * deleteObjectAc;
-  QAction * refByAc;
-  QAction * refByAcOnlyComp;
-  QAction * copyObjectAc;
-  GraphicalObject * ClickedItem;
+  // Qt::DropActions supportedDropActions() const;
+  QMenu* ContextMenu;
+  QAction* editObject;
+  QAction* deleteObjectAc;
+  QAction* refByAc;
+  QAction* refByAcOnlyComp;
+  QAction* copyObjectAc;
+  GraphicalObject* ClickedItem;
   QUuid const uuid;
 };
 } // end namespace dbe

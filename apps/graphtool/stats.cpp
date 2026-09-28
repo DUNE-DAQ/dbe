@@ -12,12 +12,9 @@
 
 #include "dbe/stats.hpp"
 
-namespace dbe
-{
-namespace tool
-{
-namespace graph
-{
+namespace dbe {
+namespace tool {
+namespace graph {
 
 } /* namespace graph */
 } /* namespace tool */

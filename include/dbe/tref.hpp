@@ -15,20 +15,21 @@
 
 #include <string>
 
-namespace dbe
-{
+namespace dbe {
 
-template<typename> struct config_object_linked;
-template<typename> struct config_object_aggregates;
+template<typename>
+struct config_object_linked;
+template<typename>
+struct config_object_aggregates;
 
-namespace inner
-{
-namespace configobject
-{
+namespace inner {
+namespace configobject {
 class tref;
 class vref;
-template<typename> class aref;
-template<typename> class gref;
+template<typename>
+class aref;
+template<typename>
+class gref;
 }
 }
 
@@ -37,6 +38,6 @@ typedef inner::configobject::vref vref;
 typedef inner::configobject::aref<config_object_linked<std::string>> aref;
 typedef inner::configobject::gref<config_object_aggregates<std::string>> gref;
 
-}  // namespace dbe
+} // namespace dbe
 
 #endif /* DBE_TREF_H_ */

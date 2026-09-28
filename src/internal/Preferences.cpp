@@ -10,7 +10,8 @@
 namespace dbe {
 
 Preferences::Preferences(QWidget* parent)
-  : QDialog(parent), m_ui(new Ui::Preferences)
+  : QDialog(parent)
+  , m_ui(new Ui::Preferences)
 {
   m_ui->setupUi(this);
   setObjectName("Preferences");
@@ -51,16 +52,14 @@ Preferences::Preferences(QWidget* parent)
   item->setBackground(settings.value("readonly/background").value<QColor>());
   m_ui->read_only_list->addItem(item);
 
-  connect (m_ui->attribute_list, SIGNAL(itemActivated(QListWidgetItem*)),
-           this, SLOT(set_color(QListWidgetItem*)));
-  connect (m_ui->relationship_list, SIGNAL(itemActivated(QListWidgetItem*)),
-           this, SLOT(set_color(QListWidgetItem*)));
-  connect (m_ui->read_only_list, SIGNAL(itemActivated(QListWidgetItem*)),
-           this, SLOT(set_color(QListWidgetItem*)));
-
+  connect(m_ui->attribute_list, SIGNAL(itemActivated(QListWidgetItem*)), this, SLOT(set_color(QListWidgetItem*)));
+  connect(m_ui->relationship_list, SIGNAL(itemActivated(QListWidgetItem*)), this, SLOT(set_color(QListWidgetItem*)));
+  connect(m_ui->read_only_list, SIGNAL(itemActivated(QListWidgetItem*)), this, SLOT(set_color(QListWidgetItem*)));
 }
 
-void Preferences::set_color(QListWidgetItem* item) {
+void
+Preferences::set_color(QListWidgetItem* item)
+{
   QSettings settings;
   QStringList text = item->text().toLower().split(" ");
   settings.beginGroup(text.at(0));

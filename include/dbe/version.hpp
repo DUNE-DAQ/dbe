@@ -28,5 +28,4 @@
 #define dbe_compiled_commit "compiled without commit information"
 #endif
 
-
 #endif /* DBE_VERSION_H_ */

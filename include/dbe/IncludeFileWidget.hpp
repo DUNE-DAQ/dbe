@@ -13,19 +13,17 @@
 /// Including DBE
 #include "dbe/CreateDatabaseWidget.hpp"
 
-namespace dbe
-{
-namespace Ui
-{
+namespace dbe {
+namespace Ui {
 class IncludeFileWidget;
-}  // namespace Ui
+} // namespace Ui
 
-class IncludeFileWidget: public QWidget
+class IncludeFileWidget : public QWidget
 {
   Q_OBJECT
 public:
   ~IncludeFileWidget();
-  explicit IncludeFileWidget ( QString FilePath, QWidget * parent = 0 );
+  explicit IncludeFileWidget(QString FilePath, QWidget* parent = 0);
 
 private:
   void SetRemoveComboBox();
@@ -34,25 +32,25 @@ private:
 
   std::unique_ptr<dbe::Ui::IncludeFileWidget> ui;
 
-  CreateDatabaseWidget * CreateWidget;
+  CreateDatabaseWidget* CreateWidget;
   QString DatabasePath;
   QString Directory;
   bool Removed;
-  QStatusBar * StatusBar;
-  QFileDialog * SelectFile;
+  QStatusBar* StatusBar;
+  QFileDialog* SelectFile;
   QStringList FolderPathList;
   QStringList dbPath;
 
 private slots:
   void SelectFileToInclude();
   void AddFileToInclude();
-  void AddNewFileToInclude ( const QString & File );
+  void AddNewFileToInclude(const QString& File);
   void RemoveFileFromInclude();
-  void RemoveFileFromInclude ( int );
-  void SetDirectory ( const QString & Dir );
-  void CheckInclude ();
+  void RemoveFileFromInclude(int);
+  void SetDirectory(const QString& Dir);
+  void CheckInclude();
   void CreateFileToInclude();
 };
-}  // namespace dbe
+} // namespace dbe
 
 #endif // INCLUDEFILEWIDGET_H

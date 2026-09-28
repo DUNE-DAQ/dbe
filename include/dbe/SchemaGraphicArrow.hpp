@@ -12,43 +12,47 @@
 #include "dbe/SchemaGraphicObject.hpp"
 #include "dbe/SchemaGraphicsScene.hpp"
 
-namespace dbse
-{
+namespace dbse {
 
-class SchemaGraphicArrow: public QGraphicsLineItem
+class SchemaGraphicArrow : public QGraphicsLineItem
 {
 public:
-  SchemaGraphicArrow ( SchemaGraphicObject * StartItem, SchemaGraphicObject * EndItem,
-                       bool IsInheritance, bool IsComposite, QString ArrowName,
-                       QString ArrowCardinality, QGraphicsItem * parent = nullptr );
+  SchemaGraphicArrow(SchemaGraphicObject* StartItem,
+                     SchemaGraphicObject* EndItem,
+                     bool IsInheritance,
+                     bool IsComposite,
+                     QString ArrowName,
+                     QString ArrowCardinality,
+                     QGraphicsItem* parent = nullptr);
   ~SchemaGraphicArrow();
   QRectF boundingRect() const;
   QPainterPath shape() const;
   void UpdatePosition();
-  SchemaGraphicObject * GetStartItem() const;
-  SchemaGraphicObject * GetEndItem() const;
+  SchemaGraphicObject* GetStartItem() const;
+  SchemaGraphicObject* GetEndItem() const;
   bool GetInheritanceMode();
   void RemoveArrow();
-  void SetLabelScene ( SchemaGraphicsScene * Scene );
+  void SetLabelScene(SchemaGraphicsScene* Scene);
+
 protected:
-  //void mousePressEvent(QGraphicsSceneMouseEvent *mouseEvent);
-  //void mouseMoveEvent(QGraphicsSceneMouseEvent *mouseEvent);
-  //void mouseReleaseEvent(QGraphicsSceneMouseEvent *mouseEvent);
-  void paint ( QPainter * painter, const QStyleOptionGraphicsItem * option,
-               QWidget * widget = 0 );
+  // void mousePressEvent(QGraphicsSceneMouseEvent *mouseEvent);
+  // void mouseMoveEvent(QGraphicsSceneMouseEvent *mouseEvent);
+  // void mouseReleaseEvent(QGraphicsSceneMouseEvent *mouseEvent);
+  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget = 0);
+
 private:
-  SchemaGraphicObject * Start;
-  SchemaGraphicObject * End;
+  SchemaGraphicObject* Start;
+  SchemaGraphicObject* End;
   QPolygonF ArrowHead;
   bool Inheritance;
   bool Composite;
   QString Name;
   QString Cardinality;
-  QGraphicsSimpleTextItem * Label;
+  QGraphicsSimpleTextItem* Label;
   double LastDegree;
   double LastRotation;
-  //QString LabelString;
+  // QString LabelString;
 };
 
-}  // namespace dbse
+} // namespace dbse
 #endif // SCHEMAGRAPHICARROW_H

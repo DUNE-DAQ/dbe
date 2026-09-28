@@ -17,11 +17,10 @@
 #ifndef DBE_GRAPHTOOL_H_
 #define DBE_GRAPHTOOL_H_
 
-
 #define t_messenger dbe::interface::messenger::console
 
-#define MESSAGE_STATICS(msg) \
-    static t_msghandler::t_str sms(msg); \
-    static t_msghandler::t_str smsr("\tReason: "); \
+#define MESSAGE_STATICS(msg)                                                                                           \
+  static t_msghandler::t_str sms(msg);                                                                                 \
+  static t_msghandler::t_str smsr("\tReason: ");
 
 #endif /* DBE_GRAPHTOOL_H_ */

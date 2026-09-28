@@ -2,52 +2,51 @@
 #define SCHEMAGRAPHICSSCENE_H
 
 /// Include QT Headers
-#include <QGraphicsScene>
-#include <QGraphicsLineItem>
 #include <QAction>
+#include <QGraphicsLineItem>
+#include <QGraphicsScene>
 /// Including Schema Editor
 #include "dbe/SchemaGraphicNote.hpp"
 #include "dbe/SchemaGraphicObject.hpp"
 
-namespace dbse
-{
+namespace dbse {
 
-class SchemaGraphicsScene: public QGraphicsScene
+class SchemaGraphicsScene : public QGraphicsScene
 {
   Q_OBJECT
 public:
-  explicit SchemaGraphicsScene ( QObject * parent = nullptr );
+  explicit SchemaGraphicsScene(QObject* parent = nullptr);
   ~SchemaGraphicsScene();
   void CreateActions();
   /// Drag & Drop
-  void dragEnterEvent ( QGraphicsSceneDragDropEvent * event );
-  void dragMoveEvent ( QGraphicsSceneDragDropEvent * event );
-  void dropEvent ( QGraphicsSceneDragDropEvent * event );
+  void dragEnterEvent(QGraphicsSceneDragDropEvent* event);
+  void dragMoveEvent(QGraphicsSceneDragDropEvent* event);
+  void dropEvent(QGraphicsSceneDragDropEvent* event);
 
-  void contextMenuEvent ( QGraphicsSceneContextMenuEvent * event );
-  QStringList AddItemsToScene ( QStringList SchemaClasses, QList<QPointF> Positions );
+  void contextMenuEvent(QGraphicsSceneContextMenuEvent* event);
+  QStringList AddItemsToScene(QStringList SchemaClasses, QList<QPointF> Positions);
   void CleanItemMap();
-  void RemoveClassObject ( SchemaGraphicObject * Object );
-  void add_notes (QStringList notes, QList<QPointF> positions );
+  void RemoveClassObject(SchemaGraphicObject* Object);
+  void add_notes(QStringList notes, QList<QPointF> positions);
   void remove_note_object(SchemaGraphicNote* obj);
 
-  [[nodiscard]] bool highlight_abstract() const {return m_highlight_abstract;}
-  [[nodiscard]] bool highlight_active() const {return m_highlight_active;}
-  [[nodiscard]] bool inherited_properties_visible() const {
-    return m_inherited_properties_visible;}
+  [[nodiscard]] bool highlight_abstract() const { return m_highlight_abstract; }
+  [[nodiscard]] bool highlight_active() const { return m_highlight_active; }
+  [[nodiscard]] bool inherited_properties_visible() const { return m_inherited_properties_visible; }
 
-  [[nodiscard]] bool show_defaults () const {return m_show_defaults;};
-  [[nodiscard]] bool IsModified () const {return m_modified;};
+  [[nodiscard]] bool show_defaults() const { return m_show_defaults; };
+  [[nodiscard]] bool IsModified() const { return m_modified; };
   void ClearModified();
 signals:
   void sceneModified(bool);
   void saveRequested();
+
 protected:
   // bool event ( QEvent* event );
-  void mousePressEvent ( QGraphicsSceneMouseEvent * mouseEvent );
-  void mouseMoveEvent ( QGraphicsSceneMouseEvent * mouseEvent );
-  void mouseReleaseEvent ( QGraphicsSceneMouseEvent * mouseEvent );
-  void RemoveItemFromScene ( QGraphicsItem* item );
+  void mousePressEvent(QGraphicsSceneMouseEvent* mouseEvent);
+  void mouseMoveEvent(QGraphicsSceneMouseEvent* mouseEvent);
+  void mouseReleaseEvent(QGraphicsSceneMouseEvent* mouseEvent);
+  void RemoveItemFromScene(QGraphicsItem* item);
   void modified(bool state);
 private slots:
   void new_class_slot();
@@ -71,45 +70,46 @@ private slots:
   void AddAllRelationshipClassesSlot();
   void RemoveClassSlot();
   void RemoveArrowSlot();
-  void DrawArrow ( QString ClassName, QString RelationshipType, QString RelationshipName );
+  void DrawArrow(QString ClassName, QString RelationshipType, QString RelationshipName);
   void requestSave();
   void moveScene();
+
 private:
-  QMap<QString, SchemaGraphicObject *> ItemMap;
+  QMap<QString, SchemaGraphicObject*> ItemMap;
   std::set<SchemaGraphicNote*> m_notes;
-  QGraphicsLineItem * m_line;
-  QMenu * m_context_menu;
+  QGraphicsLineItem* m_line;
+  QMenu* m_context_menu;
   int m_seperator_pos;
   int m_class_pos;
   int m_arrow_pos;
   int m_note_pos;
   int m_save_pos;
-  QAction * m_add_class;
-  QAction * m_edit_class;
-  QAction * m_toggle_indirect_infos;
-  QAction * m_toggle_highlight_abstract;
-  QAction * m_toggle_highlight_active;
-  QAction * m_toggle_highlight_class;
-  QAction * m_toggle_default;
-  QAction * m_add_direct_super_classes;
-  QAction * m_add_direct_relationship_classes;
-  QAction * m_add_all_super_classes;
-  QAction * m_add_all_sub_classes;
-  QAction * m_add_all_relationship_classes;
-  QAction * m_add_note;
-  QAction * m_edit_note;
-  QAction * m_remove_note;
-  QAction * m_remove_class;
-  QAction * m_remove_arrow;
+  QAction* m_add_class;
+  QAction* m_edit_class;
+  QAction* m_toggle_indirect_infos;
+  QAction* m_toggle_highlight_abstract;
+  QAction* m_toggle_highlight_active;
+  QAction* m_toggle_highlight_class;
+  QAction* m_toggle_default;
+  QAction* m_add_direct_super_classes;
+  QAction* m_add_direct_relationship_classes;
+  QAction* m_add_all_super_classes;
+  QAction* m_add_all_sub_classes;
+  QAction* m_add_all_relationship_classes;
+  QAction* m_add_note;
+  QAction* m_edit_note;
+  QAction* m_remove_note;
+  QAction* m_remove_class;
+  QAction* m_remove_arrow;
   QAction* m_save;
   QAction* m_move;
   QMetaObject::Connection m_addclass_connection;
-  SchemaGraphicObject * CurrentObject;
-  SchemaGraphicSegmentedArrow * m_current_arrow;
+  SchemaGraphicObject* CurrentObject;
+  SchemaGraphicSegmentedArrow* m_current_arrow;
   SchemaGraphicNote* m_current_note;
   QPointF m_current_pos;
   QPointF m_mouse_item_pos;
-  int m_next_note{0};
+  int m_next_note{ 0 };
   bool m_inherited_properties_visible;
   bool m_highlight_abstract;
   bool m_highlight_active;
@@ -117,5 +117,5 @@ private:
   bool m_modified;
 };
 
-}  // namespace dbse
+} // namespace dbse
 #endif // SCHEMAGRAPHICSSCENE_H

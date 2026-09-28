@@ -12,19 +12,19 @@
 /// Including Schema
 #include "dbe/SchemaCustomModelInterface.hpp"
 
-namespace dbse
-{
+namespace dbse {
 
-class CustomSuperClassModel: public CustomModelInterface
+class CustomSuperClassModel : public CustomModelInterface
 {
 public:
-  CustomSuperClassModel ( dunedaq::oks::OksClass * ClassInfo, QStringList Headers, bool Derived = false );
+  CustomSuperClassModel(dunedaq::oks::OksClass* ClassInfo, QStringList Headers, bool Derived = false);
   ~CustomSuperClassModel();
   void setupModel();
+
 private:
-  dunedaq::oks::OksClass * SchemaClass;
+  dunedaq::oks::OksClass* SchemaClass;
   bool SchemaDerived;
 };
 
-}  // namespace dbse
+} // namespace dbse
 #endif // CUSTOMSUPERCLASSMODEL_H

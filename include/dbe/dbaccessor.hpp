@@ -19,27 +19,22 @@
 #include "conffwk/Configuration.hpp"
 #include <string>
 
-namespace dbe
-{
+namespace dbe {
 
-namespace config
-{
-namespace api
-{
+namespace config {
+namespace api {
 struct rwdacc;
 
-namespace info
-{
+namespace info {
 class onclass;
 }
 
-namespace get
-{
+namespace get {
 class file;
 }
 
 }
-} //namespace config
+} // namespace config
 
 //------------------------------------------------------------------------------------------
 
@@ -48,7 +43,7 @@ class dbholder
   typedef dbe::types::common::type_mutex t_mutex;
   typedef dbe::types::common::type_lock t_lock;
 
-  static dunedaq::conffwk::Configuration * database;
+  static dunedaq::conffwk::Configuration* database;
   static cptr<dunedaq::conffwk::Configuration> database_concurrent_ptr;
   static dbe::types::common::type_mutex database_lock;
 
@@ -76,8 +71,7 @@ class dbaccessor
   friend class dbe::config::api::get::file;
 
   friend class dbe::config::api::info::onclass;
-
 };
 //------------------------------------------------------------------------------------------
-}// end namespace dbe
+} // end namespace dbe
 #endif /* DBE_DBACCESSOR_H_ */

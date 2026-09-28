@@ -10,30 +10,30 @@
 #include <QAbstractTableModel>
 #include <QBrush>
 #include <QColor>
-#include <QStringList>
 #include <QMimeData>
+#include <QStringList>
 
 #include <vector>
 
-namespace dbse
-{
+namespace dbse {
 
-class CustomTableModel: public QAbstractTableModel
+class CustomTableModel : public QAbstractTableModel
 {
   Q_OBJECT
 public:
-  explicit CustomTableModel ( QStringList Headers, QObject * parent = nullptr );
+  explicit CustomTableModel(QStringList Headers, QObject* parent = nullptr);
   ~CustomTableModel();
-  int rowCount ( const QModelIndex & parent ) const;
-  int columnCount ( const QModelIndex & parent ) const;
-  Qt::ItemFlags flags ( const QModelIndex & index ) const;
-  QVariant headerData ( int section, Qt::Orientation orientation, int role ) const;
-  QVariant data ( const QModelIndex & index, int role ) const;
-  QStringList getRowFromIndex ( QModelIndex & index );
+  int rowCount(const QModelIndex& parent) const;
+  int columnCount(const QModelIndex& parent) const;
+  Qt::ItemFlags flags(const QModelIndex& index) const;
+  QVariant headerData(int section, Qt::Orientation orientation, int role) const;
+  QVariant data(const QModelIndex& index, int role) const;
+  QStringList getRowFromIndex(QModelIndex& index);
   void setupModel();
   /// Drag/Drop Handlers
   QStringList mimeTypes() const;
-  QMimeData * mimeData ( const QModelIndexList & indexes ) const;
+  QMimeData* mimeData(const QModelIndexList& indexes) const;
+
 private:
   QStringList HeaderList;
   QList<QList<QString>> m_data;
@@ -42,5 +42,5 @@ private:
   std::vector<QColor> m_backgrounds;
 };
 
-}  // namespace dbse
+} // namespace dbse
 #endif // CUSTOMTABLEMODEL_H

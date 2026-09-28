@@ -9,24 +9,22 @@
 #include "dbe/FileModel.hpp"
 #include "dbe/ObjectEditor.hpp"
 
-#include "conffwk/Schema.hpp"
 #include "conffwk/ConfigObject.hpp"
+#include "conffwk/Schema.hpp"
 
-#include <QWidget>
 #include <QStatusBar>
 #include <QUuid>
+#include <QWidget>
 
 #include <memory>
 
-namespace dbe
-{
+namespace dbe {
 
-namespace Ui
-{
+namespace Ui {
 class ObjectCreator;
-}  // namespace Ui
+} // namespace Ui
 
-class ObjectCreator: public QWidget
+class ObjectCreator : public QWidget
 {
 
   Q_OBJECT
@@ -39,7 +37,7 @@ public:
    * @param classinfo describes the class for which an object is to be created
    * @param parent of this widget
    */
-  ObjectCreator ( dunedaq::conffwk::class_t const & classinfo, QWidget * parent = 0 );
+  ObjectCreator(dunedaq::conffwk::class_t const& classinfo, QWidget* parent = 0);
 
   /**
    * Clone an object of a given relation type
@@ -48,8 +46,7 @@ public:
    * @param relation is a relation to set
    * @param parent of this widget
    */
-  ObjectCreator ( tref const & clonefrom,
-                  dunedaq::conffwk::relationship_t const & relation, QWidget * parent = 0 );
+  ObjectCreator(tref const& clonefrom, dunedaq::conffwk::relationship_t const& relation, QWidget* parent = 0);
 
   /**
    * Clone from a given object
@@ -57,22 +54,22 @@ public:
    * @param copyfrom is the object to copy from
    * @param parent
    */
-  ObjectCreator ( tref const & clonefrom, QWidget * parent = 0 );
+  ObjectCreator(tref const& clonefrom, QWidget* parent = 0);
 
   bool CanClose();
 
 private slots:
   void AddInclude();
   void UpdateActions();
-  void UpdateActions ( QString );
+  void UpdateActions(QString);
   /**
    * Called from ui when the create button has been pressed
    */
   void CreateObject(bool openEditor = false);
   void CreateOpenObject();
   void SetObjectChanged();
-  void ActiveFileChanged ( QString const & );
-  void MustPressReturn ( QString const & );
+  void ActiveFileChanged(QString const&);
+  void MustPressReturn(QString const&);
   void SetUID();
 
 signals:
@@ -88,10 +85,10 @@ private:
   void SetStatusBar();
   QString GetMessage();
 
-  bool GetState ( int Flags );
+  bool GetState(int Flags);
   void BuildContextMenu();
   void FillUidComboBox();
-  void closeEvent ( QCloseEvent * event );
+  void closeEvent(QCloseEvent* event);
 
   std::unique_ptr<dbe::Ui::ObjectCreator> ui;
 
@@ -102,17 +99,17 @@ private:
   dunedaq::conffwk::relationship_t this_relation;
 
   QSortFilterProxyModel this_sort;
-  FileModel * this_files;
+  FileModel* this_files;
 
-  QStatusBar * this_status_bar;
+  QStatusBar* this_status_bar;
 
   int this_state;
 
   bool UidSet;
   QString this_newuid;
   QString this_file_for_new_object;
-  ObjectEditor * this_associated_editor;
-  QMenu * ContextMenu;
+  ObjectEditor* this_associated_editor;
+  QMenu* ContextMenu;
 
   bool this_is_temporary;
   bool this_object_changed;
@@ -120,6 +117,6 @@ private:
 
   QUuid const uuid;
 };
-}  //end namespace dbe
+} // end namespace dbe
 
 #endif // OBJECTCREATOR_H

@@ -34,23 +34,23 @@
 #include <cxxabi.h>
 #endif
 
-namespace tools
-{
+namespace tools {
 //------------------------------------------------------------------------------
 /**
  * Class gentraits provides information about varying classes
  */
-template<typename T> class gentraits
+template<typename T>
+class gentraits
 {
 public:
-	typedef std::string t_is;
+  typedef std::string t_is;
 
-	static t_is constexpr isnot();
+  static t_is constexpr isnot();
 
-	static t_is constexpr isa();
+  static t_is constexpr isa();
 
 #ifdef __GNUG__
-	static t_is constexpr filt();
+  static t_is constexpr filt();
 #endif
 };
 //------------------------------------------------------------------------------
@@ -61,9 +61,10 @@ public:
  * @param a class pointer
  * @return a string type representation as defined by the compiler
  */
-template<typename T> typename gentraits<T>::t_is constexpr filt(T *)
+template<typename T>
+typename gentraits<T>::t_is constexpr filt(T*)
 {
-	return gentraits<T>::filt();
+  return gentraits<T>::filt();
 }
 //------------------------------------------------------------------------------
 
@@ -72,9 +73,10 @@ template<typename T> typename gentraits<T>::t_is constexpr filt(T *)
  * Evaluates if the class isnot
  * @return
  */
-template<typename T> typename gentraits<T>::t_is constexpr gentraits<T>::isnot()
+template<typename T>
+typename gentraits<T>::t_is constexpr gentraits<T>::isnot()
 {
-	return t_is("ISNOT");
+  return t_is("ISNOT");
 }
 //------------------------------------------------------------------------------
 
@@ -83,27 +85,29 @@ template<typename T> typename gentraits<T>::t_is constexpr gentraits<T>::isnot()
  * Evaluates what the class is
  * @return returns the name of the class in compiler jargon
  */
-template<typename T> typename gentraits<T>::t_is constexpr gentraits<T>::isa()
+template<typename T>
+typename gentraits<T>::t_is constexpr gentraits<T>::isa()
 {
-	return typeid(T).name();
+  return typeid(T).name();
 }
 //------------------------------------------------------------------------------
 
 //------------------------------------------------------------------------------
 #ifdef __GNUG__
-template<typename T> typename gentraits<T>::t_is constexpr gentraits<T>::filt()
+template<typename T>
+typename gentraits<T>::t_is constexpr gentraits<T>::filt()
 {
-	int status = -42;
-    char *res = abi::__cxa_demangle(typeid(T).name(), NULL, NULL, &status);
+  int status = -42;
+  char* res = abi::__cxa_demangle(typeid(T).name(), NULL, NULL, &status);
 
-    if(status != 0) {
-        ::free(res);
-        return isnot();
-    } else {
-        typename gentraits<T>::t_is result =  res;
-        ::free(res);
-        return result;
-    }
+  if (status != 0) {
+    ::free(res);
+    return isnot();
+  } else {
+    typename gentraits<T>::t_is result = res;
+    ::free(res);
+    return result;
+  }
 }
 #endif
 //------------------------------------------------------------------------------
@@ -114,14 +118,14 @@ template<typename T> typename gentraits<T>::t_is constexpr gentraits<T>::filt()
  * @param requested type
  * @return the object evaluation
  */
-template<typename A, typename B> typename gentraits<A>::t_is const isa(
-		B const &)
+template<typename A, typename B>
+typename gentraits<A>::t_is const
+isa(B const&)
 {
-	return typeid(A).name() == typeid(B).name() ? typeid(A).name() :
-			gentraits<A>::isnot();
+  return typeid(A).name() == typeid(B).name() ? typeid(A).name() : gentraits<A>::isnot();
 }
 //------------------------------------------------------------------------------
 
-}/* namespace tools */
+} /* namespace tools */
 
 #endif

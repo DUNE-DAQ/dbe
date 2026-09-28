@@ -14,35 +14,31 @@
 #define SRC_GTOOL_H_
 
 #include "dbe/config_reference.hpp"
-#include "dbe/messenger.hpp"
 #include "dbe/dbinfo.hpp"
+#include "dbe/messenger.hpp"
 #include "dbe/tref.hpp"
 
-#include <boost/graph/graph_traits.hpp>
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/dijkstra_shortest_paths.hpp>
+#include <boost/graph/graph_traits.hpp>
 #include <boost/graph/labeled_graph.hpp>
 
+#include <set>
 #include <string>
 #include <vector>
-#include <set>
 
-namespace dbe
-{
-namespace tool
-{
-namespace graph
-{
+namespace dbe {
+namespace tool {
+namespace graph {
 
 //------------------------------------------------------------------------------------------
 class gtool
 {
 public:
-
-//    struct edge_label
-//    {
-//        std::string uid;
-//    };
+  //    struct edge_label
+  //    {
+  //        std::string uid;
+  //    };
 
   struct vertex_label
   {
@@ -51,8 +47,7 @@ public:
     std::string label;
   };
 
-  typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::bidirectionalS,
-          vertex_label> t_graph;
+  typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::bidirectionalS, vertex_label> t_graph;
 
   typedef boost::graph_traits<t_graph>::edge_descriptor t_edge;
   typedef boost::graph_traits<t_graph>::vertex_descriptor t_vertex;
@@ -66,16 +61,17 @@ public:
    * @param fn is a string designating the resource location of the database
    * @param dbtype is the type (dbinfo) of the database access method (e.g. oks, rdb ... )
    */
-  gtool ( std::string const & rl, dbinfo dbtype );
+  gtool(std::string const& rl, dbinfo dbtype);
 
-  template<typename ALGO> inline int load_and_run ( ALGO const & );
+  template<typename ALGO>
+  inline int load_and_run(ALGO const&);
 
   /**
    * Retrieve the graph as it currently is
    *
    * @return a const reference to the t_graph
    */
-  t_graph const & getgraph() const;
+  t_graph const& getgraph() const;
 
   /**
    * Add an object to a graph along with all connected objects through any relation
@@ -83,7 +79,7 @@ public:
    * @param a reference to the graph
    * @param a registry of tags of objects already present in the graph
    */
-  static t_vertex add_object_and_friends ( t_graph &, tref const &, t_registry & registry );
+  static t_vertex add_object_and_friends(t_graph&, tref const&, t_registry& registry);
 
   /**
    * Add an object to a graph without its relations
@@ -95,7 +91,7 @@ public:
    * @return the newly added vertex or an already existent vertex if uniqueness is set and
    *          the object has already been added as a vertex
    */
-  static t_vertex add_object ( t_graph & g, tref const & o, bool uniqueness = true );
+  static t_vertex add_object(t_graph& g, tref const& o, bool uniqueness = true);
 
   /**
    * Add an object to a graph without its relations if it is not found in
@@ -109,7 +105,7 @@ public:
    * @return the newly added vertex or an already existent vertex if uniqueness is set and
    *          the object has already been added as a vertex
    */
-  static t_vertex add_object ( t_graph & g, tref const & o, t_registry & registry );
+  static t_vertex add_object(t_graph& g, tref const& o, t_registry& registry);
 
   typedef std::pair<bool, boost::graph_traits<gtool::t_graph>::vertex_iterator> t_lookup_ret;
   /**
@@ -118,11 +114,11 @@ public:
    * @param l is the graph label
    * @return a pair <true, valid vertex iterator > if found , otherwise <false, end iter>
    */
-  static t_lookup_ret lookup ( t_graph const & g, vertex_label const & l );
-private:
+  static t_lookup_ret lookup(t_graph const& g, vertex_label const& l);
 
+private:
   void load_all();
-  void load_all_class_objects ( std::string const & cname );
+  void load_all_class_objects(std::string const& cname);
 
   void create_graph();
 
@@ -145,10 +141,11 @@ private:
 class writegraph
 {
 public:
-  writegraph ( std::string const & );
-  int operator() ( gtool const & ) const;
+  writegraph(std::string const&);
+  int operator()(gtool const&) const;
+
 private:
-  void write ( gtool::t_graph const & ) const;
+  void write(gtool::t_graph const&) const;
   std::string this_dest;
 };
 //------------------------------------------------------------------------------------------
@@ -161,13 +158,15 @@ private:
  * @param The graph to send to file
  * @param The file name to write to
  */
-void write ( gtool::t_graph const &, std::string const & );
+void
+write(gtool::t_graph const&, std::string const&);
 /**
  * Send a graph to standard output
  *
  * @param the graph to write
  */
-void write_to_cout ( gtool::t_graph const & );
+void
+write_to_cout(gtool::t_graph const&);
 /**
  * Send a graph to file. If the operation could not be completed EXIT_FAIL is returned
  *
@@ -175,15 +174,18 @@ void write_to_cout ( gtool::t_graph const & );
  * @param The filename to write to
  * @return EXIT_SUCCESS in case of success
  */
-void write_to_file ( gtool::t_graph const &, std::string const & );
+void
+write_to_file(gtool::t_graph const&, std::string const&);
 //------------------------------------------------------------------------------------------
 
 //------------------------------------------------------------------------------------------
-template<typename ALGO> inline int gtool::load_and_run ( ALGO const & algo )
+template<typename ALGO>
+inline int
+gtool::load_and_run(ALGO const& algo)
 {
   load_all();
   create_graph();
-  return algo ( static_cast<gtool const &> ( *this ) );
+  return algo(static_cast<gtool const&>(*this));
 }
 //------------------------------------------------------------------------------------------
 } /* namespace graph */

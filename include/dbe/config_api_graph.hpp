@@ -15,26 +15,21 @@
 
 #include "dbe/tref.hpp"
 
-#include "conffwk/Schema.hpp"
 #include "conffwk/ConfigObject.hpp"
+#include "conffwk/Schema.hpp"
 
 #include <vector>
 
-namespace daq
-{
-namespace config
-{
+namespace daq {
+namespace config {
 struct relationship_t;
 struct attribute_t;
 } /* namespace config */
 } /* namespace daq */
 
-namespace dbe
-{
-namespace ui
-{
-namespace config
-{
+namespace dbe {
+namespace ui {
+namespace config {
 class info;
 }
 }
@@ -43,23 +38,17 @@ class info;
 //------------------------------------------------------------------------------------------
 //                                      DBE::CONFIG::API::GRAPH NAMESPACE
 //------------------------------------------------------------------------------------------
-namespace dbe
-{
-namespace config
-{
-namespace api
-{
-namespace graph
-{
+namespace dbe {
+namespace config {
+namespace api {
+namespace graph {
 
-namespace linked
-{
+namespace linked {
 
 //------------------------------------------------------------------------------------------
 // backward relations A->c->B querying on B returns A through c ,
 // e.g. A connects to B ( B is queried upon)
-namespace to
-{
+namespace to {
 /**
  * Get objects referencing a given object
  *
@@ -71,14 +60,15 @@ namespace to
  * @param an object for which objects must be retrieved
  * @return a vector objects which link to this object
  */
-template<typename T> std::vector<T> object ( tref const & );
+template<typename T>
+std::vector<T>
+object(tref const&);
 }
 //------------------------------------------------------------------------------------------
 
 //------------------------------------------------------------------------------------------
 // forward relations A->c->B querying on A return B through c
-namespace by
-{
+namespace by {
 /**
  * Get objects referenced by a given object
  *
@@ -88,11 +78,12 @@ namespace by
  * @param item is the object for which objects must be retrieved
  * @return a vector of linked objects
  */
-template<typename T> std::vector<T> object ( tref const & item );
+template<typename T>
+std::vector<T>
+object(tref const& item);
 }
 
-namespace through
-{
+namespace through {
 /**
  * Get objects referenced by an object through any relation
  *
@@ -102,7 +93,9 @@ namespace through
  * @param item is the object for which objects must be retrieved
  * @return a vector of linked objects
  */
-template<typename T> std::vector<T> relations ( tref const & item );
+template<typename T>
+std::vector<T>
+relations(tref const& item);
 
 /**
  * Get objects referenced by an object through any attributes
@@ -113,7 +106,9 @@ template<typename T> std::vector<T> relations ( tref const & item );
  * @param item is the object for which objects must be retrieved
  * @return a vector of linked objects
  */
-template<typename T> std::vector<T> attributes ( tref const & item );
+template<typename T>
+std::vector<T>
+attributes(tref const& item);
 
 /**
  * Get object reference/s through a specified relation
@@ -126,7 +121,9 @@ template<typename T> std::vector<T> attributes ( tref const & item );
  * @param relation is the relation to retrieve the value for
  * @return the value of the relation converted to the specified type
  */
-template<typename T> T relation ( tref item, dunedaq::conffwk::relationship_t const & relation );
+template<typename T>
+T
+relation(tref item, dunedaq::conffwk::relationship_t const& relation);
 
 /**
  * Get object reference/s through a specified attribute
@@ -139,12 +136,14 @@ template<typename T> T relation ( tref item, dunedaq::conffwk::relationship_t co
  * @param relation is the relation to retrieve the value for
  * @return the value of the relation converted to the specified type
  */
-template<typename T> T attribute ( tref item, dunedaq::conffwk::attribute_t const & attr );
+template<typename T>
+T
+attribute(tref item, dunedaq::conffwk::attribute_t const& attr);
 
 }
 //------------------------------------------------------------------------------------------
 
-}// end namespace related
+} // end namespace related
 
 /**
  * Provide direct access to config object methods for retrieval
@@ -164,8 +163,8 @@ class direct
    * @param relation is the relation to retrieve the value for
    * @return the value of the relation converted to the specified type
    */
-  template<typename T> static T linked (
-    dunedaq::conffwk::ConfigObject & item, dunedaq::conffwk::relationship_t const & relation );
+  template<typename T>
+  static T linked(dunedaq::conffwk::ConfigObject& item, dunedaq::conffwk::relationship_t const& relation);
 
   /**
    * Get object reference/s through a specified relation, acting directly on a ConfigObject
@@ -178,12 +177,12 @@ class direct
    * @param relation is the relation to retrieve the value for
    * @return the value of the relation converted to the specified type
    */
-  template<typename T> static T linked (
-    dunedaq::conffwk::ConfigObject & item, dunedaq::conffwk::attribute_t const & relation );
+  template<typename T>
+  static T linked(dunedaq::conffwk::ConfigObject& item, dunedaq::conffwk::attribute_t const& relation);
 };
 //------------------------------------------------------------------------------------------
 
-}// namespace graph
+} // namespace graph
 } /* namespace api */
 } /* namespace config */
 } /* namespace dbe */

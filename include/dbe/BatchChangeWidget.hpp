@@ -8,31 +8,27 @@
 
 #include "dbe/confaccessor.hpp"
 
-#include <QWidget>
 #include <QTableWidget>
+#include <QWidget>
 
 #include <memory>
 
+namespace dbe {
 
-namespace dbe
-{
-
-namespace Ui
-{
+namespace Ui {
 class BatchChangeWidget;
-}  // namespace Ui
+} // namespace Ui
 
-class BatchChangeWidget: public QWidget
+class BatchChangeWidget : public QWidget
 {
   Q_OBJECT
 
 public:
   ~BatchChangeWidget();
 
-  explicit BatchChangeWidget ( QWidget * parent = nullptr );
+  explicit BatchChangeWidget(QWidget* parent = nullptr);
 
-  BatchChangeWidget ( bool ObjectsFromTable, QString ClassName,
-                      std::vector<dref> & Objects, QWidget * parent = nullptr );
+  BatchChangeWidget(bool ObjectsFromTable, QString ClassName, std::vector<dref>& Objects, QWidget* parent = nullptr);
 
 private:
   std::unique_ptr<dbe::Ui::BatchChangeWidget> ui;
@@ -44,25 +40,25 @@ private:
   std::unique_ptr<QTableWidget> m_filter_table;
 
   void SetController();
-  void filter ( std::vector<dref> & Objects, const QString & ClassName );
+  void filter(std::vector<dref>& Objects, const QString& ClassName);
   void keyPressEvent(QKeyEvent* event) override;
 
 private slots:
-  void FillInfo ( const QString & Name );
+  void FillInfo(const QString& Name);
 
   void MakeChanges();
   void FindMatching();
 
-  void EnableCheckBox ( QString RelationshipName );
+  void EnableCheckBox(QString RelationshipName);
 
-  void UpdateRelationshipFilter ( int );
-  void UpdateRelationshipNewValues ( int );
+  void UpdateRelationshipFilter(int);
+  void UpdateRelationshipNewValues(int);
 
 signals:
   void sig_batch_change_start();
   void sig_batch_change_stop(const QList<QPair<QString, QString>>&);
 };
 
-}  // namespace dbe
+} // namespace dbe
 
 #endif // BATCHCHANGEWIDGET_H

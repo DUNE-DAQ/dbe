@@ -4,75 +4,68 @@
 // Renamed since fork: no.
 
 /// Including QT Headers
+#include "dbe/StyleUtility.hpp"
 #include "dbe/confaccessor.hpp"
 #include "dbe/ui_constants.hpp"
-#include "dbe/StyleUtility.hpp"
 
-#include <QFileInfo>
 #include <QDir>
+#include <QFileInfo>
 /// Including DBE Headers
 #include "dbe/FileModel.hpp"
-#include "dbe/config_api_get.hpp"
 #include "dbe/MainWindow.hpp"
+#include "dbe/config_api_get.hpp"
 
-dbe::FileModel::FileModel ( QObject * parent )
-  : QAbstractTableModel ( parent ),
-    Headers
-{ tr ( "Name" ), tr ( "Folder" ), tr ( "Access" ), tr ( "Status" ) }
+dbe::FileModel::FileModel(QObject* parent)
+  : QAbstractTableModel(parent)
+  , Headers{ tr("Name"), tr("Folder"), tr("Access"), tr("Status") }
 {
   initpaths();
   initconnections();
   initmodel();
 }
 
-dbe::FileModel::FileModel ( QList<QStringList> const & FileList, QObject * parent )
-  : QAbstractTableModel ( parent ),
-    IncludedFiles ( FileList ),
-    Headers
-{ tr ( "Name" ), tr ( "Folder" ), tr ( "Access" ), tr ( "Status" ) }
+dbe::FileModel::FileModel(QList<QStringList> const& FileList, QObject* parent)
+  : QAbstractTableModel(parent)
+  , IncludedFiles(FileList)
+  , Headers{ tr("Name"), tr("Folder"), tr("Access"), tr("Status") }
 {
   initconnections();
 }
 
-dbe::FileModel::~FileModel()
-{}
+dbe::FileModel::~FileModel() {}
 
-int dbe::FileModel::rowCount ( const QModelIndex & parent ) const
+int
+dbe::FileModel::rowCount(const QModelIndex& parent) const
 {
-  if ( !parent.isValid() )
-  {
+  if (!parent.isValid()) {
     return IncludedFiles.size();
   }
 
   return 0;
 }
 
-int dbe::FileModel::columnCount ( const QModelIndex & parent ) const
+int
+dbe::FileModel::columnCount(const QModelIndex& parent) const
 {
-  Q_UNUSED ( parent )
+  Q_UNUSED(parent)
   return Headers.size();
 }
 
-QVariant dbe::FileModel::data ( const QModelIndex & index, int role ) const
+QVariant
+dbe::FileModel::data(const QModelIndex& index, int role) const
 {
-  if ( index.isValid() )
-  {
-    if ( role == Qt::DisplayRole ) {
-      return QVariant (
-               IncludedFiles.at ( index.row() ).at ( index.column() ) );
+  if (index.isValid()) {
+    if (role == Qt::DisplayRole) {
+      return QVariant(IncludedFiles.at(index.row()).at(index.column()));
     }
-    if ( role == Qt::ForegroundRole )
-    {
-      if ( IncludedFiles.at ( index.row() ).at (
-             static_cast<int> ( tablepositions::filepermission ) ) == "RO" ) {
-        return QBrush (StyleUtility::FileReadOnlyForeground );
+    if (role == Qt::ForegroundRole) {
+      if (IncludedFiles.at(index.row()).at(static_cast<int>(tablepositions::filepermission)) == "RO") {
+        return QBrush(StyleUtility::FileReadOnlyForeground);
       }
     }
-    if ( role == Qt::BackgroundRole )
-    {
-      if ( IncludedFiles.at ( index.row() ).at (
-             static_cast<int> ( tablepositions::filepermission ) ) == "RO" ) {
-        return QBrush (StyleUtility::FileReadOnlyBackground );
+    if (role == Qt::BackgroundRole) {
+      if (IncludedFiles.at(index.row()).at(static_cast<int>(tablepositions::filepermission)) == "RO") {
+        return QBrush(StyleUtility::FileReadOnlyBackground);
       }
     }
   }
@@ -80,18 +73,15 @@ QVariant dbe::FileModel::data ( const QModelIndex & index, int role ) const
   return QVariant();
 }
 
-QVariant dbe::FileModel::headerData ( int section, Qt::Orientation orientation,
-                                      int role ) const
+QVariant
+dbe::FileModel::headerData(int section, Qt::Orientation orientation, int role) const
 {
-  if ( role == Qt::DisplayRole )
-  {
-    if ( orientation == Qt::Horizontal )
-    {
-      return Headers.at ( section );
+  if (role == Qt::DisplayRole) {
+    if (orientation == Qt::Horizontal) {
+      return Headers.at(section);
     }
 
-    if ( orientation == Qt::Vertical )
-    {
+    if (orientation == Qt::Vertical) {
       return section + 1;
     }
   }
@@ -99,63 +89,62 @@ QVariant dbe::FileModel::headerData ( int section, Qt::Orientation orientation,
   return QVariant();
 }
 
-Qt::ItemFlags dbe::FileModel::flags ( const QModelIndex & /*index*/ ) const
+Qt::ItemFlags
+dbe::FileModel::flags(const QModelIndex& /*index*/) const
 {
   // if ( IncludedFiles.at ( index.row() ).at ( static_cast<int>
   //                                            ( tablepositions::filepermission ) ) == "RW" )
   // {
-    return Qt::ItemIsEnabled | Qt::ItemIsSelectable;
+  return Qt::ItemIsEnabled | Qt::ItemIsSelectable;
   // }
 
   // return Qt::ItemIsSelectable;
 }
 
-void dbe::FileModel::initpaths()
+void
+dbe::FileModel::initpaths()
 {
-  QString TDAQ_DB_REPOSITORY = getenv ( "TDAQ_DB_REPOSITORY" );
-  if(TDAQ_DB_REPOSITORY.isEmpty() == false) {
-      QString TDAQ_DB_USER_REPOSITORY = getenv ( "TDAQ_DB_USER_REPOSITORY" );
-      FolderPathList = TDAQ_DB_USER_REPOSITORY.split ( ":", Qt::SkipEmptyParts );
+  QString TDAQ_DB_REPOSITORY = getenv("TDAQ_DB_REPOSITORY");
+  if (TDAQ_DB_REPOSITORY.isEmpty() == false) {
+    QString TDAQ_DB_USER_REPOSITORY = getenv("TDAQ_DB_USER_REPOSITORY");
+    FolderPathList = TDAQ_DB_USER_REPOSITORY.split(":", Qt::SkipEmptyParts);
 
-      FolderPathList << dbe::MainWindow::findthis()->find_db_repository_dir();
+    FolderPathList << dbe::MainWindow::findthis()->find_db_repository_dir();
   } else {
-      QString DUNEDAQ_DB_PATH = getenv ( "DUNEDAQ_DB_PATH" );
-      FolderPathList = DUNEDAQ_DB_PATH.split ( ":", Qt::SkipEmptyParts );
+    QString DUNEDAQ_DB_PATH = getenv("DUNEDAQ_DB_PATH");
+    FolderPathList = DUNEDAQ_DB_PATH.split(":", Qt::SkipEmptyParts);
   }
 
-  for ( QString & PathName : FolderPathList )
-  {
-    if ( !PathName.endsWith ( "/" ) )
-    {
-      PathName.append ( "/" );
+  for (QString& PathName : FolderPathList) {
+    if (!PathName.endsWith("/")) {
+      PathName.append("/");
     }
   }
 }
 
-void dbe::FileModel::initconnections()
+void
+dbe::FileModel::initconnections()
 {
-  connect ( this, SIGNAL ( FileCacheReady ( QList<QStringList> & ) ), &confaccessor::ref(),
-            SLOT ( GetFileCache ( QList<QStringList> & ) ) );
+  connect(
+    this, SIGNAL(FileCacheReady(QList<QStringList>&)), &confaccessor::ref(), SLOT(GetFileCache(QList<QStringList>&)));
 }
 
-QString dbe::FileModel::GetFullFileName ( QString & FileName )
+QString
+dbe::FileModel::GetFullFileName(QString& FileName)
 {
-  QFileInfo FileInfo ( FileName );
+  QFileInfo FileInfo(FileName);
 
-  if ( FileInfo.isRelative() )
-  {
-    bool found=false;
-    for ( const QString & Folder : FolderPathList )
-    {
-      QDir TdaqFolder ( Folder );
+  if (FileInfo.isRelative()) {
+    bool found = false;
+    for (const QString& Folder : FolderPathList) {
+      QDir TdaqFolder(Folder);
 
-      if ( TdaqFolder.exists ( FileName ) )
-      {
+      if (TdaqFolder.exists(FileName)) {
         FileName = TdaqFolder.path() + "/" + FileName;
-        char* rpath =  realpath(FileName.toStdString().c_str(), NULL);
+        char* rpath = realpath(FileName.toStdString().c_str(), NULL);
         FileName = QString(rpath);
         free(rpath);
-        found=true;
+        found = true;
         break;
       }
     }
@@ -167,41 +156,37 @@ QString dbe::FileModel::GetFullFileName ( QString & FileName )
   return FileName;
 }
 
-QList<QStringList> dbe::FileModel::GetFilesInfo() const
+QList<QStringList>
+dbe::FileModel::GetFilesInfo() const
 {
   return IncludedFiles;
 }
 
-void dbe::FileModel::initmodel()
+void
+dbe::FileModel::initmodel()
 {
-  QStringList sources = dbe::config::api::get::file::inclusions (
-  { confaccessor::dbfullname() } );
+  QStringList sources = dbe::config::api::get::file::inclusions({ confaccessor::dbfullname() });
 
   std::list<std::string> updated = confaccessor::uncommitted_files();
-  for ( QString const & source : sources )
-  {
-    QFileInfo srcinfo ( source );
+  for (QString const& source : sources) {
+    QFileInfo srcinfo(source);
     QString fn = srcinfo.filePath();
     QString dn = GetFullFileName(fn).remove(QRegularExpression("/[a-zA-Z0-9_-]*.data.xml"));
 
     QString modified{};
     auto file = GetFullFileName(fn).toStdString();
-    for (auto ufile: updated) {
+    for (auto ufile : updated) {
       if (file == ufile) {
         modified = "Modified";
         break;
       }
     }
 
-    IncludedFiles.append ( QStringList{ srcinfo.fileName(),
-        dn,
-        confaccessor::check_file_rw ( source ) ? "RW" : "RO",
-        modified}
-      );
+    IncludedFiles.append(
+      QStringList{ srcinfo.fileName(), dn, confaccessor::check_file_rw(source) ? "RW" : "RO", modified });
   }
 
-  if ( IncludedFiles.size() )
-  {
-    emit FileCacheReady ( IncludedFiles );
+  if (IncludedFiles.size()) {
+    emit FileCacheReady(IncludedFiles);
   }
 }

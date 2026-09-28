@@ -13,10 +13,10 @@
 #ifndef DBE_CHANGE_TIME_HPP_
 #define DBE_CHANGE_TIME_HPP_
 
-#include "dbe/config_api_set.hpp"
 #include "dbe/Command.hpp"
 #include "dbe/Exceptions.hpp"
 #include "dbe/confaccessor.hpp"
+#include "dbe/config_api_set.hpp"
 
 #include "conffwk/ConfigObject.hpp"
 #include "conffwk/Errors.hpp"
@@ -28,18 +28,14 @@
 
 #include <string>
 
-namespace dbe
-{
-namespace actions
-{
+namespace dbe {
+namespace actions {
 //------------------------------------------------------------------------------------------
 template<typename T>
-class ChangeTime:
-  public onobject
+class ChangeTime : public onobject
 {
 public:
-  ChangeTime ( tref Object, dunedaq::conffwk::attribute_t AttributeData, T NewValueData,
-               QUndoCommand * parent = nullptr );
+  ChangeTime(tref Object, dunedaq::conffwk::attribute_t AttributeData, T NewValueData, QUndoCommand* parent = nullptr);
   void undo();
   void redo();
 
@@ -51,84 +47,66 @@ private:
 };
 
 template<typename T>
-ChangeTime<T>::ChangeTime ( tref Object, dunedaq::conffwk::attribute_t AttributeData,
-                            T NewValueData, QUndoCommand * parent )
-  : onobject ( Object, parent ),
-    NewValue ( NewValueData ),
-    Attribute ( AttributeData ),
-    Success ( true )
+ChangeTime<T>::ChangeTime(tref Object,
+                          dunedaq::conffwk::attribute_t AttributeData,
+                          T NewValueData,
+                          QUndoCommand* parent)
+  : onobject(Object, parent)
+  , NewValue(NewValueData)
+  , Attribute(AttributeData)
+  , Success(true)
 {
-  try
-  {
-    QStringList Data
-    { dbe::config::api::get::attribute::list<QStringList> ( Object, Attribute ) };
-    OldValue = convert::to<T> ( Data );
-  }
-  catch ( dunedaq::conffwk::Exception const & )
-  {
+  try {
+    QStringList Data{ dbe::config::api::get::attribute::list<QStringList>(Object, Attribute) };
+    OldValue = convert::to<T>(Data);
+  } catch (dunedaq::conffwk::Exception const&) {
   }
 
-  setText (
-    QObject::tr ( "Attribute %1 of object %2 was updated." ).arg (
-      AttributeData.p_name.c_str() ).arg ( Object.UID().c_str() ) );
+  setText(
+    QObject::tr("Attribute %1 of object %2 was updated.").arg(AttributeData.p_name.c_str()).arg(Object.UID().c_str()));
 }
 
 template<typename T>
-void ChangeTime<T>::undo()
+void
+ChangeTime<T>::undo()
 {
-  try
-  {
-    if ( undoable() )
-    {
+  try {
+    if (undoable()) {
       failed();
-      dbe::config::api::set::noactions::atime ( this->checkedref(), Attribute, OldValue );
+      dbe::config::api::set::noactions::atime(this->checkedref(), Attribute, OldValue);
       toggle();
     }
-  }
-  catch ( dunedaq::conffwk::Exception const & e )
-  {
+  } catch (dunedaq::conffwk::Exception const& e) {
     Success = false;
-    throw daq::dbe::ObjectChangeWasNotSuccessful ( ERS_HERE, e );
+    throw daq::dbe::ObjectChangeWasNotSuccessful(ERS_HERE, e);
+  } catch (daq::dbe::config_object_retrieval_result_is_null const& ex) {
+    FAIL("Operation did not complete because a lookup in the underlying database failed", ex.what());
+    throw daq::dbe::ObjectChangeWasNotSuccessful(ERS_HERE, ex);
   }
-  catch ( daq::dbe::config_object_retrieval_result_is_null const & ex )
-  {
-    FAIL ( "Operation did not complete because a lookup in the underlying database failed",
-           ex.what() );
-    throw daq::dbe::ObjectChangeWasNotSuccessful ( ERS_HERE, ex );
-  }
-
 }
 
 template<typename T>
-void ChangeTime<T>::redo()
+void
+ChangeTime<T>::redo()
 {
-  try
-  {
-    if ( redoable() )
-    {
+  try {
+    if (redoable()) {
       failed();
 
-      QStringList Data
-      { dbe::config::api::get::attribute::list<QStringList> ( this->checkedref(), Attribute ) };
+      QStringList Data{ dbe::config::api::get::attribute::list<QStringList>(this->checkedref(), Attribute) };
 
-      OldValue = convert::to<T> ( Data );
+      OldValue = convert::to<T>(Data);
 
-      dbe::config::api::set::noactions::atime ( this->checkedref(), Attribute, NewValue );
+      dbe::config::api::set::noactions::atime(this->checkedref(), Attribute, NewValue);
       toggle();
     }
-  }
-  catch ( dunedaq::conffwk::Exception const & e )
-  {
+  } catch (dunedaq::conffwk::Exception const& e) {
     Success = false;
-    throw daq::dbe::ObjectChangeWasNotSuccessful ( ERS_HERE, e );
+    throw daq::dbe::ObjectChangeWasNotSuccessful(ERS_HERE, e);
+  } catch (daq::dbe::config_object_retrieval_result_is_null const& ex) {
+    FAIL("Operation did not complete because a lookup in the underlying database failed", ex.what());
+    throw daq::dbe::ObjectChangeWasNotSuccessful(ERS_HERE, ex);
   }
-  catch ( daq::dbe::config_object_retrieval_result_is_null const & ex )
-  {
-    FAIL ( "Operation did not complete because a lookup in the underlying database failed",
-           ex.what() );
-    throw daq::dbe::ObjectChangeWasNotSuccessful ( ERS_HERE, ex );
-  }
-
 }
 //------------------------------------------------------------------------------------------
 }
