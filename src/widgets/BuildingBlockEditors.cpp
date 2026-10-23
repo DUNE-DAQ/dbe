@@ -302,7 +302,7 @@ relation::FetchData()
   std::vector<tref> const& related{ dbe::config::api::info::onclass::objects<true>(Virtue.p_type) };
 
   for (tref const& o : related) {
-    result.append(QString::fromStdString(o.full_name()));
+    result.append(QString::fromStdString(o.UID()));
   }
 
   emit FetchDataDone(result);
