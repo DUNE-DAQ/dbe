@@ -176,7 +176,7 @@ relation::eventFilter(QObject* Target, QEvent* Event)
 
           if ((obj_class.toStdString() == referenceClass) ||
               (dbe::config::api::info::onclass::derived(referenceClass, obj_class.toStdString()) == true)) {
-            newItems.append(obj_id);
+            newItems.append(obj_id + "@" + obj_class);
           } else {
             allGood = false;
           }
@@ -392,7 +392,7 @@ void
 relation::CreateObjectEditor(const std::string& objectID)
 {
   t_virtue const& virt = p_base_data_editor->get();
-  tref const& obj = inner::dbcontroller::get({ objectID, virt.p_type });
+  tref const& obj = inner::dbcontroller::get(dbe::config::api::info::relation::key(objectID, virt));
 
   QString oname = QString::fromStdString(obj.full_name());
 
@@ -587,9 +587,8 @@ relation::EditSlot()
   }
 
   t_virtue const& virt = p_base_data_editor->get();
-  tref const& obj = inner::dbcontroller::get({ FirstItem->text().toStdString(), virt.p_type }
-
-  );
+  tref const& obj =
+    inner::dbcontroller::get(dbe::config::api::info::relation::key(FirstItem->text().toStdString(), virt));
   QString const& editorname = QString::fromStdString(obj.full_name());
 
   for (QWidget* editor : QApplication::allWidgets()) {

@@ -955,7 +955,8 @@ dbe::ObjectEditor::ParseToCreate(std::string const& objectname, std::string cons
            */
 
           for (auto const& element : editordata) {
-            object_relations[relation.p_name].push_back({ element.toStdString(), relation.p_type });
+            object_relations[relation.p_name].push_back(
+              config::api::info::relation::key(element.toStdString(), relation));
           }
         }
 

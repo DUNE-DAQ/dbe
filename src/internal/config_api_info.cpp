@@ -137,6 +137,24 @@ relation::is_simple(dunedaq::conffwk::relationship_t const& relation)
 //------------------------------------------------------------------------------------------
 
 //------------------------------------------------------------------------------------------
+dbe::cokey
+relation::key(std::string const& value, dunedaq::conffwk::relationship_t const& relation)
+{
+  std::string::size_type const at = value.rfind('@');
+
+  if (at != std::string::npos and at != 0) {
+    std::string const cname = value.substr(at + 1);
+
+    if (cname == relation.p_type or onclass::derived(relation.p_type, cname)) {
+      return { value.substr(0, at), cname };
+    }
+  }
+
+  return { value, relation.p_type };
+}
+//------------------------------------------------------------------------------------------
+
+//------------------------------------------------------------------------------------------
 template<>
 dunedaq::conffwk::relationship_t
 info::relation::match<std::string>(std::string const& arelation, std::string const& aclass)
