@@ -5,6 +5,7 @@
 
 #include "dbe/Command.hpp"
 #include "dbe/config_api_graph.hpp" // checked
+#include "dbe/config_api_info.hpp"
 #include "dbe/config_api_set.hpp"   // checked
 #include "dbe/config_reference_copy.hpp"
 #include "dbe/confobject_desc.hpp" // checked
@@ -31,7 +32,8 @@ dbe::actions::object::changerefs::changerefs(tref object,
   try {
     for (std::string const& oname : object_names_tolink) {
       try {
-        this_target_neighbors.push_back(inner::dbcontroller::get({ oname, relation.p_type }));
+        this_target_neighbors.push_back(
+          inner::dbcontroller::get(dbe::config::api::info::relation::key(oname, relation)));
       } catch (daq::dbe::config_object_retrieval_result_is_null const& ex) {
         // Actually there is no need to handle this error here ,
         // since the object will not be added to the result list of references,

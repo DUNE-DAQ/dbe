@@ -341,7 +341,7 @@ dbe::ObjectEditor::UpdateObjectEditor(QString const& src, dref updated_object)
           std::transform(connected.begin(),
                          connected.end(),
                          std::back_inserter(relvalues),
-                         [](decltype(connected)::value_type const& x) { return QString::fromStdString(x.UID()); }
+                         [](decltype(connected)::value_type const& x) { return QString::fromStdString(x.full_name()); }
 
           );
         }
@@ -492,7 +492,7 @@ dbe::ObjectEditor::BuildWidgets()
 
       for (tref const& i : DataList) {
         if (not i.is_null()) {
-          Data.push_back(QString::fromStdString(i.UID()));
+          Data.push_back(QString::fromStdString(i.full_name()));
         }
       }
     }
@@ -955,7 +955,8 @@ dbe::ObjectEditor::ParseToCreate(std::string const& objectname, std::string cons
            */
 
           for (auto const& element : editordata) {
-            object_relations[relation.p_name].push_back({ element.toStdString(), relation.p_type });
+            object_relations[relation.p_name].push_back(
+              config::api::info::relation::key(element.toStdString(), relation));
           }
         }
 
