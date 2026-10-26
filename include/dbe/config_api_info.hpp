@@ -75,6 +75,20 @@ match<std::string>(std::string const&, std::string const&);
  */
 bool
 is_simple(dunedaq::conffwk::relationship_t const&);
+
+/**
+ * Build the key of an object referenced through a relation from its textual representation
+ *
+ * The text can be either the object UID or its full name (UID@class), as displayed in the
+ * relation editors. The class part is used only if it is the class of the relation or
+ * a class derived from it, otherwise the whole text is taken as UID of the relation class.
+ *
+ * @param the object UID or full name
+ * @param the relation the object is referenced through
+ * @return the key identifying the object
+ */
+dbe::cokey
+key(std::string const&, dunedaq::conffwk::relationship_t const&);
 }
 
 class onclass
